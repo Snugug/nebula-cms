@@ -4,10 +4,20 @@
   "description": "A native CMS for Astro",
   "main": "index.js",
   "scripts": {
+    "lint": "prettier -c .",
+    "fix": "prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["cms", "astro"],
+  "keywords": [
+    "cms",
+    "astro"
+  ],
   "author": "Sam Richard<sam@snug.ug>",
   "license": "Apache-2.0",
-  "packageManager": "pnpm@10.26.0"
+  "packageManager": "pnpm@10.26.0",
+  "devDependencies": {
+    "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-svelte": "^3.5.1"
+  }
 }
