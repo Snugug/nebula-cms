@@ -103,11 +103,17 @@ describe('collectionsVitePlugin buildStart', () => {
 
     // Create the symlink on first call
     plugin.buildStart();
-    // Second call should not throw or change anything
+    // Second call should not throw, warn, or change anything
     plugin.buildStart();
 
-    const stat = lstatSync(resolve(tmpDir, 'public/collections'));
+    const target = resolve(tmpDir, 'public/collections');
+    const stat = lstatSync(target);
     expect(stat.isSymbolicLink()).toBe(true);
+    // Verify the symlink still points to the correct target
+    const resolvedLink = resolve(dirname(target), readlinkSync(target));
+    expect(resolvedLink).toBe(resolve(tmpDir, '.astro/collections'));
+    // Verify no warning was logged on the idempotent call
+    expect(logger.warn).not.toHaveBeenCalled();
   });
 
   it('replaces a symlink pointing to the wrong target', () => {
@@ -203,7 +209,9 @@ describe('collectionsVitePlugin load', () => {
     const result = plugin.load('\0virtual:collections');
 
     expect(result).toContain('"posts"');
+    expect(result).toContain('"/collections/posts.schema.json"');
     expect(result).toContain('"authors"');
+    expect(result).toContain('"/collections/authors.schema.json"');
   });
 
   it('ignores non-.schema.json files in the directory', () => {
