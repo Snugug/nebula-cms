@@ -59,3 +59,102 @@ describe('collectionsVitePlugin resolveId', () => {
     expect(plugin.resolveId('some-other-module')).toBeUndefined();
   });
 });
+
+//////////////////////////////
+// buildStart hook
+//////////////////////////////
+
+describe('collectionsVitePlugin buildStart', () => {
+  let tmpDir: string;
+  let logger: AstroIntegrationLogger;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'nebula-test-'));
+    logger = createMockLogger();
+    // buildStart expects public/ to exist as the symlink's parent directory
+    mkdirSync(resolve(tmpDir, 'public'), { recursive: true });
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('creates a relative symlink when source exists and target does not', () => {
+    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    plugin.buildStart();
+
+    const target = resolve(tmpDir, 'public/collections');
+    const stat = lstatSync(target);
+    expect(stat.isSymbolicLink()).toBe(true);
+
+    // Verify the symlink is relative, not absolute
+    const linkValue = readlinkSync(target);
+    const expected = relative(
+      resolve(tmpDir, 'public'),
+      resolve(tmpDir, '.astro/collections'),
+    );
+    expect(linkValue).toBe(expected);
+  });
+
+  it('no-ops when the correct symlink already exists', () => {
+    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+
+    // Create the symlink on first call
+    plugin.buildStart();
+    // Second call should not throw or change anything
+    plugin.buildStart();
+
+    const stat = lstatSync(resolve(tmpDir, 'public/collections'));
+    expect(stat.isSymbolicLink()).toBe(true);
+  });
+
+  it('replaces a symlink pointing to the wrong target', () => {
+    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
+    mkdirSync(resolve(tmpDir, 'wrong-target'), { recursive: true });
+
+    // Create a symlink pointing to the wrong place
+    const target = resolve(tmpDir, 'public/collections');
+    const wrongRel = relative(dirname(target), resolve(tmpDir, 'wrong-target'));
+    symlinkSync(wrongRel, target);
+
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    plugin.buildStart();
+
+    const resolvedLink = resolve(dirname(target), readlinkSync(target));
+    expect(resolvedLink).toBe(resolve(tmpDir, '.astro/collections'));
+  });
+
+  it('removes a real directory at the target and replaces with symlink', () => {
+    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
+    mkdirSync(resolve(tmpDir, 'public/collections'), { recursive: true });
+
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    plugin.buildStart();
+
+    const stat = lstatSync(resolve(tmpDir, 'public/collections'));
+    expect(stat.isSymbolicLink()).toBe(true);
+  });
+
+  it('removes a regular file at the target and replaces with symlink', () => {
+    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
+    writeFileSync(resolve(tmpDir, 'public/collections'), 'not a symlink');
+
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    plugin.buildStart();
+
+    const stat = lstatSync(resolve(tmpDir, 'public/collections'));
+    expect(stat.isSymbolicLink()).toBe(true);
+  });
+
+  it('warns and skips when .astro/collections does not exist', () => {
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    plugin.buildStart();
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('.astro/collections'),
+    );
+    expect(existsSync(resolve(tmpDir, 'public/collections'))).toBe(false);
+  });
+});
