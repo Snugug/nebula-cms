@@ -20,6 +20,9 @@
     "./types": {
       "types": "./dist/types.d.ts",
       "default": "./dist/types.js"
+    },
+    "./virtual": {
+      "types": "./dist/virtual.d.ts"
     }
   },
   "scripts": {
