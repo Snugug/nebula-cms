@@ -36,10 +36,15 @@ export default function NebulaCMS(): AstroIntegration {
 
 /**
  * Vite plugin that handles symlink creation and virtual module resolution.
+ * @internal Not part of the public API — exported for testing only
  * @param {AstroIntegrationLogger} logger - Astro integration logger for warnings
+ * @param {string} root - Project root directory, defaults to process.cwd()
  * @return {object} A Vite plugin object with buildStart, resolveId, and load hooks
  */
-function collectionsVitePlugin(logger: AstroIntegrationLogger) {
+export function collectionsVitePlugin(
+  logger: AstroIntegrationLogger,
+  root: string = process.cwd(),
+) {
   return {
     name: 'vite-plugin-nebula-cms',
 
@@ -48,7 +53,6 @@ function collectionsVitePlugin(logger: AstroIntegrationLogger) {
      * @return {void}
      */
     buildStart() {
-      const root = process.cwd();
       const source = resolve(root, '.astro/collections');
       const target = resolve(root, 'public/collections');
 
@@ -105,7 +109,6 @@ function collectionsVitePlugin(logger: AstroIntegrationLogger) {
     load(id: string) {
       if (id !== RESOLVED_ID) return;
 
-      const root = process.cwd();
       const collectionsDir = resolve(root, '.astro/collections');
 
       // Guard: return empty object if directory doesn't exist
