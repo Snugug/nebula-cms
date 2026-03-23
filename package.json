@@ -2,22 +2,57 @@
   "name": "nebula-cms",
   "version": "0.0.1",
   "description": "A native CMS for Astro",
-  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/astro/index.d.ts",
+      "default": "./dist/astro/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "svelte": "./dist/client/index.js",
+      "default": "./dist/client/index.js"
+    },
+    "./client/*.svelte": {
+      "types": "./dist/client/*.svelte.d.ts",
+      "svelte": "./dist/client/*.svelte"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    }
+  },
   "scripts": {
+    "build": "svelte-package --input src --output dist",
     "lint": "prettier -c .",
     "fix": "prettier --write .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "keywords": [
     "cms",
-    "astro"
+    "astro",
+    "astro-integration"
   ],
+  "peerDependencies": {
+    "astro": "^6.0.0",
+    "svelte": "^5.0.0",
+    "@astrojs/svelte": "^8.0.0"
+  },
   "author": "Sam Richard<sam@snug.ug>",
   "license": "Apache-2.0",
   "packageManager": "pnpm@10.26.0",
   "devDependencies": {
+    "@astrojs/svelte": "^8.0.3",
+    "@sveltejs/package": "^2.5.7",
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "@testing-library/svelte": "^5.3.1",
+    "@vitest/coverage-v8": "^4.1.0",
+    "astro": "^6.0.8",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-svelte": "^3.5.1"
+    "prettier-plugin-svelte": "^3.5.1",
+    "svelte": "^5.54.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
   }
 }
