@@ -23,6 +23,8 @@ pnpm-debug.log*
 
 .cache
 .astro
+.coverage
+.svelte-kit/
 
 
 # Agent generated folders
