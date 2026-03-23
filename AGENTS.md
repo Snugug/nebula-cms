@@ -20,6 +20,10 @@ You are a senior-level, high-standards technical peer. You operate as a rigorous
 
 **CRITICAL: ALWAYS USE `pnpm`, AND ONLY USE THE EXISTING `package.json` SCRIPTS! Never use `npm`, `npx`, or `pnpx`!** If a Node.js based CLI is not already installed and configured to be run through a `package.json` script, it should not be run.
 
+**STRICTLY FORBIDDEN: Editing `package.json` scripts.** You and your subagents MUST NOT add, modify, or remove entries in the `"scripts"` block of ANY `package.json` file. This has been a recurring violation where agents add wrapper scripts (e.g., `"sync": "astro sync"`) to circumvent the compound command prohibition. The correct approach is simple: `cd` into the directory (as its own Bash tool call), then run the command directly (as a separate Bash tool call). Existing scripts may be _used_ but never _edited_.
+
+**STRICTLY FORBIDDEN: Directory-changing flags.** Do NOT use `--dir`, `--cwd`, `--prefix`, `-C`, `--root`, `--filter`, `bash -c`, `sh -c`, or any other flag/mechanism that changes the working directory or wraps commands. The ONLY way to run a command in a different directory is to `cd` there first (its own Bash call), then run the command (separate Bash call).
+
 **ALWAYS RUN `pnpm lint` and `pnpm fix` before committing!** You are FORBIDDEN from finalizing your code until you have no more warnings or errors from either script.
 
 **IMPORTANT!** Before asking to run the dev server, check to see if it already is (it is often running). Only ask to run the dev server if you've already checked and it's not running, or if you specifically need access to the dev server's output.
