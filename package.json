@@ -26,7 +26,8 @@
     "build": "svelte-package --input src --output dist",
     "lint": "prettier -c .",
     "fix": "prettier --write .",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:continuous": "vitest"
   },
   "keywords": [
     "cms",
