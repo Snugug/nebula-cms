@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build"
+    "build": "astro build",
+    "sync": "astro sync"
   },
   "dependencies": {
     "nebula-cms": "link:..",
