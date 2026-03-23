@@ -158,3 +158,86 @@ describe('collectionsVitePlugin buildStart', () => {
     expect(existsSync(resolve(tmpDir, 'public/collections'))).toBe(false);
   });
 });
+
+//////////////////////////////
+// load hook
+//////////////////////////////
+
+describe('collectionsVitePlugin load', () => {
+  let tmpDir: string;
+  let logger: AstroIntegrationLogger;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'nebula-test-'));
+    logger = createMockLogger();
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('returns undefined for unrelated module IDs', () => {
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    expect(plugin.load('some-other-id')).toBeUndefined();
+  });
+
+  it('generates module source mapping collection name to schema URL', () => {
+    const dir = resolve(tmpDir, '.astro/collections');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
+
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    const result = plugin.load('\0virtual:collections');
+
+    expect(result).toContain('"posts"');
+    expect(result).toContain('"/collections/posts.schema.json"');
+  });
+
+  it('handles multiple schema files', () => {
+    const dir = resolve(tmpDir, '.astro/collections');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
+    writeFileSync(resolve(dir, 'authors.schema.json'), '{}');
+
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    const result = plugin.load('\0virtual:collections');
+
+    expect(result).toContain('"posts"');
+    expect(result).toContain('"authors"');
+  });
+
+  it('ignores non-.schema.json files in the directory', () => {
+    const dir = resolve(tmpDir, '.astro/collections');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
+    writeFileSync(resolve(dir, 'README.md'), '');
+
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    const result = plugin.load('\0virtual:collections');
+
+    expect(result).toContain('"posts"');
+    expect(result).not.toContain('README');
+  });
+
+  it('strips .schema.json suffix for collection names', () => {
+    const dir = resolve(tmpDir, '.astro/collections');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(resolve(dir, 'my-collection.schema.json'), '{}');
+
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    const result = plugin.load('\0virtual:collections');
+
+    expect(result).toContain('"my-collection"');
+    expect(result).not.toContain('.schema.json":');
+  });
+
+  it('returns empty default export and warns when directory is missing', () => {
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    const result = plugin.load('\0virtual:collections');
+
+    expect(result).toBe('export default {};');
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('.astro/collections'),
+    );
+  });
+});
