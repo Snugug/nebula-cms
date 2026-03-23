@@ -1,0 +1,15 @@
+{
+  "name": "nebula-cms-playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build"
+  },
+  "dependencies": {
+    "nebula-cms": "link:..",
+    "astro": "^6.0.0",
+    "@astrojs/svelte": "^8.0.0",
+    "svelte": "^5.0.0"
+  }
+}
