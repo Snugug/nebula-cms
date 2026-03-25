@@ -1,0 +1,16 @@
+{
+  "name": "Logo T-Shirt",
+  "price": 29.99,
+  "variants": [
+    {
+      "sku": "TS-BLK-M",
+      "color": "black",
+      "sizes": ["S", "M", "L", "XL"]
+    },
+    {
+      "sku": "TS-WHT-M",
+      "color": "white",
+      "sizes": ["S", "M", "L"]
+    }
+  ]
+}
