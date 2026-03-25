@@ -65,7 +65,54 @@ export default defineConfig({
       // Browser tests — Playwright via system Chrome
       //////////////////////////////
       {
-        plugins: [svelte()],
+        plugins: [
+          svelte(),
+          // Stub plugin that resolves virtual:collections and js-yaml for the
+          // browser test environment. The real virtual:collections plugin is
+          // injected by the Astro integration, which is not running during
+          // Vitest browser tests. js-yaml is a transitive dependency of
+          // ops.svelte.ts but is not installed as a devDependency. Both are
+          // mocked in tests, but Vite's dependency scanner and import analysis
+          // run before mocks are applied and would fail without resolvers.
+          {
+            name: 'stub-virtual-modules',
+            resolveId(id: string) {
+              if (id === 'virtual:collections') return '\0virtual:collections';
+              if (id === 'js-yaml') return '\0js-yaml';
+            },
+            load(id: string) {
+              if (id === '\0virtual:collections') return 'export default {};';
+              if (id === '\0js-yaml')
+                return 'export function dump() { return ""; } export function load() { return {}; }';
+            },
+          },
+        ],
+        // Exclude @testing-library/svelte-core from pre-bundling so its
+        // .svelte.js files go through the Svelte plugin's transform pipeline
+        // (Vite pre-bundling skips plugin transforms, which leaves $state
+        // runes uncompiled and causes ReferenceError at runtime).
+        optimizeDeps: {
+          exclude: ['@testing-library/svelte-core'],
+        },
+        // browser condition ensures Vite resolves Svelte's client-side entry
+        // instead of the SSR server entry. @codemirror/* and @lezer/* are
+        // runtime-only peer dependencies not installed as devDependencies —
+        // the same stub used by component tests is reused here.
+        resolve: {
+          conditions: ['browser'],
+          alias: [
+            {
+              find: /^@codemirror\/.+/,
+              replacement: new URL('tests/stubs/codemirror.ts', import.meta.url)
+                .pathname,
+            },
+            {
+              find: /^@lezer\/.+/,
+              replacement: new URL('tests/stubs/codemirror.ts', import.meta.url)
+                .pathname,
+            },
+          ],
+        },
         test: {
           name: 'browser',
           include: ['tests/e2e/**/*.test.ts'],
