@@ -34,9 +34,9 @@
     "astro-integration"
   ],
   "peerDependencies": {
+    "@astrojs/svelte": "^8.0.0",
     "astro": "^6.0.0",
-    "svelte": "^5.0.0",
-    "@astrojs/svelte": "^8.0.0"
+    "svelte": "^5.0.0"
   },
   "author": "Sam Richard<sam@snug.ug>",
   "license": "Apache-2.0",
@@ -46,8 +46,12 @@
     "@sveltejs/package": "^2.5.7",
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@testing-library/svelte": "^5.3.1",
+    "@vitest/browser": "^4.1.1",
+    "@vitest/browser-playwright": "^4.1.1",
     "@vitest/coverage-v8": "^4.1.0",
     "astro": "^6.0.8",
+    "fake-indexeddb": "^6.2.5",
+    "playwright": "^1.58.2",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-svelte": "^3.5.1",
