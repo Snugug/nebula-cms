@@ -37,6 +37,21 @@ export default defineConfig({
         // entry point instead of the SSR server entry, which does not have `mount`
         resolve: {
           conditions: ['browser'],
+          // @codemirror/* and @lezer/* are runtime-only peer dependencies not installed
+          // as devDependencies. Redirect them all to a single stub so EditorPane
+          // (and its transitive imports) can be loaded in the jsdom test environment.
+          alias: [
+            {
+              find: /^@codemirror\/.+/,
+              replacement: new URL('tests/stubs/codemirror.ts', import.meta.url)
+                .pathname,
+            },
+            {
+              find: /^@lezer\/.+/,
+              replacement: new URL('tests/stubs/codemirror.ts', import.meta.url)
+                .pathname,
+            },
+          ],
         },
         test: {
           name: 'components',
