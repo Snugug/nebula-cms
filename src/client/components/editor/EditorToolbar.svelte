@@ -69,7 +69,7 @@
   </header>
 {/if}
 
-<style lang="scss">
+<style>
   .toolbar {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -93,7 +93,7 @@
     color: var(--grey);
   }
 
-  // Always rendered to reserve space and prevent layout shift when toggling
+  /* Always rendered to reserve space and prevent layout shift when toggling */
   .dirty-indicator {
     color: transparent;
     font-size: 1.25rem;

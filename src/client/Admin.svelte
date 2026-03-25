@@ -304,9 +304,9 @@
   />
 {/if}
 
-<style lang="scss">
+<style>
   .admin {
-    // Lock to viewport height so the page never scrolls — all scrolling happens inside editor-content or sidebars
+    /* Lock to viewport height so the page never scrolls — all scrolling happens inside editor-content or sidebars */
     height: 100dvh;
   }
 
@@ -330,7 +330,7 @@
     border-left: 1px solid var(--dark-grey);
   }
 
-  // Scrollable content area; min-height: 0 allows the 1fr grid row to shrink
+  /* Scrollable content area; min-height: 0 allows the 1fr grid row to shrink */
   .editor-content {
     overflow-y: auto;
     overflow-x: hidden;

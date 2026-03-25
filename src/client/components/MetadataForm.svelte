@@ -48,7 +48,7 @@
   {/each}
 </div>
 
-<style lang="scss">
+<style>
   .metadata-form {
     display: grid;
     gap: 1.25rem;

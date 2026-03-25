@@ -282,11 +282,11 @@
   {@render arrayContent()}
 </fieldset>
 
-<style lang="scss">
+<style>
   .array-field {
     display: grid;
     gap: 0.5rem;
-    // Reset fieldset defaults when used for primitive arrays
+    /* Reset fieldset defaults when used for primitive arrays */
     border: none;
     margin: 0;
     padding: 0;

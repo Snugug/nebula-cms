@@ -203,7 +203,7 @@
   </div>
 {/if}
 
-<style lang="scss">
+<style>
   .array-item {
     border: 1px solid var(--dark-grey);
     border-radius: 4px;
@@ -211,7 +211,7 @@
     transition:
       opacity 0.15s,
       border-color 0.15s;
-    // Reset fieldset defaults
+    /* Reset fieldset defaults */
     margin: 0;
     padding: 0;
     min-width: 0;
@@ -243,7 +243,7 @@
     }
   }
 
-  // Chevron rotates 90deg when expanded (default), points right when collapsed
+  /* Chevron rotates 90deg when expanded (default), points right when collapsed */
   .array-item__collapse-icon {
     transition: transform 0.15s;
     transform: rotate(90deg);
@@ -254,20 +254,20 @@
     transform: rotate(0deg);
   }
 
-  // Consistent icon size for all Material Symbols in array items
+  /* Consistent icon size for all Material Symbols in array items */
   .material-symbols-outlined {
     font-size: 1.25rem;
-    // Ensure vertical centering in flex row
+    /* Ensure vertical centering in flex row */
     display: grid;
     place-items: center;
   }
 
-  // Smaller icons for action buttons (arrows + close)
+  /* Smaller icons for action buttons (arrows + close) */
   .array-item__btn .material-symbols-outlined {
     font-size: 1rem;
   }
 
-  // Legend rendered inline in the controls flex row, after the drag handle and chevron
+  /* Legend rendered inline in the controls flex row, after the drag handle and chevron */
   .array-item__legend {
     font-size: 0.875rem;
     color: var(--grey);
@@ -276,7 +276,7 @@
     white-space: nowrap;
     min-width: 0;
     margin-left: 0.25rem;
-    // Reset legend defaults so it participates in flex layout
+    /* Reset legend defaults so it participates in flex layout */
     padding: 0;
     float: unset;
     width: auto;
@@ -286,13 +286,13 @@
     flex: 1;
   }
 
-  // Primitive items: input fills space between drag handle and buttons
+  /* Primitive items: input fills space between drag handle and buttons */
   .array-item__inline-field {
     flex: 1;
     min-width: 0;
     margin: 0 0.5rem;
 
-    // Visually hide label/description — the parent ArrayField provides the visible label
+    /* Visually hide label/description — the parent ArrayField provides the visible label */
     :global(.field-label),
     :global(.field-help) {
       position: absolute;
@@ -310,7 +310,7 @@
     border: none;
     color: var(--grey);
     cursor: pointer;
-    // Minimal padding so action buttons sit tight together
+    /* Minimal padding so action buttons sit tight together */
     padding: 0;
     line-height: 1;
 
@@ -324,7 +324,7 @@
     }
   }
 
-  // Small gap before the remove button to visually separate it from arrows
+  /* Small gap before the remove button to visually separate it from arrows */
   .array-item__btn--remove {
     margin-left: 0.25rem;
 

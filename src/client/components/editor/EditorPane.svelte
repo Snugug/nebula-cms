@@ -197,7 +197,7 @@
   </div>
 </div>
 
-<style lang="scss">
+<style>
   .editor-wrapper {
     padding: 1.5rem;
     max-width: 80ch;
@@ -208,7 +208,7 @@
     border: 1px solid var(--dark-grey);
     border-radius: 4px;
     overflow: hidden;
-    // Subtract the toolbar, tabs, and wrapper padding from viewport height.
+    /* Subtract the toolbar, tabs, and wrapper padding from viewport height. */
     height: calc(100dvh - 9rem);
   }
 
@@ -217,29 +217,29 @@
     overflow: auto;
   }
 
-  // Fill the entire editor box so clicking anywhere starts editing, even on empty documents.
-  // cm-editor uses display:flex column by default — min-height stretches the container,
-  // and flex-grow on cm-scroller makes the scrollable/clickable area fill it.
+  /* Fill the entire editor box so clicking anywhere starts editing, even on empty documents.
+     cm-editor uses display:flex column by default — min-height stretches the container,
+     and flex-grow on cm-scroller makes the scrollable/clickable area fill it. */
   .editor-pane :global(.cm-editor) {
     min-height: 100%;
   }
 
   .editor-pane :global(.cm-scroller) {
     flex-grow: 1;
-    // CodeMirror sets align-items: flex-start which prevents cm-content from stretching
-    // vertically. Override to stretch so the editable area fills the entire scroller.
+    /* CodeMirror sets align-items: flex-start which prevents cm-content from stretching
+       vertically. Override to stretch so the editable area fills the entire scroller. */
     align-items: stretch !important;
   }
 
-  // Forces .cm-content to shrink below its longest word so overflow-wrap can break long URLs.
-  // min-height fills the scroller so the entire editor area is clickable on empty documents.
-  // Both need !important to override CodeMirror's inline theme styles.
+  /* Forces .cm-content to shrink below its longest word so overflow-wrap can break long URLs.
+     min-height fills the scroller so the entire editor area is clickable on empty documents.
+     Both need !important to override CodeMirror's inline theme styles. */
   .editor-pane :global(.cm-content) {
     min-width: 0 !important;
     min-height: 100% !important;
   }
 
-  // Wraps long URLs at word boundaries where possible, breaking mid-word only when necessary
+  /* Wraps long URLs at word boundaries where possible, breaking mid-word only when necessary */
   .editor-pane :global(.cm-link-wrap) {
     overflow-wrap: break-word;
     word-break: break-all;

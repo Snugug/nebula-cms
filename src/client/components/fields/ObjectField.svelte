@@ -106,7 +106,7 @@
   </fieldset>
 {/if}
 
-<style lang="scss">
+<style>
   .object-field {
     border: 1px solid var(--dark-grey);
     border-radius: 4px;
@@ -126,7 +126,7 @@
     margin-left: 0.25rem;
   }
 
-  // Inline mode: no border/padding, just stack the fields
+  /* Inline mode: no border/padding, just stack the fields */
   .object-field--inline {
     display: grid;
     gap: 1.25rem;

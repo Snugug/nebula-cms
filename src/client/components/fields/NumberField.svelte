@@ -126,13 +126,13 @@
   {/if}
 </div>
 
-<style lang="scss">
+<style>
   .field {
     display: grid;
     gap: 0.25rem;
   }
 
-  // Dimmed appearance for deprecated fields
+  /* Dimmed appearance for deprecated fields */
   .field--deprecated {
     opacity: 0.5;
   }

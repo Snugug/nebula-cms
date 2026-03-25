@@ -86,7 +86,7 @@
   </div>
 </dialog>
 
-<style lang="scss">
+<style>
   .filename-dialog {
     background: var(--near-black);
     color: var(--white);
@@ -96,7 +96,7 @@
     min-width: 20rem;
   }
 
-  // Backdrop for the modal overlay
+  /* Backdrop for the modal overlay */
   .filename-dialog::backdrop {
     background: rgba(0, 0, 0, 0.6);
   }

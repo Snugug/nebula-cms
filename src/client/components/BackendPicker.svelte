@@ -119,7 +119,7 @@
   </div>
 {/if}
 
-<style lang="scss">
+<style>
   .picker {
     display: grid;
     place-items: center;
@@ -144,7 +144,7 @@
 
   .picker-option {
     display: grid;
-    // auto rows for content, last row (button/form) aligns to bottom
+    /* auto rows for content, last row (button/form) aligns to bottom */
     grid-template-rows: auto auto 1fr;
     align-items: start;
     gap: 0.75rem;
@@ -164,7 +164,7 @@
       margin: 0;
     }
 
-    // Align the last child (button or form) to the bottom of the card
+    /* Align the last child (button or form) to the bottom of the card */
     > :last-child {
       align-self: end;
     }
@@ -180,7 +180,7 @@
     gap: 0.25rem;
   }
 
-  // Flex to align label text and info icon inline
+  /* Flex to align label text and info icon inline */
   .field-label {
     display: flex;
     align-items: center;
@@ -189,7 +189,7 @@
     color: var(--grey);
   }
 
-  // Override generic button styles for the inline info icon
+  /* Override generic button styles for the inline info icon */
   .info-btn {
     anchor-name: --pat-info-btn;
     interest-delay: 0s;
@@ -227,7 +227,7 @@
     text-align: left;
     font-size: 0.75rem;
 
-    // Invisible bridge so hover interest isn't broken by the gap
+    /* Invisible bridge so hover interest isn't broken by the gap */
     &::before {
       content: '';
       position: absolute;
@@ -238,7 +238,7 @@
     }
   }
 
-  // Higher specificity to override .picker-option p { color: var(--grey) }
+  /* Higher specificity to override .picker-option p { color: var(--grey) } */
   .pat-tooltip .pat-tooltip-heading {
     color: var(--white);
     margin: 0 0 0.25rem;

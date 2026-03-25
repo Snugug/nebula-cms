@@ -110,13 +110,13 @@
   {/if}
 </div>
 
-<style lang="scss">
+<style>
   .field {
     display: grid;
     gap: 0.25rem;
   }
 
-  // Dimmed appearance for deprecated fields
+  /* Dimmed appearance for deprecated fields */
   .field--deprecated {
     opacity: 0.5;
   }
@@ -154,7 +154,7 @@
     width: 100%;
   }
 
-  // Auto-grows with content; rows="3" sets minimum height
+  /* Auto-grows with content; rows="3" sets minimum height */
   .field-input--textarea {
     width: 100%;
     field-sizing: content;

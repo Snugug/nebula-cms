@@ -71,8 +71,8 @@
   {/each}
 </div>
 
-<style lang="scss">
-  // Shared icon size for sort button and popover options
+<style>
+  /* Shared icon size for sort button and popover options */
   .material-symbols-outlined {
     font-size: 1.25rem;
   }
@@ -93,7 +93,7 @@
     }
   }
 
-  // display: grid is in :popover-open to avoid overriding the UA's display: none on hidden popovers
+  /* display: grid is in :popover-open to avoid overriding the UA's display: none on hidden popovers */
   .sort-popover {
     position-anchor: --sort-btn;
     position: fixed;
@@ -105,10 +105,10 @@
     border: 1px solid var(--grey);
     border-radius: 0.25rem;
     padding: 0.25rem;
-    // Prevent width from changing when popover content changes
+    /* Prevent width from changing when popover content changes */
     min-width: 10rem;
 
-    // Invisible bridge between the sort button and popover so hover interest isn't broken by the gap
+    /* Invisible bridge between the sort button and popover so hover interest isn't broken by the gap */
     &::before {
       content: '';
       position: absolute;

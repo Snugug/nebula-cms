@@ -84,18 +84,18 @@
   {/if}
 </div>
 
-<style lang="scss">
+<style>
   .field {
     display: grid;
     gap: 0.25rem;
   }
 
-  // Dimmed appearance for deprecated fields
+  /* Dimmed appearance for deprecated fields */
   .field--deprecated {
     opacity: 0.5;
   }
 
-  // Label wraps checkbox + text in a flex row — no separate label above
+  /* Label wraps checkbox + text in a flex row — no separate label above */
   .field-label-wrap {
     display: flex;
     align-items: center;
@@ -134,7 +134,7 @@
   .field-help {
     font-size: 0.75rem;
     color: var(--grey);
-    // Indent to align under the label text, past the checkbox
+    /* Indent to align under the label text, past the checkbox */
     padding-left: 1.5rem;
   }
 </style>

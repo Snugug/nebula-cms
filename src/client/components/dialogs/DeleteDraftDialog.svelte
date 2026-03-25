@@ -33,9 +33,9 @@
   </div>
 </dialog>
 
-<style lang="scss">
-  // dialog renders in the top layer — CSS custom properties may not be inherited,
-  // so use a hardcoded fallback for the background
+<style>
+  /* dialog renders in the top layer — CSS custom properties may not be inherited,
+     so use a hardcoded fallback for the background */
   .confirm-dialog {
     background: var(--near-black, #1e1e22);
     color: var(--white, #e0e0e0);
@@ -45,7 +45,7 @@
     min-width: 18rem;
   }
 
-  // Backdrop for the modal overlay
+  /* Backdrop for the modal overlay */
   .confirm-dialog::backdrop {
     background: rgba(0, 0, 0, 0.6);
   }

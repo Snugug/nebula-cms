@@ -182,7 +182,7 @@
   {/if}
 </nav>
 
-<style lang="scss">
+<style>
   .sidebar {
     display: grid;
     grid-template-rows: auto 1fr auto;
@@ -254,14 +254,14 @@
     color: var(--white);
     text-decoration: none;
     font-size: 1rem;
-    // Override global link box-shadow underline — sidebar items use background highlight instead
+    /* Override global link box-shadow underline — sidebar items use background highlight instead */
     box-shadow: none;
 
     &:hover {
       background: var(--dark-grey);
     }
 
-    // Active highlight extends to sidebar edges with no border-radius
+    /* Active highlight extends to sidebar edges with no border-radius */
     &[aria-current='page'] {
       background: var(--plum);
     }
@@ -295,7 +295,7 @@
     }
   }
 
-  // Flex is appropriate here because chips need inline flow with wrapping
+  /* Flex is appropriate here because chips need inline flow with wrapping */
   .item-label-row {
     display: flex;
     align-items: center;
@@ -304,7 +304,7 @@
   }
 
   .item-label-text {
-    // Prevent long titles from pushing chips to a new line unnecessarily
+    /* Prevent long titles from pushing chips to a new line unnecessarily */
     min-width: 0;
   }
 
@@ -313,7 +313,7 @@
     padding: 0.75rem 1rem;
   }
 
-  // Flex is appropriate here for inline icon + text alignment
+  /* Flex is appropriate here for inline icon + text alignment */
   .logout-btn {
     background: none;
     border: none;

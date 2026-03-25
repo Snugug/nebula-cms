@@ -42,8 +42,8 @@
   {/each}
 </nav>
 
-<style lang="scss">
-  // Tab bar sits below the editor toolbar, separated by a border
+<style>
+  /* Tab bar sits below the editor toolbar, separated by a border */
   .tabs {
     display: flex;
     border-bottom: 1px solid var(--dark-grey);
@@ -55,7 +55,7 @@
     color: var(--grey);
     background: none;
     border: none;
-    // Bottom border reserves space to avoid layout shift on active state
+    /* Bottom border reserves space to avoid layout shift on active state */
     border-bottom: 2px solid transparent;
     cursor: pointer;
 
