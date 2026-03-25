@@ -1,0 +1,8 @@
+{
+  "name": "Jane Doe",
+  "bio": "Technical writer and web developer.",
+  "social": {
+    "github": "janedoe",
+    "twitter": "janedoe"
+  }
+}

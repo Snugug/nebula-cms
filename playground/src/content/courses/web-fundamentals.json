@@ -1,0 +1,29 @@
+{
+  "title": "Web Fundamentals",
+  "instructor": {
+    "name": "Dr. Smith",
+    "credentials": [
+      {
+        "institution": "MIT",
+        "year": 2015
+      }
+    ]
+  },
+  "modules": [
+    {
+      "title": "HTML Basics",
+      "lessons": [
+        {
+          "title": "Document Structure",
+          "duration": 30,
+          "resources": [
+            {
+              "type": "video",
+              "url": "https://example.com/html-structure"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

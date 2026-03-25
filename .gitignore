@@ -24,6 +24,7 @@ pnpm-debug.log*
 .cache
 .astro
 .coverage
+playground/public/collections
 .svelte-kit/
 
 

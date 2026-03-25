@@ -1,5 +1,5 @@
 ---
-// Smoke-test page for nebula-cms development
+import collections from 'virtual:collections';
 ---
 
 <html lang="en">
@@ -10,6 +10,16 @@
   </head>
   <body>
     <h1>nebula-cms playground</h1>
-    <p>Integration loaded successfully.</p>
+    <ul>
+      {
+        Object.entries(collections).map(([name, url]) => (
+          <li data-collection={name}>
+            <a href={url}>
+              {name}: {url}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
   </body>
 </html>
