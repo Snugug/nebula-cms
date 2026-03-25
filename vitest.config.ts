@@ -9,18 +9,40 @@ export default defineConfig({
     // search stops here rather than walking up to the parent repo root.
     projects: [
       //////////////////////////////
-      // Unit tests — Node.js environment
+      // Unit tests — Node.js environment (pure JS/TS, no DOM)
       //////////////////////////////
       {
         plugins: [svelte()],
         test: {
           name: 'unit',
-          include: ['tests/**/*.test.ts', '!tests/e2e/**'],
+          include: [
+            'tests/**/*.test.ts',
+            '!tests/e2e/**',
+            '!tests/**/*components*/**',
+          ],
           setupFiles: ['tests/setup.ts'],
           coverage: {
             provider: 'v8',
             reportsDirectory: '.coverage',
           },
+        },
+      },
+
+      //////////////////////////////
+      // Component tests — jsdom environment (Svelte components via @testing-library/svelte)
+      //////////////////////////////
+      {
+        plugins: [svelte()],
+        // browser condition is required so Vite resolves Svelte's client-side
+        // entry point instead of the SSR server entry, which does not have `mount`
+        resolve: {
+          conditions: ['browser'],
+        },
+        test: {
+          name: 'components',
+          environment: 'jsdom',
+          include: ['tests/**/components/**/*.test.ts'],
+          setupFiles: ['tests/setup.ts'],
         },
       },
 

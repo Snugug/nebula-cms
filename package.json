@@ -51,6 +51,7 @@
     "@vitest/coverage-v8": "^4.1.0",
     "astro": "^6.0.8",
     "fake-indexeddb": "^6.2.5",
+    "jsdom": "^29.0.1",
     "playwright": "^1.58.2",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
