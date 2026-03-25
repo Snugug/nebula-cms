@@ -13,10 +13,6 @@
       "svelte": "./dist/client/index.js",
       "default": "./dist/client/index.js"
     },
-    "./client/*.svelte": {
-      "types": "./dist/client/*.svelte.d.ts",
-      "svelte": "./dist/client/*.svelte"
-    },
     "./types": {
       "types": "./dist/types.d.ts",
       "default": "./dist/types.js"
