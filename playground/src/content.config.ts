@@ -3,7 +3,9 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 //////////////////////////////
-// Content collection definitions for the playground. These exercise a range of schema shapes: flat fields, cross-collection references, nested objects, and deeply nested arrays of objects.
+// Content collection definitions for the playground.
+//
+// These exercise a range of schema shapes: flat fields, cross-collection references, nested objects, and deeply nested arrays of objects.
 //////////////////////////////
 
 // Simple flat schema with a cross-collection reference
