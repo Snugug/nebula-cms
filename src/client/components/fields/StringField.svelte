@@ -1,8 +1,9 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
+  import FieldWrapper from './FieldWrapper.svelte';
 
   /**
-   * Props for the StringField component, which renders a labeled text input or textarea for a JSON Schema string property.
+   * Props for the StringField component, which renders a text input or textarea for a JSON Schema string property.
    */
   interface Props {
     // Field name used as the input id and label fallback
@@ -19,23 +20,6 @@
 
   let { name, schema, value, required = false, onchange }: Props = $props();
 
-  /**
-   * Converts a name string to Title Case, splitting on camelCase, hyphens, and underscores.
-   * @param {string} str - The raw property name to convert
-   * @return {string} The title-cased display string
-   */
-  function toTitleCase(str: string): string {
-    return str
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/[-_]/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase());
-  }
-
-  // Display label — schema.title if present, otherwise title-cased name
-  const label = $derived(
-    (schema['title'] as string | undefined) ?? toTitleCase(name),
-  );
-
   // Current string value for the input
   const inputValue = $derived(typeof value === 'string' ? value : '');
 
@@ -45,20 +29,19 @@
   // Pattern constraint from schema, if any
   const pattern = $derived(schema['pattern'] as string | undefined);
 
-  // Description from schema
-  const description = $derived(schema['description'] as string | undefined);
-
   // Whether field is read-only
   const readOnly = $derived(!!(schema['readOnly'] as boolean | undefined));
-
-  // Whether field is deprecated — dims the entire field
-  const deprecated = $derived(!!(schema['deprecated'] as boolean | undefined));
 
   // Whether empty input should emit null (nullable anyOf-unwrapped types)
   const nullable = $derived(!!(schema['_nullable'] as boolean | undefined));
 
   // Whether to render as a textarea (widget: "textarea" in schema meta)
   const isTextarea = $derived(schema['widget'] === 'textarea');
+
+  // Constraint text for the help line
+  const constraintText = $derived(
+    maxLength != null ? `max ${maxLength}` : undefined,
+  );
 
   /**
    * Handles input change, emitting null for empty nullable fields.
@@ -71,12 +54,7 @@
   }
 </script>
 
-<div class="field" class:field--deprecated={deprecated}>
-  <label class="field-label" for={name}>
-    {label}{#if required}<span class="field-required" aria-hidden="true">*</span
-      >{/if}
-  </label>
-
+<FieldWrapper {name} {schema} {required} {constraintText}>
   {#if isTextarea}
     <textarea
       id={name}
@@ -98,39 +76,9 @@
       oninput={handleChange}
     />
   {/if}
-
-  {#if description || maxLength != null}
-    <p class="field-help">
-      {#if description}{description}{/if}
-      {#if description && maxLength != null}&ensp;{/if}
-      {#if maxLength != null}<span class="field-constraint"
-          >max {maxLength}</span
-        >{/if}
-    </p>
-  {/if}
-</div>
+</FieldWrapper>
 
 <style>
-  .field {
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  /* Dimmed appearance for deprecated fields */
-  .field--deprecated {
-    opacity: 0.5;
-  }
-
-  .field-label {
-    font-size: 0.875rem;
-    color: var(--white);
-  }
-
-  .field-required {
-    color: var(--light-red);
-    margin-left: 0.25rem;
-  }
-
   .field-input {
     background: var(--near-black, #2a2a2e);
     border: 1px solid var(--dark-grey);
@@ -161,14 +109,5 @@
     resize: none;
     font-family: inherit;
     line-height: 1.5;
-  }
-
-  .field-help {
-    font-size: 0.75rem;
-    color: var(--grey);
-  }
-
-  .field-constraint {
-    font-style: italic;
   }
 </style>

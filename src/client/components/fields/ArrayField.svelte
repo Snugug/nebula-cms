@@ -4,6 +4,7 @@
     createDefaultValue,
     resolveFieldType,
   } from '../../js/utils/schema-utils';
+  import { toTitleCase } from '../../js/utils/format';
   import ArrayItem from './ArrayItem.svelte';
 
   /**
@@ -43,18 +44,6 @@
 
   // Maximum number of items allowed (from schema)
   const maxItems = $derived(schema['maxItems'] as number | undefined);
-
-  /**
-   * Converts a name string to Title Case, splitting on camelCase, hyphens, and underscores.
-   * @param {string} str - The raw property name to convert
-   * @return {string} The title-cased display string
-   */
-  function toTitleCase(str: string): string {
-    return str
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/[-_]/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase());
-  }
 
   // Display label — schema.title if present, otherwise title-cased name
   const label = $derived(

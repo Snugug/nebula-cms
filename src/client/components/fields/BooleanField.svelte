@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
+  import { toTitleCase } from '../../js/utils/format';
+  import FieldWrapper from './FieldWrapper.svelte';
 
   /**
    * Props for the BooleanField component, which renders a labeled checkbox for a JSON Schema boolean property.
@@ -19,18 +21,6 @@
 
   let { name, schema, value, required = false, onchange }: Props = $props();
 
-  /**
-   * Converts a name string to Title Case, splitting on camelCase, hyphens, and underscores.
-   * @param {string} str - The raw property name to convert
-   * @return {string} The title-cased display string
-   */
-  function toTitleCase(str: string): string {
-    return str
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/[-_]/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase());
-  }
-
   // Display label — schema.title if present, otherwise title-cased name
   const label = $derived(
     (schema['title'] as string | undefined) ?? toTitleCase(name),
@@ -39,14 +29,8 @@
   // Checked state for the checkbox
   const checked = $derived(typeof value === 'boolean' ? value : false);
 
-  // Description from schema
-  const description = $derived(schema['description'] as string | undefined);
-
   // Whether field is read-only
   const readOnly = $derived(!!(schema['readOnly'] as boolean | undefined));
-
-  // Whether field is deprecated — dims the entire field
-  const deprecated = $derived(!!(schema['deprecated'] as boolean | undefined));
 
   // Whether empty input should emit null (nullable anyOf-unwrapped types)
   const nullable = $derived(!!(schema['_nullable'] as boolean | undefined));
@@ -62,7 +46,7 @@
   }
 </script>
 
-<div class="field" class:field--deprecated={deprecated}>
+<FieldWrapper {name} {schema} {required} hideLabel={true}>
   <label class="field-label-wrap" for={name}>
     <input
       type="checkbox"
@@ -78,23 +62,9 @@
         >{/if}
     </span>
   </label>
-
-  {#if description}
-    <p class="field-help">{description}</p>
-  {/if}
-</div>
+</FieldWrapper>
 
 <style>
-  .field {
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  /* Dimmed appearance for deprecated fields */
-  .field--deprecated {
-    opacity: 0.5;
-  }
-
   /* Label wraps checkbox + text in a flex row — no separate label above */
   .field-label-wrap {
     display: flex;
@@ -129,12 +99,5 @@
   .field-required {
     color: var(--light-red);
     margin-left: 0.25rem;
-  }
-
-  .field-help {
-    font-size: 0.75rem;
-    color: var(--grey);
-    /* Indent to align under the label text, past the checkbox */
-    padding-left: 1.5rem;
   }
 </style>

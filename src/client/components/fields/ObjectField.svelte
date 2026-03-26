@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
+  import { toTitleCase } from '../../js/utils/format';
   import SchemaField from './SchemaField.svelte';
 
   /**
@@ -28,18 +29,6 @@
     onchange,
     inline = false,
   }: Props = $props();
-
-  /**
-   * Converts a name string to Title Case, splitting on camelCase, hyphens, and underscores.
-   * @param {string} str - The raw property name to convert
-   * @return {string} The title-cased display string
-   */
-  function toTitleCase(str: string): string {
-    return str
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/[-_]/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase());
-  }
 
   // Display label from schema title or property name
   const label = $derived(

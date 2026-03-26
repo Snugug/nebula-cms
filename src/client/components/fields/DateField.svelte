@@ -1,8 +1,9 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
+  import FieldWrapper from './FieldWrapper.svelte';
 
   /**
-   * Props for the DateField component, which renders a labeled date input for a JSON Schema string property with format "date-time".
+   * Props for the DateField component, which renders a date input for a JSON Schema string property with format "date-time".
    */
   interface Props {
     // Field name used as the input id and label fallback
@@ -18,18 +19,6 @@
   }
 
   let { name, schema, value, required = false, onchange }: Props = $props();
-
-  /**
-   * Converts a name string to Title Case, splitting on camelCase, hyphens, and underscores.
-   * @param {string} str - The raw property name to convert
-   * @return {string} The title-cased display string
-   */
-  function toTitleCase(str: string): string {
-    return str
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/[-_]/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase());
-  }
 
   /**
    * Converts a Date or ISO string to YYYY-MM-DD for the date input, or empty string if unset.
@@ -51,22 +40,11 @@
     return '';
   }
 
-  // Display label — schema.title if present, otherwise title-cased name
-  const label = $derived(
-    (schema['title'] as string | undefined) ?? toTitleCase(name),
-  );
-
   // YYYY-MM-DD string for the date input element
   const inputValue = $derived(toDateInputValue(value));
 
-  // Description from schema
-  const description = $derived(schema['description'] as string | undefined);
-
   // Whether field is read-only
   const readOnly = $derived(!!(schema['readOnly'] as boolean | undefined));
-
-  // Whether field is deprecated — dims the entire field
-  const deprecated = $derived(!!(schema['deprecated'] as boolean | undefined));
 
   // Whether empty input should emit null (nullable anyOf-unwrapped types)
   const nullable = $derived(!!(schema['_nullable'] as boolean | undefined));
@@ -82,12 +60,7 @@
   }
 </script>
 
-<div class="field" class:field--deprecated={deprecated}>
-  <label class="field-label" for={name}>
-    {label}{#if required}<span class="field-required" aria-hidden="true">*</span
-      >{/if}
-  </label>
-
+<FieldWrapper {name} {schema} {required}>
   <input
     type="date"
     id={name}
@@ -96,33 +69,9 @@
     readonly={readOnly}
     oninput={handleChange}
   />
-
-  {#if description}
-    <p class="field-help">{description}</p>
-  {/if}
-</div>
+</FieldWrapper>
 
 <style>
-  .field {
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  /* Dimmed appearance for deprecated fields */
-  .field--deprecated {
-    opacity: 0.5;
-  }
-
-  .field-label {
-    font-size: 0.875rem;
-    color: var(--white);
-  }
-
-  .field-required {
-    color: var(--light-red);
-    margin-left: 0.25rem;
-  }
-
   .field-input {
     width: auto;
     background: var(--near-black, #2a2a2e);
@@ -143,10 +92,5 @@
       opacity: 0.6;
       cursor: default;
     }
-  }
-
-  .field-help {
-    font-size: 0.75rem;
-    color: var(--grey);
   }
 </style>
