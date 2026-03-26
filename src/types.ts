@@ -1,7 +1,12 @@
 /**
- * Placeholder configuration for nebula-cms.
- * Will be expanded as the CMS feature set is defined.
+ * Configuration options for the nebula-cms Astro integration.
  */
 export interface NebulaCMSConfig {
-  // Configuration options will be added here
+  /**
+   * Folder name inside `public/` where the collections symlink is placed.
+   * Also determines the URL prefix for schema files in the virtual module.
+   * Must be a bare path segment (no leading `/`, no `..`, no absolute paths).
+   * @default 'collections'
+   */
+  collectionsPath?: string;
 }

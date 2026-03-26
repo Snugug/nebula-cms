@@ -1,6 +1,7 @@
 import {
   existsSync,
   lstatSync,
+  mkdirSync,
   readlinkSync,
   readdirSync,
   rmSync,
@@ -9,24 +10,41 @@ import {
 } from 'node:fs';
 import { resolve, relative, dirname } from 'node:path';
 import type { AstroIntegration, AstroIntegrationLogger } from 'astro';
+import type { NebulaCMSConfig } from '../types.js';
 
 // Vite virtual module ID for collection schema paths
 const VIRTUAL_ID = 'virtual:collections';
 // Vite convention: resolved virtual IDs are prefixed with \0
 const RESOLVED_ID = '\0' + VIRTUAL_ID;
 
+// Bare path segment: no slashes, no .., no absolute paths, no empty string
+const VALID_PATH_SEGMENT = /^[a-zA-Z0-9_-]+$/;
+
 /**
  * Astro integration that exposes content collection JSON schemas to client-side JavaScript via a symlink and virtual module.
+ * @param {NebulaCMSConfig} config - Optional configuration object
  * @return {AstroIntegration} The configured Astro integration object
  */
-export default function NebulaCMS(): AstroIntegration {
+export default function NebulaCMS(
+  config: NebulaCMSConfig = {},
+): AstroIntegration {
+  const collectionsPath = config.collectionsPath ?? 'collections';
+
+  if (!VALID_PATH_SEGMENT.test(collectionsPath)) {
+    throw new Error(
+      `Invalid collectionsPath "${collectionsPath}". Must be a bare path segment (letters, numbers, hyphens, underscores).`,
+    );
+  }
+
   return {
     name: 'nebula-cms',
     hooks: {
       'astro:config:setup': ({ updateConfig, logger }) => {
         updateConfig({
           vite: {
-            plugins: [collectionsVitePlugin(logger)],
+            plugins: [
+              collectionsVitePlugin(logger, process.cwd(), collectionsPath),
+            ],
           },
         });
       },
@@ -39,22 +57,24 @@ export default function NebulaCMS(): AstroIntegration {
  * @internal Not part of the public API — exported for testing only
  * @param {AstroIntegrationLogger} logger - Astro integration logger for warnings
  * @param {string} root - Project root directory, defaults to process.cwd()
+ * @param {string} collectionsPath - Folder name inside public/ for the symlink, defaults to 'collections'
  * @return {object} A Vite plugin object with buildStart, resolveId, and load hooks
  */
 export function collectionsVitePlugin(
   logger: AstroIntegrationLogger,
   root: string = process.cwd(),
+  collectionsPath: string = 'collections',
 ) {
   return {
     name: 'vite-plugin-nebula-cms',
 
     /**
-     * Creates symlink from public/collections to .astro/collections.
+     * Creates symlink from public/<collectionsPath> to .astro/collections.
      * @return {void}
      */
     buildStart() {
       const source = resolve(root, '.astro/collections');
-      const target = resolve(root, 'public/collections');
+      const target = resolve(root, 'public', collectionsPath);
 
       // Guard: skip if .astro/collections doesn't exist yet
       if (!existsSync(source)) {
@@ -86,6 +106,9 @@ export function collectionsVitePlugin(
           unlinkSync(target);
         }
       }
+
+      // Ensure the symlink's parent directory exists (e.g. public/ may not exist on a clean clone)
+      mkdirSync(dirname(target), { recursive: true });
 
       // Create relative symlink for portability
       const relPath = relative(dirname(target), source);
@@ -125,7 +148,7 @@ export function collectionsVitePlugin(
 
       const entries = files.map((f) => {
         const name = f.replace('.schema.json', '');
-        return `  ${JSON.stringify(name)}: ${JSON.stringify('/collections/' + f)}`;
+        return `  ${JSON.stringify(name)}: ${JSON.stringify('/' + collectionsPath + '/' + f)}`;
       });
 
       return `export default {\n${entries.join(',\n')}\n};`;
