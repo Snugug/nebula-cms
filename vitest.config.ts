@@ -76,10 +76,20 @@ export default defineConfig({
           // run before mocks are applied and would fail without resolvers.
           {
             name: 'stub-virtual-modules',
+            /**
+             * Resolves virtual:collections and js-yaml to internal stubs so Vite's dependency scanner doesn't fail before mocks apply.
+             * @param {string} id - The module specifier to resolve
+             * @return {string | undefined} The resolved internal ID, or undefined to skip
+             */
             resolveId(id: string) {
               if (id === 'virtual:collections') return '\0virtual:collections';
               if (id === 'js-yaml') return '\0js-yaml';
             },
+            /**
+             * Provides stub module source for virtual:collections and js-yaml.
+             * @param {string} id - The internal module ID to load
+             * @return {string | undefined} The module source code, or undefined to skip
+             */
             load(id: string) {
               if (id === '\0virtual:collections') return 'export default {};';
               if (id === '\0js-yaml')

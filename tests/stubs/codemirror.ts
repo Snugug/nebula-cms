@@ -5,8 +5,10 @@
  * specifier here so EditorPane can be imported without resolution failures.
  */
 
-// Noop class standing in for EditorView
-// Static members must cover all call sites in EditorPane, link-wrap, and markdown-shortcuts.
+/**
+ * Noop class standing in for CodeMirror's EditorView.
+ * Static members cover all call sites in EditorPane, link-wrap, and markdown-shortcuts.
+ */
 export class EditorView {
   static theme = () => ({});
   static lineWrapping = {};
@@ -16,9 +18,31 @@ export class EditorView {
   static domEventHandlers = () => ({});
   // Used by markdown-shortcuts for bracket/quote wrapping
   static inputHandler = { of: () => ({}) };
+
+  /**
+   * Noop replacement for EditorView.destroy().
+   * @return {void}
+   */
   destroy() {}
-  setState() {}
-  dispatch() {}
+
+  /**
+   * Noop replacement for EditorView.setState().
+   * @param {unknown} _state - Ignored
+   * @return {void}
+   */
+  setState(_state?: unknown) {}
+
+  /**
+   * Noop replacement for EditorView.dispatch().
+   * @param {unknown} _tr - Ignored
+   * @return {void}
+   */
+  dispatch(_tr?: unknown) {}
+
+  /**
+   * Stub getter returning a minimal EditorState-like shape.
+   * @return {{ selection: { main: { from: number, to: number, empty: boolean } }, changeByRange: Function, sliceDoc: Function }}
+   */
   get state() {
     return {
       selection: { main: { from: 0, to: 0, empty: true } },
@@ -38,12 +62,20 @@ export const keymap = { of: () => ({}) };
 
 // Command stubs
 export const defaultKeymap: unknown[] = [];
+
+/**
+ * Noop replacement for CodeMirror's history extension.
+ * @return {Record<string, never>} Empty object
+ */
 export function history() {
   return {};
 }
 export const historyKeymap: unknown[] = [];
 
-// Markdown language stubs
+/**
+ * Noop replacement for CodeMirror's markdown language extension.
+ * @return {Record<string, never>} Empty object
+ */
 export function markdown() {
   return {};
 }
@@ -52,7 +84,10 @@ export const markdownLanguage = {};
 // Language data stub
 export const languages: unknown[] = [];
 
-// Highlight stubs
+/**
+ * Noop replacement for CodeMirror's syntaxHighlighting extension.
+ * @return {Record<string, never>} Empty object
+ */
 export function syntaxHighlighting() {
   return {};
 }
@@ -74,15 +109,30 @@ export const Decoration = {
   set: () => ({}),
 };
 
-// RangeSetBuilder stub (used by link-wrap)
+/**
+ * Noop replacement for CodeMirror's RangeSetBuilder.
+ * Used by link-wrap to build decoration sets.
+ */
 export class RangeSetBuilder {
-  add() {}
+  /**
+   * Noop replacement for RangeSetBuilder.add().
+   * @param {unknown} _from - Ignored
+   * @param {unknown} _to - Ignored
+   * @param {unknown} _value - Ignored
+   * @return {void}
+   */
+  add(_from?: unknown, _to?: unknown, _value?: unknown) {}
+
+  /**
+   * Noop replacement for RangeSetBuilder.finish().
+   * @return {Record<string, never>} Empty object standing in for a DecorationSet
+   */
   finish() {
     return {};
   }
 }
 
-// Svelte selection stub (used by markdown-shortcuts)
+// EditorSelection stub (used by markdown-shortcuts)
 export const EditorSelection = {
   cursor: () => ({}),
   range: () => ({}),
@@ -100,15 +150,24 @@ export const tags = new Proxy(
   },
 );
 
-// syntaxTree stub (used by link-wrap and markdown-shortcuts)
+/**
+ * Noop replacement for CodeMirror's syntaxTree function.
+ * Used by link-wrap and markdown-shortcuts for AST traversal.
+ * @return {{ cursor: Function }} Minimal tree stub
+ */
 export function syntaxTree() {
   return { cursor: () => ({ next: () => false }) };
 }
 
-// isUrl stub (used by markdown-shortcuts)
+/**
+ * Stub for url-utils isUrl. Always returns false in the test environment.
+ * @return {boolean} Always false
+ */
 export function isUrl() {
   return false;
 }
 
-// KeyBinding type — only used as a TypeScript type, no runtime value needed
+/**
+ * Stub type standing in for CodeMirror's KeyBinding interface.
+ */
 export type KeyBinding = unknown;
