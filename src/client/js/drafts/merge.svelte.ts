@@ -65,35 +65,33 @@ export async function mergeDrafts(collection: string): Promise<void> {
     return;
   }
 
-  // Build diff entries by reading each candidate's live file via StorageClient
-  const entries: {
-    draftId: string;
-    snapshot: string;
-    liveFormData: Record<string, unknown>;
-    liveBody: string;
-  }[] = [];
-
-  for (const d of candidates) {
-    try {
-      const text = await client.readFile(collection, d.filename!);
-      const { rawFrontmatter, body } = splitFrontmatter(text);
-      // Parse frontmatter to get live form data
-      const { load } = await import('js-yaml');
-      const liveFormData = (load(rawFrontmatter) ?? {}) as Record<
-        string,
-        unknown
-      >;
-      const liveBody = body.replace(/^\n+/, '').replace(/\n+$/, '');
-      entries.push({
-        draftId: d.id,
-        snapshot: d.snapshot!,
-        liveFormData,
-        liveBody,
-      });
-    } catch {
-      // File not found or unreadable — skip
-    }
-  }
+  // Read all candidate files in parallel instead of sequentially.
+  // js-yaml is dynamically imported because it's a transitive dep, not a direct devDependency.
+  // The import is cached after the first resolution so only the first candidate pays the cost.
+  const settled = await Promise.all(
+    candidates.map(async (d) => {
+      try {
+        const text = await client.readFile(collection, d.filename!);
+        const { rawFrontmatter, body } = splitFrontmatter(text);
+        const { load } = await import('js-yaml');
+        const liveFormData = (load(rawFrontmatter) ?? {}) as Record<
+          string,
+          unknown
+        >;
+        const liveBody = body.replace(/^\n+/, '').replace(/\n+$/, '');
+        return {
+          draftId: d.id,
+          snapshot: d.snapshot!,
+          liveFormData,
+          liveBody,
+        };
+      } catch {
+        // File not found or unreadable — skip
+        return null;
+      }
+    }),
+  );
+  const entries = settled.filter((e): e is NonNullable<typeof e> => e !== null);
 
   if (entries.length === 0) {
     outdatedMap = {};

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
   import { extractTabs } from '../../js/utils/schema-utils';
+  import { toTitleCase } from '../../js/utils/format';
   import { getActiveTab, setActiveTab } from '../../js/editor/editor.svelte';
 
   /**
@@ -33,11 +34,7 @@
       aria-selected={activeTab === tab}
       role="tab"
     >
-      {tab === 'metadata'
-        ? 'Metadata'
-        : tab === 'body'
-          ? 'Body'
-          : tab.charAt(0).toUpperCase() + tab.slice(1)}
+      {toTitleCase(tab)}
     </button>
   {/each}
 </nav>

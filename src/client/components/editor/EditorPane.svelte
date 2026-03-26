@@ -158,25 +158,19 @@
 
     const fileKey = file.draftId ?? file.filename;
 
+    const newState = EditorState.create({
+      doc: file.body,
+      extensions: createExtensions(file.body),
+    });
+
     if (!view && container) {
       // First mount — create the editor
       lastFileKey = fileKey;
-      view = new EditorView({
-        state: EditorState.create({
-          doc: file.body,
-          extensions: createExtensions(file.body),
-        }),
-        parent: container,
-      });
+      view = new EditorView({ state: newState, parent: container });
     } else if (view && fileKey !== lastFileKey) {
       // Different file selected — replace document
       lastFileKey = fileKey;
-      view.setState(
-        EditorState.create({
-          doc: file.body,
-          extensions: createExtensions(file.body),
-        }),
-      );
+      view.setState(newState);
     }
   });
 

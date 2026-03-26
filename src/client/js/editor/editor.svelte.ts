@@ -68,6 +68,7 @@ export function applyEditorState(c: EditorStateConfig, open: boolean): void {
   body = c.body;
   lastSavedBody = c.body;
   dirty = false;
+  formDataDirty = false;
   saving = false;
   filename = c.filename;
   bodyLoaded = c.bodyLoaded;
@@ -80,13 +81,16 @@ export function applyEditorState(c: EditorStateConfig, open: boolean): void {
   draftCreatedAt = c.draftCreatedAt;
 }
 
+// Tracks whether formData has diverged from its saved snapshot.
+// Updated only by updateFormField to avoid re-serializing on every body keystroke.
+let formDataDirty = false;
+
 /**
- * Recomputes dirty state by comparing body and formData against their saved snapshots.
+ * Recomputes dirty state from body comparison and the cached formData flag.
  * @return {void}
  */
 function recomputeDirty(): void {
-  dirty =
-    body !== lastSavedBody || JSON.stringify(formData) !== lastSavedFormData;
+  dirty = body !== lastSavedBody || formDataDirty;
 }
 
 /**
@@ -202,6 +206,7 @@ export function setActiveTab(tab: string): void {
  */
 export function updateFormField(path: PathSegment[], value: unknown): void {
   setByPath(formData, path, value);
+  formDataDirty = JSON.stringify(formData) !== lastSavedFormData;
   recomputeDirty();
 }
 
@@ -291,6 +296,8 @@ export async function loadFileBody(
 
 /**
  * Updates the editor body content and recomputes dirty state.
+ * Only compares body against its saved snapshot — avoids serializing
+ * formData to JSON on every keystroke from CodeMirror's update listener.
  * @param {string} content - The new body content
  * @return {void}
  */

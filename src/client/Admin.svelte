@@ -85,13 +85,17 @@
 
   // Content items merged with draft data (DRAFT/OUTDATED chips) plus new draft items
   const contentItems = $derived.by(() => {
+    // Build a filename→draft lookup map for O(1) access per content item
+    const draftByFile = new Map(
+      getDrafts()
+        .filter((d) => !d.isNew && d.filename)
+        .map((d) => [d.filename, d]),
+    );
     const liveItems = getContentList().map((item) => {
       const title =
         typeof item.data.title === 'string' ? item.data.title : item.filename;
       const slug = item.filename.replace(/\.mdx?$/, '');
-      const draft = getDrafts().find(
-        (d) => !d.isNew && d.filename === item.filename,
-      );
+      const draft = draftByFile.get(item.filename);
       const date = toSortDate(item.data.published);
       return {
         label: title,

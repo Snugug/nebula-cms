@@ -9,7 +9,7 @@
   import AdminSidebarSort from './AdminSidebarSort.svelte';
   import { navigate } from '../../js/state/router.svelte';
   import { saveDraft } from '../../js/drafts/storage';
-  import { reloadCollection, disconnect } from '../../js/state/state.svelte';
+  import { refreshDrafts, disconnect } from '../../js/state/state.svelte';
 
   export type { SidebarItem };
 
@@ -86,7 +86,9 @@
       snapshot: null,
       createdAt: new Date().toISOString(),
     });
-    reloadCollection(collection);
+    // Only refresh drafts — the live file list hasn't changed, so a full
+    // collection reload (which re-reads all files from disk/GitHub) is wasteful
+    await refreshDrafts(collection);
     navigate(`/admin/${collection}/draft-${id}`);
   }
 
