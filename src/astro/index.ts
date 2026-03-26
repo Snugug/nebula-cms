@@ -107,7 +107,8 @@ export function collectionsVitePlugin(
         }
       }
 
-      // Ensure the symlink's parent directory exists (e.g. public/ may not exist on a clean clone)
+      // Ensure the parent directory exists (e.g., public/ may not exist in a
+      // fresh clone or worktree if it has no tracked content)
       mkdirSync(dirname(target), { recursive: true });
 
       // Create relative symlink for portability
