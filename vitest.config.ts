@@ -37,9 +37,9 @@ export default defineConfig({
         // entry point instead of the SSR server entry, which does not have `mount`
         resolve: {
           conditions: ['browser'],
-          // @codemirror/* and @lezer/* are runtime-only peer dependencies not installed
-          // as devDependencies. Redirect them all to a single stub so EditorPane
-          // (and its transitive imports) can be loaded in the jsdom test environment.
+          // @codemirror/* and @lezer/* require a real browser DOM that jsdom cannot
+          // provide. Redirect them to a stub so EditorPane (and its transitive
+          // imports) can be loaded in the jsdom test environment.
           alias: [
             {
               find: /^@codemirror\/.+/,
@@ -67,33 +67,28 @@ export default defineConfig({
       {
         plugins: [
           svelte(),
-          // Stub plugin that resolves virtual:collections and js-yaml for the
-          // browser test environment. The real virtual:collections plugin is
-          // injected by the Astro integration, which is not running during
-          // Vitest browser tests. js-yaml is a transitive dependency of
-          // ops.svelte.ts but is not installed as a devDependency. Both are
-          // mocked in tests, but Vite's dependency scanner and import analysis
-          // run before mocks are applied and would fail without resolvers.
+          // Stub plugin that resolves virtual:collections for the browser test
+          // environment. The real virtual:collections plugin is injected by the
+          // Astro integration, which is not running during Vitest browser tests.
+          // It is mocked in tests, but Vite's dependency scanner runs before
+          // mocks are applied and would fail without a resolver.
           {
             name: 'stub-virtual-modules',
             /**
-             * Resolves virtual:collections and js-yaml to internal stubs so Vite's dependency scanner doesn't fail before mocks apply.
+             * Resolves virtual:collections to an internal stub so Vite's dependency scanner doesn't fail before mocks apply.
              * @param {string} id - The module specifier to resolve
              * @return {string | undefined} The resolved internal ID, or undefined to skip
              */
             resolveId(id: string) {
               if (id === 'virtual:collections') return '\0virtual:collections';
-              if (id === 'js-yaml') return '\0js-yaml';
             },
             /**
-             * Provides stub module source for virtual:collections and js-yaml.
+             * Provides stub module source for virtual:collections.
              * @param {string} id - The internal module ID to load
              * @return {string | undefined} The module source code, or undefined to skip
              */
             load(id: string) {
               if (id === '\0virtual:collections') return 'export default {};';
-              if (id === '\0js-yaml')
-                return 'export function dump() { return ""; } export function load() { return {}; }';
             },
           },
         ],
@@ -106,8 +101,8 @@ export default defineConfig({
         },
         // browser condition ensures Vite resolves Svelte's client-side entry
         // instead of the SSR server entry. @codemirror/* and @lezer/* are
-        // runtime-only peer dependencies not installed as devDependencies —
-        // the same stub used by component tests is reused here.
+        // stubbed because browser tests mock the editor — the same stub used
+        // by component tests is reused here.
         resolve: {
           conditions: ['browser'],
           alias: [

@@ -45,6 +45,10 @@ export default function NebulaCMS(
             plugins: [
               collectionsVitePlugin(logger, process.cwd(), collectionsPath),
             ],
+            // Workers use dynamic imports (e.g. storage worker lazy-loads
+            // adapters), which require code splitting. The default 'iife'
+            // format does not support code splitting, so use ES modules.
+            worker: { format: 'es' },
           },
         });
       },

@@ -30,8 +30,10 @@ type PermissionState = 'granted' | 'prompt' | 'denied';
 /** Backend type discriminator. */
 type BackendType = 'fsa' | 'github' | null;
 const collectionNames = Object.keys(schemas).sort();
+// Uses .js extension because svelte-package does not rewrite URL string literals;
+// the dist output must reference the compiled .js file, not the source .ts file.
 const sharedWorker = new SharedWorker(
-  new URL('../storage/workers/storage.ts', import.meta.url),
+  new URL('../storage/workers/storage.js', import.meta.url),
   { type: 'module', name: 'cms-storage' },
 );
 const storageClient = new StorageClient(sharedWorker.port);
@@ -108,8 +110,9 @@ export function isLoading(): boolean {
  */
 function ensureWorker(): Worker {
   if (worker) return worker;
+  // Uses .js extension because svelte-package does not rewrite URL string literals
   worker = new Worker(
-    new URL('../storage/workers/frontmatter.ts', import.meta.url),
+    new URL('../storage/workers/frontmatter.js', import.meta.url),
     { type: 'module' },
   );
   worker.addEventListener('message', (event) => {

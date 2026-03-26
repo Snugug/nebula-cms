@@ -55,15 +55,17 @@ describe('playground build integration', () => {
     expect(names).toContain('courses');
   });
 
-  it('renders collection URLs in the built HTML', () => {
-    const html = readFileSync(
-      resolve(playgroundDir, 'dist/index.html'),
-      'utf-8',
-    );
+  it('bundles collection schema paths into the client JS', () => {
+    // Admin uses client:only="svelte", so collection data lives in the JS
+    // bundle via the virtual:collections module, not in the static HTML.
+    const assetDir = resolve(playgroundDir, 'dist/_astro');
+    const jsFiles = readdirSync(assetDir).filter((f) => f.endsWith('.js'));
+    const allJs = jsFiles
+      .map((f) => readFileSync(resolve(assetDir, f), 'utf-8'))
+      .join('\n');
 
     for (const name of ['posts', 'authors', 'products', 'courses']) {
-      expect(html).toContain(`data-collection="${name}"`);
-      expect(html).toContain(`/collections/${name}.schema.json`);
+      expect(allJs).toContain(`/collections/${name}.schema.json`);
     }
   });
 });

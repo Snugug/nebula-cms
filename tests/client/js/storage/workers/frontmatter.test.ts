@@ -14,28 +14,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // worker code actually reads (event.data, event.ports[0]).
 //
 // StorageClient is mocked via vi.mock so no real port communication occurs.
-//
-// js-yaml is not installed as a direct dependency in this project — the
-// worker imports it, so we mock it to avoid a module resolution error.
 //////////////////////////////
-
-// ── Mock js-yaml ────────────────────────────────────────────────────────────
-
-vi.mock('js-yaml', () => ({
-  /**
-   * Minimal YAML parser mock for the "key: value" format used in tests.
-   * @param {string} yaml - Simple YAML string
-   * @return {Record<string, unknown>} Parsed key-value pairs
-   */
-  load(yaml: string): Record<string, unknown> {
-    const result: Record<string, unknown> = {};
-    for (const line of yaml.split('\n')) {
-      const match = line.match(/^(\w+):\s+(.+)$/);
-      if (match) result[match[1]] = match[2];
-    }
-    return result;
-  },
-}));
 
 // ── Mock StorageClient ──────────────────────────────────────────────────────
 

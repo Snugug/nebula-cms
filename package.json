@@ -33,9 +33,19 @@
     "astro",
     "astro-integration"
   ],
+  "dependencies": {
+    "@codemirror/commands": "^6.0.0",
+    "@codemirror/lang-markdown": "^6.0.0",
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/language-data": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
+    "@lezer/highlight": "^1.0.0",
+    "js-yaml": "^4.1.0"
+  },
   "peerDependencies": {
     "@astrojs/svelte": "^8.0.0",
-    "astro": "^6.0.0",
+    "astro": "^6.1.0",
     "svelte": "^5.0.0"
   },
   "author": "Sam Richard<sam@snug.ug>",
