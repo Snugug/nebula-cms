@@ -11,76 +11,100 @@ import { z } from 'astro/zod';
 // Simple flat schema with a cross-collection reference
 const posts = defineCollection({
   loader: glob({ base: './src/content/posts', pattern: '**/*.md' }),
-  schema: z.object({
-    title: z.string(),
-    date: z.date(),
-    draft: z.boolean().optional(),
-    author: reference('authors'),
-  }),
+  schema: z
+    .object({
+      title: z.string(),
+      date: z.date(),
+      draft: z.boolean().optional(),
+      author: reference('authors'),
+    })
+    .meta({
+      title: 'Posts',
+      description: 'Blog posts',
+      files: ['md'],
+    }),
 });
 
 // Nested object — social has optional string fields
 const authors = defineCollection({
   loader: glob({ base: './src/content/authors', pattern: '**/*.json' }),
-  schema: z.object({
-    name: z.string(),
-    bio: z.string(),
-    social: z.object({
-      twitter: z.string().optional(),
-      github: z.string().optional(),
-      website: z.string().optional(),
+  schema: z
+    .object({
+      name: z.string(),
+      bio: z.string(),
+      social: z.object({
+        twitter: z.string().optional(),
+        github: z.string().optional(),
+        website: z.string().optional(),
+      }),
+    })
+    .meta({
+      title: 'Authors',
+      description: 'Those who write',
+      files: ['json'],
     }),
-  }),
 });
 
 // Array of nested objects, each containing a nested array
 const products = defineCollection({
   loader: glob({ base: './src/content/products', pattern: '**/*.json' }),
-  schema: z.object({
-    name: z.string(),
-    price: z.number(),
-    variants: z.array(
-      z.object({
-        sku: z.string(),
-        color: z.string(),
-        sizes: z.array(z.string()),
-      }),
-    ),
-  }),
+  schema: z
+    .object({
+      name: z.string(),
+      price: z.number(),
+      variants: z.array(
+        z.object({
+          sku: z.string(),
+          color: z.string(),
+          sizes: z.array(z.string()),
+        }),
+      ),
+    })
+    .meta({
+      title: 'Products',
+      description: 'Things to buy',
+      files: ['json'],
+    }),
 });
 
 // Deep nesting: object with array, array of objects with nested arrays of objects
 const courses = defineCollection({
   loader: glob({ base: './src/content/courses', pattern: '**/*.json' }),
-  schema: z.object({
-    title: z.string(),
-    instructor: z.object({
-      name: z.string(),
-      credentials: z.array(
-        z.object({
-          institution: z.string(),
-          year: z.number(),
-        }),
-      ),
-    }),
-    modules: z.array(
-      z.object({
-        title: z.string(),
-        lessons: z.array(
+  schema: z
+    .object({
+      title: z.string(),
+      instructor: z.object({
+        name: z.string(),
+        credentials: z.array(
           z.object({
-            title: z.string(),
-            duration: z.number(),
-            resources: z.array(
-              z.object({
-                type: z.string(),
-                url: z.string(),
-              }),
-            ),
+            institution: z.string(),
+            year: z.number(),
           }),
         ),
       }),
-    ),
-  }),
+      modules: z.array(
+        z.object({
+          title: z.string(),
+          lessons: z.array(
+            z.object({
+              title: z.string(),
+              duration: z.number(),
+              resources: z.array(
+                z.object({
+                  type: z.string(),
+                  url: z.string(),
+                }),
+              ),
+            }),
+          ),
+        }),
+      ),
+    })
+    .meta({
+      title: 'Courses',
+      description: 'Things to learn',
+      files: ['json'],
+    }),
 });
 
 export const collections = { posts, authors, products, courses };
