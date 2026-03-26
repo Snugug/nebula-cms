@@ -1,14 +1,149 @@
 import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { playwright } from '@vitest/browser-playwright';
 
 export default defineConfig({
-  plugins: [svelte()],
   test: {
-    include: ['tests/**/*.test.ts'],
-    coverage: {
-      provider: 'v8',
-      enabled: true,
-      reportsDirectory: '.coverage',
-    },
+    // Inline project definitions replace the separate vitest.workspace.ts file.
+    // This keeps the config co-located with package.json so Vite's config
+    // search stops here rather than walking up to the parent repo root.
+    projects: [
+      //////////////////////////////
+      // Unit tests — Node.js environment (pure JS/TS, no DOM)
+      //////////////////////////////
+      {
+        plugins: [svelte()],
+        test: {
+          name: 'unit',
+          include: [
+            'tests/**/*.test.ts',
+            '!tests/e2e/**',
+            '!tests/**/*components*/**',
+          ],
+          setupFiles: ['tests/setup.ts'],
+          coverage: {
+            provider: 'v8',
+            reportsDirectory: '.coverage',
+          },
+        },
+      },
+
+      //////////////////////////////
+      // Component tests — jsdom environment (Svelte components via @testing-library/svelte)
+      //////////////////////////////
+      {
+        plugins: [svelte()],
+        // browser condition is required so Vite resolves Svelte's client-side
+        // entry point instead of the SSR server entry, which does not have `mount`
+        resolve: {
+          conditions: ['browser'],
+          // @codemirror/* and @lezer/* are runtime-only peer dependencies not installed
+          // as devDependencies. Redirect them all to a single stub so EditorPane
+          // (and its transitive imports) can be loaded in the jsdom test environment.
+          alias: [
+            {
+              find: /^@codemirror\/.+/,
+              replacement: new URL('tests/stubs/codemirror.ts', import.meta.url)
+                .pathname,
+            },
+            {
+              find: /^@lezer\/.+/,
+              replacement: new URL('tests/stubs/codemirror.ts', import.meta.url)
+                .pathname,
+            },
+          ],
+        },
+        test: {
+          name: 'components',
+          environment: 'jsdom',
+          include: ['tests/**/components/**/*.test.ts'],
+          setupFiles: ['tests/setup.ts'],
+        },
+      },
+
+      //////////////////////////////
+      // Browser tests — Playwright via system Chrome
+      //////////////////////////////
+      {
+        plugins: [
+          svelte(),
+          // Stub plugin that resolves virtual:collections and js-yaml for the
+          // browser test environment. The real virtual:collections plugin is
+          // injected by the Astro integration, which is not running during
+          // Vitest browser tests. js-yaml is a transitive dependency of
+          // ops.svelte.ts but is not installed as a devDependency. Both are
+          // mocked in tests, but Vite's dependency scanner and import analysis
+          // run before mocks are applied and would fail without resolvers.
+          {
+            name: 'stub-virtual-modules',
+            /**
+             * Resolves virtual:collections and js-yaml to internal stubs so Vite's dependency scanner doesn't fail before mocks apply.
+             * @param {string} id - The module specifier to resolve
+             * @return {string | undefined} The resolved internal ID, or undefined to skip
+             */
+            resolveId(id: string) {
+              if (id === 'virtual:collections') return '\0virtual:collections';
+              if (id === 'js-yaml') return '\0js-yaml';
+            },
+            /**
+             * Provides stub module source for virtual:collections and js-yaml.
+             * @param {string} id - The internal module ID to load
+             * @return {string | undefined} The module source code, or undefined to skip
+             */
+            load(id: string) {
+              if (id === '\0virtual:collections') return 'export default {};';
+              if (id === '\0js-yaml')
+                return 'export function dump() { return ""; } export function load() { return {}; }';
+            },
+          },
+        ],
+        // Exclude @testing-library/svelte-core from pre-bundling so its
+        // .svelte.js files go through the Svelte plugin's transform pipeline
+        // (Vite pre-bundling skips plugin transforms, which leaves $state
+        // runes uncompiled and causes ReferenceError at runtime).
+        optimizeDeps: {
+          exclude: ['@testing-library/svelte-core'],
+        },
+        // browser condition ensures Vite resolves Svelte's client-side entry
+        // instead of the SSR server entry. @codemirror/* and @lezer/* are
+        // runtime-only peer dependencies not installed as devDependencies —
+        // the same stub used by component tests is reused here.
+        resolve: {
+          conditions: ['browser'],
+          alias: [
+            {
+              find: /^@codemirror\/.+/,
+              replacement: new URL('tests/stubs/codemirror.ts', import.meta.url)
+                .pathname,
+            },
+            {
+              find: /^@lezer\/.+/,
+              replacement: new URL('tests/stubs/codemirror.ts', import.meta.url)
+                .pathname,
+            },
+          ],
+        },
+        test: {
+          name: 'browser',
+          include: ['tests/e2e/**/*.test.ts'],
+          browser: {
+            enabled: true,
+            headless: true,
+            // Uses system Chrome via the 'chrome' channel to avoid downloading
+            // a separate Chromium binary. CI adds --no-sandbox because most CI
+            // containers lack the kernel namespace support sandboxing requires.
+            provider: playwright({
+              launchOptions: {
+                channel: 'chrome',
+                ...(process.env.CI
+                  ? { args: ['--no-sandbox', '--disable-setuid-sandbox'] }
+                  : {}),
+              },
+            }),
+            instances: [{ browser: 'chromium' }],
+          },
+        },
+      },
+    ],
   },
 });
