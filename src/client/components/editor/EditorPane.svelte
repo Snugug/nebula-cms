@@ -77,7 +77,7 @@
     },
     '.cm-content': {
       fontFamily: "'SF Mono', 'Fira Code', 'Cascadia Code', monospace",
-      caretColor: 'hsl(15, 80%, 51%)',
+      caretColor: 'var(--editor-caret)',
       padding: '1rem',
     },
     '.cm-scroller': {
@@ -89,10 +89,8 @@
     '.cm-line': {
       padding: '0 0.25rem',
     },
-    // Hardcoded because CodeMirror's cursor style has high specificity
-    // and CSS custom properties from :root don't reliably override it
     '.cm-cursor': {
-      borderLeftColor: 'hsl(15, 80%, 51%)',
+      borderLeftColor: 'var(--editor-caret)',
     },
     '.cm-selectionBackground': {
       background: 'var(--plum) !important',
@@ -101,7 +99,7 @@
       background: 'var(--plum) !important',
     },
     '.cm-activeLine': {
-      backgroundColor: 'hsla(225, 6%, 13%, 0.5)',
+      backgroundColor: 'var(--editor-active-line)',
     },
     '.cm-gutters': {
       display: 'none',
