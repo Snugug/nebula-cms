@@ -49,6 +49,7 @@ describe('NebulaCMS integration object', () => {
     expect(updateConfig).toHaveBeenCalledWith({
       vite: {
         plugins: [expect.objectContaining({ name: 'vite-plugin-nebula-cms' })],
+        worker: { format: 'es' },
       },
     });
   });

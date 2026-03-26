@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "nebula-cms": "link:..",
-    "astro": "^6.0.0",
+    "astro": "^6.1.0",
     "@astrojs/svelte": "^8.0.0",
     "svelte": "^5.0.0"
   }

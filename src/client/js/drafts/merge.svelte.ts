@@ -31,7 +31,8 @@ export function getOutdatedMap(): Record<string, boolean> {
  */
 function ensureDiffWorker(): Worker {
   if (diffWorker) return diffWorker;
-  diffWorker = new Worker(new URL('./workers/diff.ts', import.meta.url), {
+  // Uses .js extension because svelte-package does not rewrite URL string literals
+  diffWorker = new Worker(new URL('./workers/diff.js', import.meta.url), {
     type: 'module',
   });
   diffWorker.addEventListener('message', (event) => {

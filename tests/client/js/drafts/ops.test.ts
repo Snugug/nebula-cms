@@ -10,12 +10,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // do not run against uninitialized browser globals.
 //////////////////////////////
 
-// js-yaml is imported directly by ops.svelte.ts — mock it so the module
-// resolves cleanly in Node.js without requiring the full YAML library.
-vi.mock('js-yaml', () => ({
-  dump: vi.fn((obj: unknown) => JSON.stringify(obj)),
-}));
-
 vi.mock('../../../../src/client/js/drafts/storage', () => ({
   saveDraft: vi.fn(async () => undefined),
   loadDraft: vi.fn(async () => null),
