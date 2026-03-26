@@ -1,6 +1,7 @@
 import {
   existsSync,
   lstatSync,
+  mkdirSync,
   readlinkSync,
   readdirSync,
   rmSync,
@@ -86,6 +87,10 @@ export function collectionsVitePlugin(
           unlinkSync(target);
         }
       }
+
+      // Ensure the parent directory exists (e.g., public/ may not exist in a
+      // fresh clone or worktree if it has no tracked content)
+      mkdirSync(dirname(target), { recursive: true });
 
       // Create relative symlink for portability
       const relPath = relative(dirname(target), source);
