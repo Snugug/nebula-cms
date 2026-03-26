@@ -1,0 +1,95 @@
+<script lang="ts">
+  import type { SchemaNode } from '../../js/utils/schema-utils';
+  import type { Snippet } from 'svelte';
+  import { toTitleCase } from '../../js/utils/format';
+
+  /**
+   * Shared wrapper for all form field components. Provides the label, required marker, deprecated dimming, description, and constraint text so individual field components only supply the input element via a Svelte snippet.
+   */
+  interface Props {
+    // Field name used as the input id and label fallback
+    name: string;
+    // JSON Schema node describing this field
+    schema: SchemaNode;
+    // Whether this field is required
+    required?: boolean;
+    // The input element rendered inside the wrapper
+    children: Snippet;
+    // Optional constraint text displayed after the description (e.g., "max 200", "min 0, max 100")
+    constraintText?: string;
+    // When true, hides the default label — used by BooleanField which renders its own inline checkbox+label
+    hideLabel?: boolean;
+  }
+
+  let {
+    name,
+    schema,
+    required = false,
+    children,
+    constraintText,
+    hideLabel = false,
+  }: Props = $props();
+
+  // Display label — schema.title if present, otherwise title-cased name
+  const label = $derived(
+    (schema['title'] as string | undefined) ?? toTitleCase(name),
+  );
+
+  // Description from schema
+  const description = $derived(schema['description'] as string | undefined);
+
+  // Whether field is deprecated — dims the entire field
+  const deprecated = $derived(!!(schema['deprecated'] as boolean | undefined));
+</script>
+
+<div class="field" class:field--deprecated={deprecated}>
+  {#if !hideLabel}
+    <label class="field-label" for={name}>
+      {label}{#if required}<span class="field-required" aria-hidden="true"
+          >*</span
+        >{/if}
+    </label>
+  {/if}
+
+  {@render children()}
+
+  {#if description || constraintText}
+    <p class="field-help">
+      {#if description}{description}{/if}
+      {#if description && constraintText}&ensp;{/if}
+      {#if constraintText}<span class="field-constraint">{constraintText}</span
+        >{/if}
+    </p>
+  {/if}
+</div>
+
+<style>
+  .field {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  /* Dimmed appearance for deprecated fields */
+  .field--deprecated {
+    opacity: 0.5;
+  }
+
+  .field-label {
+    font-size: 0.875rem;
+    color: var(--white);
+  }
+
+  .field-required {
+    color: var(--light-red);
+    margin-left: 0.25rem;
+  }
+
+  .field-help {
+    font-size: 0.75rem;
+    color: var(--grey);
+  }
+
+  .field-constraint {
+    font-style: italic;
+  }
+</style>
