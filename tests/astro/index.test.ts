@@ -8,6 +8,7 @@ import {
   lstatSync,
   readlinkSync,
   symlinkSync,
+  unlinkSync,
 } from 'node:fs';
 import { resolve, relative, dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -36,9 +37,49 @@ describe('NebulaCMS integration object', () => {
     expect(integration.name).toBe('nebula-cms');
   });
 
-  it('has an astro:config:setup hook', () => {
+  it('registers a Vite plugin via astro:config:setup', () => {
     const integration = NebulaCMS();
-    expect(integration.hooks['astro:config:setup']).toBeTypeOf('function');
+    const updateConfig = vi.fn();
+    const logger = createMockLogger();
+
+    // Invoke the hook with the minimal shape it expects
+    const hook = integration.hooks['astro:config:setup'] as Function;
+    hook({ updateConfig, logger });
+
+    expect(updateConfig).toHaveBeenCalledWith({
+      vite: {
+        plugins: [expect.objectContaining({ name: 'vite-plugin-nebula-cms' })],
+      },
+    });
+  });
+
+  it('accepts a valid collectionsPath', () => {
+    const integration = NebulaCMS({ collectionsPath: 'schemas' });
+    expect(integration.name).toBe('nebula-cms');
+  });
+
+  it('throws on collectionsPath with leading slash', () => {
+    expect(() => NebulaCMS({ collectionsPath: '/schemas' })).toThrow(
+      'Invalid collectionsPath',
+    );
+  });
+
+  it('throws on collectionsPath with path traversal', () => {
+    expect(() => NebulaCMS({ collectionsPath: '..' })).toThrow(
+      'Invalid collectionsPath',
+    );
+  });
+
+  it('throws on empty collectionsPath', () => {
+    expect(() => NebulaCMS({ collectionsPath: '' })).toThrow(
+      'Invalid collectionsPath',
+    );
+  });
+
+  it('throws on collectionsPath containing a slash', () => {
+    expect(() => NebulaCMS({ collectionsPath: 'a/b' })).toThrow(
+      'Invalid collectionsPath',
+    );
   });
 });
 
@@ -71,8 +112,6 @@ describe('collectionsVitePlugin buildStart', () => {
   beforeEach(() => {
     tmpDir = mkdtempSync(join(tmpdir(), 'nebula-test-'));
     logger = createMockLogger();
-    // buildStart expects public/ to exist as the symlink's parent directory
-    mkdirSync(resolve(tmpDir, 'public'), { recursive: true });
   });
 
   afterEach(() => {
@@ -120,12 +159,17 @@ describe('collectionsVitePlugin buildStart', () => {
     mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
     mkdirSync(resolve(tmpDir, 'wrong-target'), { recursive: true });
 
-    // Create a symlink pointing to the wrong place
+    const plugin = collectionsVitePlugin(logger, tmpDir);
+    // First call creates the correct symlink (and public/)
+    plugin.buildStart();
+
+    // Replace the correct symlink with one pointing to the wrong place
     const target = resolve(tmpDir, 'public/collections');
+    unlinkSync(target);
     const wrongRel = relative(dirname(target), resolve(tmpDir, 'wrong-target'));
     symlinkSync(wrongRel, target);
 
-    const plugin = collectionsVitePlugin(logger, tmpDir);
+    // Second call should detect the wrong target and fix it
     plugin.buildStart();
 
     const resolvedLink = resolve(dirname(target), readlinkSync(target));
@@ -145,12 +189,20 @@ describe('collectionsVitePlugin buildStart', () => {
 
   it('removes a regular file at the target and replaces with symlink', () => {
     mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
-    writeFileSync(resolve(tmpDir, 'public/collections'), 'not a symlink');
 
     const plugin = collectionsVitePlugin(logger, tmpDir);
+    // First call creates the correct symlink (and public/)
     plugin.buildStart();
 
-    const stat = lstatSync(resolve(tmpDir, 'public/collections'));
+    // Replace the symlink with a regular file
+    const target = resolve(tmpDir, 'public/collections');
+    unlinkSync(target);
+    writeFileSync(target, 'not a symlink');
+
+    // Second call should detect the regular file and replace it
+    plugin.buildStart();
+
+    const stat = lstatSync(target);
     expect(stat.isSymbolicLink()).toBe(true);
   });
 
@@ -162,6 +214,28 @@ describe('collectionsVitePlugin buildStart', () => {
       expect.stringContaining('.astro/collections'),
     );
     expect(existsSync(resolve(tmpDir, 'public/collections'))).toBe(false);
+  });
+
+  it('creates symlink at custom collectionsPath', () => {
+    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
+    const plugin = collectionsVitePlugin(logger, tmpDir, 'schemas');
+    plugin.buildStart();
+
+    const target = resolve(tmpDir, 'public/schemas');
+    const stat = lstatSync(target);
+    expect(stat.isSymbolicLink()).toBe(true);
+
+    const resolvedLink = resolve(dirname(target), readlinkSync(target));
+    expect(resolvedLink).toBe(resolve(tmpDir, '.astro/collections'));
+  });
+
+  it('does not create symlink at default path when custom path is used', () => {
+    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
+    const plugin = collectionsVitePlugin(logger, tmpDir, 'schemas');
+    plugin.buildStart();
+
+    expect(existsSync(resolve(tmpDir, 'public/collections'))).toBe(false);
+    expect(existsSync(resolve(tmpDir, 'public/schemas'))).toBe(true);
   });
 });
 
@@ -247,5 +321,18 @@ describe('collectionsVitePlugin load', () => {
     expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('.astro/collections'),
     );
+  });
+
+  it('generates URLs with custom collectionsPath prefix', () => {
+    const dir = resolve(tmpDir, '.astro/collections');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
+
+    const plugin = collectionsVitePlugin(logger, tmpDir, 'schemas');
+    const result = plugin.load('\0virtual:collections');
+
+    expect(result).toContain('"posts"');
+    expect(result).toContain('"/schemas/posts.schema.json"');
+    expect(result).not.toContain('/collections/');
   });
 });
