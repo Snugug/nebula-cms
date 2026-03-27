@@ -20,11 +20,20 @@ export type FileWrite = {
  */
 export interface StorageAdapter {
   /**
-   * Lists all markdown files in a collection, returning their names and content.
+   * Lists files in a collection matching the given extensions, returning their names and content.
    * @param {string} collection - The collection name
+   * @param {string[]} extensions - File extensions to include (e.g. ['.md', '.mdx', '.yaml'])
    * @return {Promise<FileEntry[]>} Array of filename + content pairs
    */
-  listFiles(collection: string): Promise<FileEntry[]>;
+  listFiles(collection: string, extensions: string[]): Promise<FileEntry[]>;
+
+  /**
+   * Deletes a single file from the collection. Used during file type conversion to remove the old file after the new one is written.
+   * @param {string} collection - The collection name
+   * @param {string} filename - The filename to delete
+   * @return {Promise<void>}
+   */
+  deleteFile(collection: string, filename: string): Promise<void>;
 
   /**
    * Reads a single file's content.
@@ -69,10 +78,11 @@ export type StorageRequest =
         | { type: 'fsa'; handle: FileSystemDirectoryHandle }
         | { type: 'github'; token: string; repo: string };
     }
-  | { type: 'listFiles'; collection: string }
+  | { type: 'listFiles'; collection: string; extensions: string[] }
   | { type: 'readFile'; collection: string; filename: string }
   | { type: 'writeFile'; collection: string; filename: string; content: string }
   | { type: 'writeFiles'; files: FileWrite[] }
+  | { type: 'deleteFile'; collection: string; filename: string }
   | { type: 'teardown' };
 
 /**
@@ -89,5 +99,7 @@ export type StorageResponse =
   | { type: 'writeFile'; ok: false; error: string }
   | { type: 'writeFiles'; ok: true }
   | { type: 'writeFiles'; ok: false; error: string }
+  | { type: 'deleteFile'; ok: true }
+  | { type: 'deleteFile'; ok: false; error: string }
   | { type: 'teardown'; ok: true }
   | { type: 'port-connected' };

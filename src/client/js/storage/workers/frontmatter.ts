@@ -61,7 +61,12 @@ self.addEventListener('message', async (event) => {
     }
 
     try {
-      const files: FileEntry[] = await storageClient.listFiles(collection);
+      // Pass extensions from the message, defaulting to markdown for backward compatibility
+      const extensions: string[] = event.data.extensions ?? ['.md', '.mdx'];
+      const files: FileEntry[] = await storageClient.listFiles(
+        collection,
+        extensions,
+      );
       const items: Array<{ filename: string; data: Record<string, unknown> }> =
         [];
 

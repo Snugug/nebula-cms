@@ -101,14 +101,23 @@ export function createMockAdapter(): {
   }
 
   const adapter: StorageAdapter = {
-    listFiles: vi.fn(async (collection: string): Promise<FileEntry[]> => {
-      const col = store.get(collection);
-      if (!col) return [];
-      return Array.from(col.entries()).map(([filename, content]) => ({
-        filename,
-        content,
-      }));
-    }),
+    listFiles: vi.fn(
+      async (
+        collection: string,
+        extensions: string[],
+      ): Promise<FileEntry[]> => {
+        const col = store.get(collection);
+        if (!col) return [];
+        return Array.from(col.entries())
+          .filter(([filename]) =>
+            extensions.some((ext) => filename.endsWith(ext)),
+          )
+          .map(([filename, content]) => ({
+            filename,
+            content,
+          }));
+      },
+    ),
 
     readFile: vi.fn(
       async (collection: string, filename: string): Promise<string> => {
@@ -138,6 +147,16 @@ export function createMockAdapter(): {
         col.set(file.filename, file.content);
       }
     }),
+
+    deleteFile: vi.fn(
+      async (collection: string, filename: string): Promise<void> => {
+        const col = store.get(collection);
+        if (!col) throw new Error(`Collection "${collection}" not found`);
+        if (!col.has(filename))
+          throw new Error(`File "${filename}" not found in "${collection}"`);
+        col.delete(filename);
+      },
+    ),
   };
 
   return { adapter, store };

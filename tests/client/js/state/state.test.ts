@@ -71,7 +71,10 @@ vi.mock('../../../../src/client/js/storage/client', () => {
     async teardown(): Promise<void> {}
 
     /** @return {Promise<never[]>} */
-    async listFiles(_collection: string): Promise<never[]> {
+    async listFiles(
+      _collection: string,
+      _extensions: string[],
+    ): Promise<never[]> {
       return [];
     }
 
@@ -89,6 +92,9 @@ vi.mock('../../../../src/client/js/storage/client', () => {
 
     /** @return {Promise<void>} */
     async writeFiles(_files: unknown[]): Promise<void> {}
+
+    /** @return {Promise<void>} */
+    async deleteFile(_collection: string, _filename: string): Promise<void> {}
   }
   return { StorageClient };
 });

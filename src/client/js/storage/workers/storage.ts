@@ -40,7 +40,7 @@ async function handleMessage(msg: StorageRequest): Promise<StorageResponse> {
           error: 'No backend initialized',
         };
       try {
-        const files = await adapter.listFiles(msg.collection);
+        const files = await adapter.listFiles(msg.collection, msg.extensions);
         return { type: 'listFiles', ok: true, files };
       } catch (err) {
         return {
@@ -98,6 +98,25 @@ async function handleMessage(msg: StorageRequest): Promise<StorageResponse> {
       } catch (err) {
         return {
           type: 'writeFiles',
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+        };
+      }
+    }
+
+    case 'deleteFile': {
+      if (!adapter)
+        return {
+          type: 'deleteFile',
+          ok: false,
+          error: 'No backend initialized',
+        };
+      try {
+        await adapter.deleteFile(msg.collection, msg.filename);
+        return { type: 'deleteFile', ok: true };
+      } catch (err) {
+        return {
+          type: 'deleteFile',
           ok: false,
           error: err instanceof Error ? err.message : String(err),
         };

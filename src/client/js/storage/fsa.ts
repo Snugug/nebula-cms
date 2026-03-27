@@ -24,18 +24,22 @@ export class FsaAdapter implements StorageAdapter {
   }
 
   /**
-   * Lists all .md/.mdx files in the collection with their content.
+   * Lists files in the collection matching the given extensions, with their content.
    * @param {string} collection - The collection name
+   * @param {string[]} extensions - File extensions to include (e.g. ['.md', '.mdx'])
    * @return {Promise<FileEntry[]>} Array of filename + content pairs
    */
-  async listFiles(collection: string): Promise<FileEntry[]> {
+  async listFiles(
+    collection: string,
+    extensions: string[],
+  ): Promise<FileEntry[]> {
     const dir = await this.getCollectionDir(collection);
     const entries: FileEntry[] = [];
 
     for await (const [name, entry] of dir.entries()) {
       if (
         entry.kind !== 'file' ||
-        (!name.endsWith('.md') && !name.endsWith('.mdx'))
+        !extensions.some((ext) => name.endsWith(ext))
       ) {
         continue;
       }
@@ -45,6 +49,17 @@ export class FsaAdapter implements StorageAdapter {
     }
 
     return entries;
+  }
+
+  /**
+   * Deletes a file from the collection directory.
+   * @param {string} collection - The collection name
+   * @param {string} filename - The filename to delete
+   * @return {Promise<void>}
+   */
+  async deleteFile(collection: string, filename: string): Promise<void> {
+    const dir = await this.getCollectionDir(collection);
+    await dir.removeEntry(filename);
   }
 
   /**
