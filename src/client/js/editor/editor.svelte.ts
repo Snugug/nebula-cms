@@ -4,7 +4,7 @@ import { setByPath } from '../utils/schema-utils';
 import type { PathSegment } from '../utils/schema-utils';
 import { getDraftByFile } from '../drafts/storage';
 import { getStorageClient } from '../state/state.svelte';
-
+import { getFileCategory } from '../utils/file-types';
 /**
  * Editor file state exposed via getEditorFile().
  */
@@ -54,7 +54,6 @@ let isNewDraft = $state(false);
 let snapshot = $state<string | null>(null);
 let currentCollection = $state('');
 let draftCreatedAt = $state<string | null>(null);
-
 registerDirtyChecker(() => dirty);
 
 /**
@@ -248,7 +247,6 @@ export async function preloadFile(
     );
     return;
   }
-
   // No draft — load live data; $state.snapshot strips Svelte reactive proxies
   applyEditorState(
     {
@@ -293,16 +291,18 @@ export async function loadFileBody(
   collection: string,
   filename: string,
 ): Promise<void> {
+  const category = getFileCategory(filename);
+  if (category === 'data') {
+    // Data files have no body — all content was parsed as formData during preload
+    bodyLoaded = true;
+    return;
+  }
   const client = getStorageClient();
   if (!client) return;
   const text = await client.readFile(collection, filename);
   const split = splitFrontmatter(text);
-
-  // Strip leading/trailing newlines from body for cleaner editing —
-  // they get added back on save when reconstituting the file
-  const trimmedBody = split.body.replace(/^\n+/, '').replace(/\n+$/, '');
-  body = trimmedBody;
-  lastSavedBody = trimmedBody;
+  // Strip leading/trailing newlines from body; added back on save when reconstituting the file
+  body = lastSavedBody = split.body.replace(/^\n+/, '').replace(/\n+$/, '');
   bodyLoaded = true;
 }
 

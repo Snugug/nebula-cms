@@ -37,6 +37,7 @@
     handleFilenameConfirm,
     computePublishDisabled,
   } from './js/handlers/admin';
+  import { stripExtension } from './js/utils/file-types';
   import './css/icons.css';
   import BackendPicker from './components/BackendPicker.svelte';
   import AdminSidebar from './components/sidebar/AdminSidebar.svelte';
@@ -88,7 +89,6 @@
       subtitle: getCollectionDescription(name) ?? undefined,
     })),
   );
-
   // Content items merged with draft data (DRAFT/OUTDATED chips) plus new draft items
   const contentItems = $derived.by(() => {
     // Build a filename→draft lookup map for O(1) access per content item
@@ -100,7 +100,7 @@
     const liveItems = getContentList().map((item) => {
       const title =
         typeof item.data.title === 'string' ? item.data.title : item.filename;
-      const slug = item.filename.replace(/\.mdx?$/, '');
+      const slug = stripExtension(item.filename);
       const draft = draftByFile.get(item.filename);
       const date = toSortDate(item.data.published);
       return {
@@ -135,7 +135,6 @@
       });
     return [...liveItems, ...newDraftItems];
   });
-
   // Whether the active collection has date fields for sort controls
   const contentHasDates = $derived(
     activeCollection ? collectionHasDates(activeCollection) : false,
@@ -171,7 +170,7 @@
     const items = getContentList();
     if (ready && currentRoute.view === 'file' && items.length > 0) {
       const item = items.find(
-        (i) => i.filename.replace(/\.mdx?$/, '') === currentRoute.slug,
+        (i) => stripExtension(i.filename) === currentRoute.slug,
       );
       if (!item) return;
 

@@ -48,6 +48,10 @@ vi.mock('../../../../src/client/js/state/state.svelte', () => ({
   getStorageClient: vi.fn(() => null),
 }));
 
+vi.mock('../../../../src/client/js/utils/file-types', () => ({
+  getFileCategory: vi.fn(() => null),
+}));
+
 // ops.svelte re-exports — editor.svelte.ts re-exports these; mock them so
 // importing the editor does not pull in the real ops module's dependencies.
 vi.mock('../../../../src/client/js/drafts/ops.svelte', () => ({
@@ -61,6 +65,7 @@ vi.mock('../../../../src/client/js/drafts/ops.svelte', () => ({
 import { getDraftByFile } from '../../../../src/client/js/drafts/storage';
 import { getStorageClient } from '../../../../src/client/js/state/state.svelte';
 import { splitFrontmatter } from '../../../../src/client/js/utils/frontmatter';
+import { getFileCategory } from '../../../../src/client/js/utils/file-types';
 
 import type { Draft } from '../../../../src/client/js/drafts/storage';
 
@@ -513,6 +518,26 @@ describe('loadFileBody', () => {
     expect(file?.bodyLoaded).toBe(true);
     // Leading/trailing newlines are stripped from the body
     expect(file?.body).toBe('The markdown body');
+  });
+
+  it('skips disk read and sets bodyLoaded for data-only files', async () => {
+    vi.resetModules();
+    vi.mocked(getDraftByFile).mockResolvedValue(null);
+    // Simulate a data file — category is 'data', so no disk read should occur
+    vi.mocked(getFileCategory).mockReturnValue('data');
+    const fakeClient = {
+      readFile: vi.fn(async () => '{}'),
+    };
+    vi.mocked(getStorageClient).mockReturnValue(fakeClient as any);
+
+    const { preloadFile, loadFileBody, getEditorFile } =
+      await import('../../../../src/client/js/editor/editor.svelte');
+    await preloadFile('authors', 'jane.json', { name: 'Jane' });
+    await loadFileBody('authors', 'jane.json');
+
+    // readFile must not be called — data files have no body to read
+    expect(fakeClient.readFile).not.toHaveBeenCalled();
+    expect(getEditorFile()?.bodyLoaded).toBe(true);
   });
 });
 
