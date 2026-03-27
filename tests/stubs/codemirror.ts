@@ -160,10 +160,10 @@ export function syntaxTree() {
 }
 
 /**
- * Stub for url-utils isUrl. Always returns false in the test environment.
+ * Stub for url-utils isURL. Always returns false in the test environment.
  * @return {boolean} Always false
  */
-export function isUrl() {
+export function isURL() {
   return false;
 }
 

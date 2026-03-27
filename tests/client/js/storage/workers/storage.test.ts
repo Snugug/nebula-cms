@@ -119,7 +119,7 @@ function connectPort(port: MessagePort): void {
  * @param {string} id - A unique _id for this init request
  * @return {Promise<void>}
  */
-async function initFsa(
+async function initFSA(
   postSpy: MockInstance,
   send: (req: StorageRequest & { _id?: string }) => void,
   id: string,
@@ -157,7 +157,7 @@ describe('storage worker', () => {
   it('responds to FSA init with ok: true', async () => {
     const { port, postSpy, send } = makeMockPort();
     connectPort(port);
-    await initFsa(postSpy, send, 'init-fsa-1');
+    await initFSA(postSpy, send, 'init-fsa-1');
     const resp = postSpy.mock.calls.find((c) => c[0]._id === 'init-fsa-1')[0];
     expect(resp.ok).toBe(true);
     expect(resp.type).toBe('init');
@@ -192,7 +192,7 @@ describe('storage worker', () => {
   it('responds to listFiles after init', async () => {
     const { port, postSpy, send } = makeMockPort();
     connectPort(port);
-    await initFsa(postSpy, send, 'init-list');
+    await initFSA(postSpy, send, 'init-list');
 
     send({
       type: 'listFiles',
@@ -252,7 +252,7 @@ describe('storage worker', () => {
   it('responds to deleteFile after init', async () => {
     const { port, postSpy, send } = makeMockPort();
     connectPort(port);
-    await initFsa(postSpy, send, 'init-delete');
+    await initFSA(postSpy, send, 'init-delete');
 
     send({
       type: 'deleteFile',
@@ -311,7 +311,7 @@ describe('storage worker', () => {
   it('responds to teardown with ok: true and clears the adapter', async () => {
     const { port, postSpy, send } = makeMockPort();
     connectPort(port);
-    await initFsa(postSpy, send, 'init-teardown');
+    await initFSA(postSpy, send, 'init-teardown');
 
     send({ type: 'teardown', _id: 'td-1' });
     await vi.waitUntil(

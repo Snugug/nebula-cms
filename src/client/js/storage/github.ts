@@ -199,17 +199,17 @@ export class GitHubAdapter implements StorageAdapter {
     if (!refRes.ok)
       throw new Error(`Failed to get branch ref: ${refRes.status}`);
     const refData = await refRes.json();
-    const baseCommitSha = refData.object.sha;
+    const baseCommitSHA = refData.object.sha;
 
     // Get the base tree SHA from the current commit
     const commitRes = await this.request(
       'GET',
-      `/repos/${this.owner}/${this.repo}/git/commits/${baseCommitSha}`,
+      `/repos/${this.owner}/${this.repo}/git/commits/${baseCommitSHA}`,
     );
     if (!commitRes.ok)
       throw new Error(`Failed to get commit: ${commitRes.status}`);
     const commitData = await commitRes.json();
-    const baseTreeSha = commitData.tree.sha;
+    const baseTreeSHA = commitData.tree.sha;
 
     // 2. Create a new tree containing all file changes
     const tree = files.map((f) => ({
@@ -223,7 +223,7 @@ export class GitHubAdapter implements StorageAdapter {
       'POST',
       `/repos/${this.owner}/${this.repo}/git/trees`,
       undefined,
-      { base_tree: baseTreeSha, tree },
+      { base_tree: baseTreeSHA, tree },
     );
     if (!treeRes.ok)
       throw new Error(`Failed to create tree: ${treeRes.status}`);
@@ -238,7 +238,7 @@ export class GitHubAdapter implements StorageAdapter {
       {
         message: `Update ${paths}`,
         tree: treeData.sha,
-        parents: [baseCommitSha],
+        parents: [baseCommitSHA],
       },
     );
     if (!newCommitRes.ok)

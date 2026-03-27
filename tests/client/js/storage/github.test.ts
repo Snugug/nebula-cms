@@ -61,8 +61,8 @@ describe('GitHubAdapter', () => {
       // Confirm the branch is used in subsequent calls by inspecting listFiles
       fetchMock.mockResolvedValueOnce(mockResponse([]));
       await adapter.listFiles('posts', ['.md', '.mdx']);
-      const listUrl = fetchMock.mock.calls[1][0] as string;
-      expect(listUrl).toContain('ref=develop');
+      const listURL = fetchMock.mock.calls[1][0] as string;
+      expect(listURL).toContain('ref=develop');
     });
 
     it('throws for a 401 response', async () => {

@@ -119,7 +119,7 @@ vi.mock('@codemirror/view', () => {
 
 vi.mock('../utils/url-utils', async () => {
   const actual = await import('../../../../src/client/js/utils/url-utils');
-  return { isUrl: actual.isUrl };
+  return { isURL: actual.isURL };
 });
 
 import { syntaxTree } from '@codemirror/language';
