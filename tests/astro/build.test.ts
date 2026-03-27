@@ -17,7 +17,8 @@ const rootDir = resolve(playgroundDir, '..');
 
 describe('playground build integration', () => {
   beforeAll(() => {
-    // Build root package so playground can resolve the nebula-cms integration
+    // Build root package so playground can resolve the nebula-cms integration.
+    // The prebuild script generates icons.css automatically before svelte-package runs.
     execFileSync('pnpm', ['build'], { cwd: rootDir, stdio: 'pipe' });
     // Generate collection schemas, then build the Astro site
     execFileSync('pnpm', ['sync'], { cwd: playgroundDir, stdio: 'pipe' });

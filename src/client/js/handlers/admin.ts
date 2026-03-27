@@ -148,7 +148,7 @@ export async function handleDeleteDraft(
 
   if (!wasNewDraft && liveFilename) {
     // Draft of live content — navigate to the live file so it reloads from disk
-    const slug = liveFilename.replace(/\.mdx?$/, '');
+    const slug = stripExtension(liveFilename);
     navigate(`/admin/${activeCollection}/${slug}`);
   } else {
     // New draft — no live file to return to, go to collection list

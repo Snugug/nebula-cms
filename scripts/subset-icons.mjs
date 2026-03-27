@@ -6,7 +6,7 @@
  * Usage: node scripts/subset-icons.mjs
  */
 
-import { writeFileSync } from 'fs';
+import { writeFileSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -170,5 +170,6 @@ const base64Font = await fetchWoff2AsBase64(woff2URL);
 console.log(`Base64-encoded font: ${base64Font.length} characters`);
 
 const css = generateCSS(base64Font);
+mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
 writeFileSync(OUTPUT_PATH, css, 'utf8');
 console.log(`Written to: ${OUTPUT_PATH}`);
