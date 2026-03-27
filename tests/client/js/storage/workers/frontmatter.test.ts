@@ -1,19 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 //////////////////////////////
-// Frontmatter worker tests
+// Orchestrator worker tests
 //
-// The worker registers a self.addEventListener('message', ...) listener that
-// handles 'port' and 'parse' message types. We stub self before importing
-// the module, capture the handler, then invoke it with plain event-like
-// objects rather than real MessageEvent instances.
+// The orchestrator worker registers a self.addEventListener('message', ...)
+// listener that handles 'port' and 'parse' message types. It categorises files
+// by extension — frontmatter files have their YAML block extracted and sent to
+// the YAML parser worker; JSON files are parsed inline; YAML/TOML data files
+// are routed to their respective parser workers.
 //
-// Real MessageEvent validates that items in the `ports` array are actual
-// MessagePort instances — since we cannot construct those in Node.js without
-// a real Worker context, we pass plain objects that satisfy the fields the
-// worker code actually reads (event.data, event.ports[0]).
+// We mock Worker globally to intercept parser worker instantiation and
+// simulate parse-batch-result responses. StorageClient is mocked via vi.mock.
 //
-// StorageClient is mocked via vi.mock so no real port communication occurs.
+// IMPORTANT: The orchestrator lazily spawns parser workers and caches them at
+// module level. This means once a YAML worker is spawned in one test, all
+// subsequent tests reuse it. The spawnedWorkers array is therefore cumulative
+// across the entire suite — we do NOT clear it between tests.
 //////////////////////////////
 
 // ── Mock StorageClient ──────────────────────────────────────────────────────
@@ -26,6 +28,64 @@ vi.mock('../../../../../src/client/js/storage/client', () => ({
     return { listFiles: mockListFiles };
   },
 }));
+
+// ── Mock Worker class ────────────────────────────────────────────────────────
+
+/**
+ * Tracks all spawned mock workers by URL for assertions.
+ * NOT cleared between tests — the orchestrator caches workers at module level.
+ */
+const spawnedWorkers: MockWorkerInstance[] = [];
+
+/**
+ * A minimal mock of Worker that captures postMessage calls and allows
+ * simulating onmessage responses from parser workers.
+ */
+class MockWorkerInstance {
+  url: string;
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  messages: Array<Record<string, unknown>> = [];
+
+  /**
+   * @param {string | URL} url - The URL passed to the Worker constructor
+   */
+  constructor(url: string | URL) {
+    this.url = String(url);
+    spawnedWorkers.push(this);
+  }
+
+  /**
+   * Captures posted messages and auto-responds with parse-batch-result
+   * by extracting a title from YAML/TOML-like "title: <value>" lines.
+   * @param {Record<string, unknown>} msg - The message sent to the worker
+   * @return {void}
+   */
+  postMessage(msg: Record<string, unknown>): void {
+    this.messages.push(msg);
+
+    // Auto-respond to parse-batch with mock results
+    if (msg.type === 'parse-batch' && this.onmessage) {
+      const items = msg.items as Array<{ key: string; content: string }>;
+      const results: Record<string, Record<string, unknown>> = {};
+      for (const item of items) {
+        // Simulate parsing by creating a data object with the title extracted
+        // from a "title: <value>" line in the YAML/TOML content
+        const titleMatch = item.content.match(/title:\s*(.+)/);
+        results[item.key] = titleMatch ? { title: titleMatch[1].trim() } : {};
+      }
+      // Respond asynchronously to match real worker behavior
+      const id = msg.id as string;
+      const handler = this.onmessage;
+      queueMicrotask(() => {
+        handler({
+          data: { type: 'parse-batch-result', id, ok: true, results },
+        } as MessageEvent);
+      });
+    }
+  }
+}
+
+vi.stubGlobal('Worker', MockWorkerInstance);
 
 // ── Self mock ──────────────────────────────────────────────────────────────
 
@@ -86,9 +146,35 @@ function makeFakePort(): unknown {
   };
 }
 
+/**
+ * Waits for microtask queue to flush so async parser worker responses resolve.
+ * @return {Promise<void>}
+ */
+async function flushMicrotasks(): Promise<void> {
+  await new Promise<void>((resolve) => queueMicrotask(resolve));
+}
+
+/**
+ * Finds the latest result message from selfPostMessage calls.
+ * @return {Record<string, unknown> | undefined} The result payload, or undefined
+ */
+function findResult(): Record<string, unknown> | undefined {
+  const call = selfPostMessage.mock.calls.find((c) => c[0].type === 'result');
+  return call?.[0];
+}
+
+/**
+ * Finds the latest error message from selfPostMessage calls.
+ * @return {Record<string, unknown> | undefined} The error payload, or undefined
+ */
+function findError(): Record<string, unknown> | undefined {
+  const call = selfPostMessage.mock.calls.find((c) => c[0].type === 'error');
+  return call?.[0];
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe('frontmatter worker', () => {
+describe('orchestrator worker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -109,22 +195,49 @@ describe('frontmatter worker', () => {
   });
 
   describe('parse message', () => {
-    it('posts an error type message when storageClient cannot list files', async () => {
+    it('posts an error when storageClient is not initialized', async () => {
       // The storageClient is module-level state — it may or may not be set
-      // depending on test execution order within this file. We trigger a
-      // guaranteed error by leaving mockListFiles returning undefined (the
-      // vi.clearAllMocks() in beforeEach resets it), which causes a runtime
-      // error inside the worker's parse handler. The worker must post an
-      // error message regardless of the error source.
+      // depending on test execution order. We trigger a guaranteed error by
+      // leaving mockListFiles returning undefined, which causes a runtime
+      // error inside the worker's parse handler.
       await dispatch({ type: 'parse', collection: 'posts' });
-      const errCall = selfPostMessage.mock.calls.find(
-        (c) => c[0].type === 'error',
-      );
-      expect(errCall).toBeDefined();
-      expect(typeof errCall[0].message).toBe('string');
+      const err = findError();
+      expect(err).toBeDefined();
+      expect(typeof err!.message).toBe('string');
     });
 
-    it('parses frontmatter from listed files and posts a result', async () => {
+    it('spawns a YAML worker and extracts YAML block for frontmatter files', async () => {
+      await dispatch({ type: 'port' }, [makeFakePort()]);
+
+      mockListFiles.mockResolvedValueOnce([
+        {
+          filename: 'post.md',
+          content: '---\ntitle: Hello World\n---\nBody content here',
+        },
+      ]);
+
+      await dispatch({ type: 'parse', collection: 'posts' });
+      await flushMicrotasks();
+
+      // A YAML worker should have been spawned
+      const yamlWorker = spawnedWorkers.find((w) =>
+        w.url.includes('yaml-parser'),
+      );
+      expect(yamlWorker).toBeDefined();
+
+      // It should have received a parse-batch with the extracted YAML block
+      const batchMsg = yamlWorker!.messages.find(
+        (m) => m.type === 'parse-batch',
+      );
+      expect(batchMsg).toBeDefined();
+
+      const items = batchMsg!.items as Array<{ key: string; content: string }>;
+      // The YAML block should NOT include the --- delimiters or body
+      expect(items[0].content).toBe('title: Hello World');
+      expect(items[0].key).toBe('post.md');
+    });
+
+    it('sorts frontmatter files alphabetically by title', async () => {
       await dispatch({ type: 'port' }, [makeFakePort()]);
 
       mockListFiles.mockResolvedValueOnce([
@@ -133,18 +246,130 @@ describe('frontmatter worker', () => {
       ]);
 
       await dispatch({ type: 'parse', collection: 'posts' });
+      await flushMicrotasks();
 
-      const resultCall = selfPostMessage.mock.calls.find(
-        (c) => c[0].type === 'result',
-      );
-      expect(resultCall).toBeDefined();
+      const result = findResult();
+      expect(result).toBeDefined();
+      expect(result!.collection).toBe('posts');
 
-      const { collection, items } = resultCall[0];
-      expect(collection).toBe('posts');
-      // Items should be sorted alphabetically by title
+      const items = result!.items as Array<{
+        filename: string;
+        data: Record<string, unknown>;
+      }>;
       expect(items[0].filename).toBe('a-post.md');
       expect(items[1].filename).toBe('b-post.md');
       expect(items[0].data.title).toBe('A Post');
+    });
+
+    it('parses JSON data files inline without spawning a worker', async () => {
+      await dispatch({ type: 'port' }, [makeFakePort()]);
+
+      const workerCountBefore = spawnedWorkers.length;
+
+      mockListFiles.mockResolvedValueOnce([
+        {
+          filename: 'config.json',
+          content: '{"title": "JSON Config", "count": 42}',
+        },
+      ]);
+
+      await dispatch({
+        type: 'parse',
+        collection: 'data',
+        extensions: ['.json'],
+      });
+      await flushMicrotasks();
+
+      const result = findResult();
+      expect(result).toBeDefined();
+
+      const items = result!.items as Array<{
+        filename: string;
+        data: Record<string, unknown>;
+      }>;
+      expect(items[0].filename).toBe('config.json');
+      expect(items[0].data.title).toBe('JSON Config');
+      expect(items[0].data.count).toBe(42);
+
+      // No NEW parser workers should have been spawned for JSON-only parsing
+      expect(spawnedWorkers.length).toBe(workerCountBefore);
+    });
+
+    it('routes YAML data files to the YAML worker', async () => {
+      await dispatch({ type: 'port' }, [makeFakePort()]);
+
+      mockListFiles.mockResolvedValueOnce([
+        { filename: 'settings.yaml', content: 'title: YAML Settings' },
+      ]);
+
+      await dispatch({
+        type: 'parse',
+        collection: 'data',
+        extensions: ['.yaml'],
+      });
+      await flushMicrotasks();
+
+      // The YAML worker should exist (spawned in earlier test or this one)
+      const yamlWorker = spawnedWorkers.find((w) =>
+        w.url.includes('yaml-parser'),
+      );
+      expect(yamlWorker).toBeDefined();
+
+      // Find the batch message containing YAML data file content
+      const batchMsg = yamlWorker!.messages.find((m) => {
+        if (m.type !== 'parse-batch') return false;
+        const batchItems = m.items as Array<{
+          key: string;
+          content: string;
+        }>;
+        return batchItems.some((i) => i.key === 'settings.yaml');
+      });
+      expect(batchMsg).toBeDefined();
+
+      const batchItems = batchMsg!.items as Array<{
+        key: string;
+        content: string;
+      }>;
+      const settingsItem = batchItems.find((i) => i.key === 'settings.yaml');
+      // YAML data files send full content, not extracted block
+      expect(settingsItem!.content).toBe('title: YAML Settings');
+
+      const result = findResult();
+      expect(result).toBeDefined();
+      const items = result!.items as Array<{
+        filename: string;
+        data: Record<string, unknown>;
+      }>;
+      expect(items[0].data.title).toBe('YAML Settings');
+    });
+
+    it('routes TOML data files to the TOML worker', async () => {
+      await dispatch({ type: 'port' }, [makeFakePort()]);
+
+      mockListFiles.mockResolvedValueOnce([
+        { filename: 'config.toml', content: 'title = "TOML Config"' },
+      ]);
+
+      await dispatch({
+        type: 'parse',
+        collection: 'data',
+        extensions: ['.toml'],
+      });
+      await flushMicrotasks();
+
+      // A TOML worker should have been spawned
+      const tomlWorker = spawnedWorkers.find((w) =>
+        w.url.includes('toml-parser'),
+      );
+      expect(tomlWorker).toBeDefined();
+
+      const batchMsg = tomlWorker!.messages.find(
+        (m) => m.type === 'parse-batch',
+      );
+      expect(batchMsg).toBeDefined();
+
+      const result = findResult();
+      expect(result).toBeDefined();
     });
 
     it('falls back to filename for sorting when title is absent', async () => {
@@ -156,11 +381,14 @@ describe('frontmatter worker', () => {
       ]);
 
       await dispatch({ type: 'parse', collection: 'posts' });
+      await flushMicrotasks();
 
-      const resultCall = selfPostMessage.mock.calls.find(
-        (c) => c[0].type === 'result',
-      );
-      expect(resultCall![0].items[0].filename).toBe('a-file.md');
+      const result = findResult();
+      const items = result!.items as Array<{
+        filename: string;
+        data: Record<string, unknown>;
+      }>;
+      expect(items[0].filename).toBe('a-file.md');
     });
 
     it('posts an error when listFiles throws', async () => {
@@ -169,12 +397,11 @@ describe('frontmatter worker', () => {
       mockListFiles.mockRejectedValueOnce(new Error('storage failure'));
 
       await dispatch({ type: 'parse', collection: 'posts' });
+      await flushMicrotasks();
 
-      const errCall = selfPostMessage.mock.calls.find(
-        (c) => c[0].type === 'error',
-      );
-      expect(errCall).toBeDefined();
-      expect(errCall[0].message).toBe('storage failure');
+      const err = findError();
+      expect(err).toBeDefined();
+      expect(err!.message).toBe('storage failure');
     });
 
     it('includes files with empty frontmatter (data defaults to {})', async () => {
@@ -185,11 +412,68 @@ describe('frontmatter worker', () => {
       ]);
 
       await dispatch({ type: 'parse', collection: 'posts' });
+      await flushMicrotasks();
 
-      const resultCall = selfPostMessage.mock.calls.find(
-        (c) => c[0].type === 'result',
-      );
-      expect(resultCall![0].items[0].data).toEqual({});
+      const result = findResult();
+      const items = result!.items as Array<{
+        filename: string;
+        data: Record<string, unknown>;
+      }>;
+      expect(items[0].data).toEqual({});
+    });
+
+    it('sorts correctly across mixed file types', async () => {
+      await dispatch({ type: 'port' }, [makeFakePort()]);
+
+      mockListFiles.mockResolvedValueOnce([
+        { filename: 'z-post.md', content: '---\ntitle: Zebra\n---\nbody' },
+        {
+          filename: 'config.json',
+          content: '{"title": "Alpha Config"}',
+        },
+        { filename: 'middle.yaml', content: 'title: Middle Entry' },
+      ]);
+
+      await dispatch({
+        type: 'parse',
+        collection: 'mixed',
+        extensions: ['.md', '.json', '.yaml'],
+      });
+      await flushMicrotasks();
+
+      const result = findResult();
+      expect(result).toBeDefined();
+      const items = result!.items as Array<{
+        filename: string;
+        data: Record<string, unknown>;
+      }>;
+      // Alpha Config < Middle Entry < Zebra
+      expect(items[0].data.title).toBe('Alpha Config');
+      expect(items[1].data.title).toBe('Middle Entry');
+      expect(items[2].data.title).toBe('Zebra');
+    });
+
+    it('handles invalid JSON gracefully with empty data', async () => {
+      await dispatch({ type: 'port' }, [makeFakePort()]);
+
+      mockListFiles.mockResolvedValueOnce([
+        { filename: 'bad.json', content: '{ invalid json' },
+      ]);
+
+      await dispatch({
+        type: 'parse',
+        collection: 'data',
+        extensions: ['.json'],
+      });
+      await flushMicrotasks();
+
+      const result = findResult();
+      expect(result).toBeDefined();
+      const items = result!.items as Array<{
+        filename: string;
+        data: Record<string, unknown>;
+      }>;
+      expect(items[0].data).toEqual({});
     });
   });
 });
