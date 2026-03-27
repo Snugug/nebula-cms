@@ -2,7 +2,12 @@
   import type { SchemaNode } from '../../js/utils/schema-utils';
   import { extractTabs } from '../../js/utils/schema-utils';
   import { toTitleCase } from '../../js/utils/format';
-  import { getActiveTab, setActiveTab } from '../../js/editor/editor.svelte';
+  import {
+    getActiveTab,
+    setActiveTab,
+    getEditorFile,
+  } from '../../js/editor/editor.svelte';
+  import { hasBodyEditor } from '../../js/utils/file-types';
 
   /**
    * Props for the EditorTabs component, which renders the tab bar above the editor, including the default Metadata and Body tabs plus any custom schema-defined tabs.
@@ -20,8 +25,19 @@
   // Custom tab names derived from schema, sorted alphabetically
   const customTabs = $derived(schema ? extractTabs(schema) : []);
 
-  // All tabs: Metadata, Body, then custom tabs
-  const allTabs = $derived(['metadata', 'body', ...customTabs]);
+  // Current open file — null when no file is loaded
+  const file = $derived(getEditorFile());
+
+  // Show the Body tab for files that have a body editor (markdown, MDX, Markdoc).
+  // Defaults to true when no file is open to preserve the prior behavior.
+  const showBody = $derived(file ? hasBodyEditor(file.filename) : true);
+
+  // All tabs: Metadata, conditionally Body, then custom tabs
+  const allTabs = $derived([
+    'metadata',
+    ...(showBody ? ['body'] : []),
+    ...customTabs,
+  ]);
 </script>
 
 <nav class="tabs" aria-label="Editor tabs">
