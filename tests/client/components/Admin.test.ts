@@ -118,6 +118,7 @@ vi.mock('../../../src/client/js/handlers/admin', () => ({
   handleDeleteDraft: vi.fn(() => Promise.resolve()),
   handleFilenameConfirm: vi.fn(() => Promise.resolve()),
   computePublishDisabled: mockComputePublishDisabled,
+  buildContentItems: vi.fn(() => []),
 }));
 
 // sort is used by Admin.svelte to build contentItems

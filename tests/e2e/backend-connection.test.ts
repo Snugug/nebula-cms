@@ -96,6 +96,7 @@ vi.mock('../../src/client/js/handlers/admin', () => ({
   handleDeleteDraft: vi.fn(async () => {}),
   handleFilenameConfirm: vi.fn(async () => {}),
   computePublishDisabled: mocks.mockComputePublishDisabled,
+  buildContentItems: vi.fn(() => []),
 }));
 vi.mock('../../src/client/js/utils/sort', () => ({
   toSortDate: vi.fn(() => undefined),

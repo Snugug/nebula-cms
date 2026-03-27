@@ -100,13 +100,18 @@ vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   _getDraftState: vi.fn(() => ({})),
   _setDraftState: vi.fn(),
 }));
-vi.mock('../../src/client/js/handlers/admin', () => ({
-  handleSave: vi.fn(async () => {}),
-  handlePublish: vi.fn(async () => ({ status: 'ok' })),
-  handleDeleteDraft: vi.fn(async () => {}),
-  handleFilenameConfirm: vi.fn(async () => {}),
-  computePublishDisabled: mocks.mockComputePublishDisabled,
-}));
+vi.mock('../../src/client/js/handlers/admin', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../../src/client/js/handlers/admin')>();
+  return {
+    ...actual,
+    handleSave: vi.fn(async () => {}),
+    handlePublish: vi.fn(async () => ({ status: 'ok' })),
+    handleDeleteDraft: vi.fn(async () => {}),
+    handleFilenameConfirm: vi.fn(async () => {}),
+    computePublishDisabled: mocks.mockComputePublishDisabled,
+  };
+});
 vi.mock('../../src/client/js/utils/sort', () => ({
   toSortDate: vi.fn(() => undefined),
   readSortMode: vi.fn(() => 'alpha'),

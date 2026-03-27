@@ -174,3 +174,18 @@ export function stripExtension(filename: string): string {
 export function getDefaultExtension(type: string): string | null {
   return FILE_TYPES[type]?.extensions[0] ?? null;
 }
+
+/**
+ * Returns the type identifier for a given filename by looking up its extension.
+ * Used when the active file's type must be determined for the format selector.
+ * @param {string} filename - The filename to look up
+ * @return {string | null} The type identifier (e.g. 'md', 'yaml'), or null for unrecognised extensions
+ */
+export function getTypeForFilename(filename: string): string | null {
+  const ext = getExtension(filename);
+  if (!ext) return null;
+  for (const [typeId, config] of Object.entries(FILE_TYPES)) {
+    if (config.extensions.includes(ext)) return typeId;
+  }
+  return null;
+}

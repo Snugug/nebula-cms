@@ -36,14 +36,16 @@
     handleDeleteDraft,
     handleFilenameConfirm,
     computePublishDisabled,
+    buildContentItems,
   } from './js/handlers/admin';
-  import { stripExtension } from './js/utils/file-types';
+  import { stripExtension, getTypeForFilename } from './js/utils/file-types';
   import './css/icons.css';
   import BackendPicker from './components/BackendPicker.svelte';
   import AdminSidebar from './components/sidebar/AdminSidebar.svelte';
   import EditorToolbar from './components/editor/EditorToolbar.svelte';
   import EditorPane from './components/editor/EditorPane.svelte';
   import EditorTabs from './components/editor/EditorTabs.svelte';
+  import FormatSelector from './components/editor/FormatSelector.svelte';
   import MetadataForm from './components/MetadataForm.svelte';
   import FilenameDialog from './components/dialogs/FilenameDialog.svelte';
   import DeleteDraftDialog from './components/dialogs/DeleteDraftDialog.svelte';
@@ -71,13 +73,13 @@
   const activeTab = $derived(getActiveTab());
 
   // The active file/draft href for highlighting in the content sidebar
-  const activeFileHref = $derived.by(() => {
-    if (currentRoute.view === 'file')
-      return `/admin/${currentRoute.collection}/${currentRoute.slug}`;
-    if (currentRoute.view === 'draft')
-      return `/admin/${currentRoute.collection}/draft-${currentRoute.draftId}`;
-    return undefined;
-  });
+  const activeFileHref = $derived(
+    currentRoute.view === 'file'
+      ? `/admin/${currentRoute.collection}/${currentRoute.slug}`
+      : currentRoute.view === 'draft'
+        ? `/admin/${currentRoute.collection}/draft-${currentRoute.draftId}`
+        : undefined,
+  );
 
   // Collection names mapped to SidebarItems, using schema title/description when available
   const collectionItems = $derived(
@@ -89,60 +91,28 @@
       subtitle: getCollectionDescription(name) ?? undefined,
     })),
   );
+
   // Content items merged with draft data (DRAFT/OUTDATED chips) plus new draft items
-  const contentItems = $derived.by(() => {
-    // Build a filename→draft lookup map for O(1) access per content item
-    const draftByFile = new Map(
-      getDrafts()
-        .filter((d) => !d.isNew && d.filename)
-        .map((d) => [d.filename, d]),
-    );
-    const liveItems = getContentList().map((item) => {
-      const title =
-        typeof item.data.title === 'string' ? item.data.title : item.filename;
-      const slug = stripExtension(item.filename);
-      const draft = draftByFile.get(item.filename);
-      const date = toSortDate(item.data.published);
-      return {
-        label: title,
-        href: `/admin/${activeCollection}/${slug}`,
-        subtitle: item.filename,
-        ...(date ? { date } : {}),
-        ...(draft
-          ? {
-              draftId: draft.id,
-              isDraft: true,
-              isOutdated: getOutdatedMap()[draft.id] ?? false,
-            }
-          : {}),
-      };
-    });
-    const newDraftItems = getDrafts()
-      .filter((d) => d.isNew)
-      .map((d) => {
-        const date = toSortDate(d.formData.published);
-        return {
-          label:
-            typeof d.formData.title === 'string'
-              ? d.formData.title
-              : 'Untitled Draft',
-          href: `/admin/${activeCollection}/draft-${d.id}`,
-          draftId: d.id,
-          isDraft: true as const,
-          isOutdated: false,
-          ...(date ? { date } : {}),
-        };
-      });
-    return [...liveItems, ...newDraftItems];
-  });
+  const contentItems = $derived(
+    buildContentItems(
+      getContentList(),
+      getDrafts(),
+      getOutdatedMap(),
+      activeCollection,
+    ),
+  );
+
   // Whether the active collection has date fields for sort controls
   const contentHasDates = $derived(
     activeCollection ? collectionHasDates(activeCollection) : false,
   );
 
+  // Current JSON Schema for the active collection
+  const currentSchema = $derived(getSchema());
+
   // Whether the publish button should be disabled (missing required fields)
   const publishDisabled = $derived(
-    computePublishDisabled(getSchema(), getEditorFile()?.formData ?? {}),
+    computePublishDisabled(currentSchema, getEditorFile()?.formData ?? {}),
   );
 
   // Existing filenames for uniqueness validation in the filename dialog — includes both live files and drafts with filenames
@@ -152,6 +122,22 @@
       .filter((d) => d.filename)
       .map((d) => d.filename!),
   ]);
+
+  // Type identifiers from the schema's files array, used to show the format selector
+  const schemaFileTypes = $derived(
+    Array.isArray(currentSchema?.['files'])
+      ? (currentSchema['files'] as string[])
+      : [],
+  );
+
+  // The type identifier of the currently open file (e.g. 'md', 'mdx')
+  const activeFileType = $derived(
+    getEditorFile()?.filename
+      ? (getTypeForFilename(getEditorFile()!.filename) ??
+          schemaFileTypes[0] ??
+          '')
+      : (schemaFileTypes[0] ?? ''),
+  );
 
   // Dialog visibility state
   let showFilenameDialog = $state(false);
@@ -267,7 +253,6 @@
       />
     {/if}
     {#if fileOpen}
-      {@const currentSchema = getSchema()}
       <div class="editor-area">
         <EditorToolbar
           onSave={() => handleSave(activeCollection)}
@@ -278,6 +263,11 @@
           {publishDisabled}
         />
         <EditorTabs schema={currentSchema} />
+        <FormatSelector
+          fileTypes={schemaFileTypes}
+          activeType={activeFileType}
+          onChange={() => {}}
+        />
         <div class="editor-content">
           {#if activeTab === 'body'}
             <EditorPane />
@@ -335,7 +325,8 @@
 
   .editor-area {
     display: grid;
-    grid-template-rows: auto auto 1fr;
+    /* FormatSelector is conditionally rendered between tabs and content; grid-template-rows uses auto for all header rows and 1fr for the scrollable content area */
+    grid-template-rows: auto auto auto 1fr;
     overflow: hidden;
     border-left: 1px solid var(--dark-grey);
   }
