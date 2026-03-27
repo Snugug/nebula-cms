@@ -22,6 +22,7 @@
     }
   },
   "scripts": {
+    "prebuild": "node scripts/subset-icons.mjs",
     "build": "svelte-package --input src --output dist",
     "lint": "prettier -c .",
     "fix": "prettier --write .",
