@@ -35,6 +35,7 @@
     handleFilenameConfirm,
     computePublishDisabled,
   } from './js/handlers/admin';
+  import './css/icons.css';
   import BackendPicker from './components/BackendPicker.svelte';
   import AdminSidebar from './components/sidebar/AdminSidebar.svelte';
   import EditorToolbar from './components/editor/EditorToolbar.svelte';
