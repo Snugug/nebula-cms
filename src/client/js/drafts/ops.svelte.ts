@@ -1,4 +1,3 @@
-import { dump } from 'js-yaml';
 import {
   saveDraft as persistDraft,
   loadDraft as fetchDraft,
@@ -12,6 +11,7 @@ import {
   _setDraftState,
 } from '../editor/editor.svelte';
 import { getStorageClient } from '../state/state.svelte';
+import { getFileCategory, getDataFormat } from '../utils/file-types';
 
 /**
  * Loads a draft by ID from IndexedDB and populates the editor. Falls back to empty state if the draft is not found (safety fallback for the "Add" button flow).
@@ -117,26 +117,70 @@ export async function saveFile(): Promise<void> {
 }
 
 /**
- * Writes editor content to the storage backend via StorageClient. Deletes the associated draft from IndexedDB after a successful write.
+ * Serializes editor content based on the target file format. Data files produce pure JSON/YAML/TOML; frontmatter files produce the standard `---` delimited format.
+ * @param {string} filename - The target filename, used to determine format
+ * @param {Record<string, unknown>} formData - The structured data to serialize
+ * @param {string} body - The body content (only used for frontmatter files)
+ * @return {Promise<string>} The serialized file content
+ */
+async function serializeContent(
+  filename: string,
+  formData: Record<string, unknown>,
+  body: string,
+): Promise<string> {
+  const category = getFileCategory(filename);
+
+  if (category === 'data') {
+    const format = getDataFormat(filename);
+    switch (format) {
+      case 'json':
+        return JSON.stringify(formData, null, 2) + '\n';
+      case 'yaml': {
+        const { dump } = await import('js-yaml');
+        return dump(formData, { lineWidth: -1 });
+      }
+      case 'toml': {
+        const { stringify } = await import('smol-toml');
+        return stringify(formData as any);
+      }
+      default:
+        throw new Error(`Unsupported data format: ${format}`);
+    }
+  }
+
+  // Frontmatter files: ---\nyaml\n---\n\nbody\n
+  const { dump } = await import('js-yaml');
+  // dump() adds a trailing newline, so the template omits a \n before ---
+  const yaml = dump(formData, { lineWidth: -1 });
+  return `---\n${yaml}---\n\n${body}\n`;
+}
+
+/**
+ * Writes editor content to the storage backend via StorageClient. Dispatches serialization by file format. If originalFilename is provided and differs from filename, deletes the old file (file type conversion). Deletes the associated draft from IndexedDB after a successful write.
  * @param {string} collection - The collection the file belongs to
  * @param {string} filename - The filename to write within the collection
+ * @param {string} [originalFilename] - The previous filename if the file was renamed/converted
  * @return {Promise<void>}
  */
 export async function publishFile(
   collection: string,
   filename: string,
+  originalFilename?: string,
 ): Promise<void> {
   const s = _getDraftState();
   _setDraftState({ saving: true });
 
   try {
-    // dump() adds a trailing newline, so the template omits a \n before ---
-    const yaml = dump(s.formData, { lineWidth: -1 });
-    const content = `---\n${yaml}---\n\n${s.body}\n`;
+    const content = await serializeContent(filename, s.formData, s.body);
 
     const client = getStorageClient();
     if (!client) throw new Error('No storage backend connected');
     await client.writeFile(collection, filename, content);
+
+    // Remove the old file if the filename changed (file type conversion)
+    if (originalFilename && originalFilename !== filename) {
+      await client.deleteFile(collection, originalFilename);
+    }
 
     // Clean up the draft from IndexedDB after successful publish
     if (s.draftId) {

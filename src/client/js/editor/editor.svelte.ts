@@ -47,6 +47,7 @@ let filename = $state('');
 let fileOpen = $state(false);
 let activeTab = $state('metadata');
 let bodyLoaded = $state(false);
+let originalFilename = $state(''); // filename at load time — publish uses this to detect renames
 // Draft-specific state
 let draftId = $state<string | null>(null);
 let isNewDraft = $state(false);
@@ -71,6 +72,7 @@ export function applyEditorState(c: EditorStateConfig, open: boolean): void {
   formDataDirty = false;
   saving = false;
   filename = c.filename;
+  originalFilename = c.filename;
   bodyLoaded = c.bodyLoaded;
   activeTab = 'metadata';
   fileOpen = open;
@@ -95,7 +97,7 @@ function recomputeDirty(): void {
 
 /**
  * Returns a snapshot of draft-related internal state for use by editor-draft-ops. Exposes private module state without leaking $state reactivity.
- * @return {{ saving: boolean, draftId: string | null, isNewDraft: boolean, snapshot: string | null, currentCollection: string, draftCreatedAt: string | null, lastSavedFormData: string, lastSavedBody: string, formData: Record<string, unknown>, body: string, filename: string, dirty: boolean }}
+ * @return {{ saving: boolean, draftId: string | null, isNewDraft: boolean, snapshot: string | null, currentCollection: string, draftCreatedAt: string | null, lastSavedFormData: string, lastSavedBody: string, formData: Record<string, unknown>, body: string, filename: string, originalFilename: string, dirty: boolean }}
  */
 export function _getDraftState(): {
   saving: boolean;
@@ -109,6 +111,7 @@ export function _getDraftState(): {
   formData: Record<string, unknown>;
   body: string;
   filename: string;
+  originalFilename: string;
   dirty: boolean;
 } {
   return {
@@ -123,6 +126,7 @@ export function _getDraftState(): {
     formData,
     body,
     filename,
+    originalFilename,
     dirty,
   };
 }
@@ -269,6 +273,14 @@ export async function preloadFile(
  */
 export function setFilename(newFilename: string): void {
   filename = newFilename;
+}
+
+/**
+ * Returns the filename that was set when the file was loaded. Used by publishFile to detect renames and clean up the old file on disk.
+ * @return {string} The original filename at load time
+ */
+export function getOriginalFilename(): string {
+  return originalFilename;
 }
 
 /**
