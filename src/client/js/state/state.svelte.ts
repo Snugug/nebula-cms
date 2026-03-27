@@ -14,6 +14,7 @@ import {
   refreshDrafts,
   resetDraftMerge,
 } from '../drafts/merge.svelte';
+import { getSchemaExtensions } from './schema.svelte';
 
 export { getDrafts, getOutdatedMap, refreshDrafts };
 
@@ -162,7 +163,8 @@ async function dispatchWorker(
   // Wait for the SharedWorker adapter to be ready before dispatching
   if (initPromise) await initPromise;
   const w = ensureWorker();
-  w.postMessage({ type: 'parse', collection });
+  const extensions = getSchemaExtensions(collection);
+  w.postMessage({ type: 'parse', collection, extensions });
 }
 
 /**

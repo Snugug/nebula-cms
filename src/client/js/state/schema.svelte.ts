@@ -1,4 +1,5 @@
 import schemas from 'virtual:collections';
+import { getExtensionsForSchema } from '../utils/file-types';
 
 /**
  * JSON Schema object type.
@@ -109,6 +110,19 @@ export function getCollectionDescription(collection: string): string | null {
   if (!s) return null;
   const desc = s['description'];
   return typeof desc === 'string' ? desc : null;
+}
+
+/**
+ * Returns the resolved file extensions for a collection from its cached schema.
+ * Falls back to ['.md', '.mdx'] if the schema hasn't been fetched or declares no files.
+ * @param {string} collection - The collection name
+ * @return {string[]} Array of file extensions
+ */
+export function getSchemaExtensions(collection: string): string[] {
+  const s = cache.get(collection);
+  if (!s) return ['.md', '.mdx'];
+  const extensions = getExtensionsForSchema(s);
+  return extensions.length > 0 ? extensions : ['.md', '.mdx'];
 }
 
 /**
