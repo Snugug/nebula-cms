@@ -27,6 +27,8 @@
     clearSchema,
     prefetchAllSchemas,
     collectionHasDates,
+    getCollectionTitle,
+    getCollectionDescription,
   } from './js/state/schema.svelte';
   import {
     handleSave,
@@ -76,11 +78,14 @@
     return undefined;
   });
 
-  // Collection names mapped to SidebarItems, title-cased for display
+  // Collection names mapped to SidebarItems, using schema title/description when available
   const collectionItems = $derived(
     getCollections().map((name) => ({
-      label: name.charAt(0).toUpperCase() + name.slice(1),
+      label:
+        getCollectionTitle(name) ??
+        name.charAt(0).toUpperCase() + name.slice(1),
       href: `/admin/${name}`,
+      subtitle: getCollectionDescription(name) ?? undefined,
     })),
   );
 
@@ -250,7 +255,8 @@
     />
     {#if hasCollection && activeCollection}
       <AdminSidebar
-        title={activeCollection}
+        title={getCollectionTitle(activeCollection) ??
+          activeCollection.charAt(0).toUpperCase() + activeCollection.slice(1)}
         items={contentItems}
         activeItem={activeFileHref}
         storageKey={activeCollection}

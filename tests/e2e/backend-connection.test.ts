@@ -67,6 +67,8 @@ vi.mock('../../src/client/js/state/schema.svelte', () => ({
   clearSchema: vi.fn(),
   prefetchAllSchemas: vi.fn(async () => {}),
   collectionHasDates: mocks.mockCollectionHasDates,
+  getCollectionTitle: vi.fn(() => null),
+  getCollectionDescription: vi.fn(() => null),
 }));
 vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   preloadFile: vi.fn(async () => {}),

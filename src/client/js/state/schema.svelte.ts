@@ -86,6 +86,32 @@ export function collectionHasDates(collection: string): boolean {
 }
 
 /**
+ * Returns the display title for a collection from its cached schema.
+ * Returns null if the schema hasn't been fetched or has no title.
+ * @param {string} collection - The collection name
+ * @return {string | null} The schema title, or null
+ */
+export function getCollectionTitle(collection: string): string | null {
+  const s = cache.get(collection);
+  if (!s) return null;
+  const title = s['title'];
+  return typeof title === 'string' ? title : null;
+}
+
+/**
+ * Returns the description for a collection from its cached schema.
+ * Returns null if the schema hasn't been fetched or has no description.
+ * @param {string} collection - The collection name
+ * @return {string | null} The schema description, or null
+ */
+export function getCollectionDescription(collection: string): string | null {
+  const s = cache.get(collection);
+  if (!s) return null;
+  const desc = s['description'];
+  return typeof desc === 'string' ? desc : null;
+}
+
+/**
  * Clears the active schema.
  * @return {void}
  */
