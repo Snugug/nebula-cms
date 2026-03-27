@@ -1,12 +1,10 @@
 <script lang="ts">
   import { getDefaultExtension } from '../../js/utils/file-types';
 
-  /**
-   * Props for the FormatSelector component, which renders a format switcher
-   * when a collection supports multiple file types. onChange is passed per-instance
-   * because the action to take when switching types is caller-specific (e.g. renaming
-   * a file, creating a new draft with a different extension).
-   */
+  // Props for the FormatSelector component, which renders a format switcher
+  // when a collection supports multiple file types. onChange is passed per-instance
+  // because the action to take when switching types is caller-specific (e.g. renaming
+  // a file, creating a new draft with a different extension).
   interface Props {
     // Type identifiers from the schema's files array (e.g. ['md', 'mdx'])
     fileTypes: string[];

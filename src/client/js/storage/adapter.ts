@@ -1,23 +1,17 @@
-/**
- * A single file's name and content as returned by listFiles.
- */
+// A single file's name and content as returned by listFiles.
 export type FileEntry = {
   filename: string;
   content: string;
 };
 
-/**
- * A file write target with collection path, filename, and content.
- */
+// A file write target with collection path, filename, and content.
 export type FileWrite = {
   collection: string;
   filename: string;
   content: string;
 };
 
-/**
- * Contract for storage backend adapters. Both FSA and GitHub adapters implement this.
- */
+// Contract for storage backend adapters. Both FSA and GitHub adapters implement this.
 export interface StorageAdapter {
   /**
    * Lists files in a collection matching the given extensions, returning their names and content.
@@ -68,9 +62,7 @@ export interface StorageAdapter {
 // Message types for SharedWorker communication
 //////////////////////////////
 
-/**
- * Union of all request messages that can be sent to the storage SharedWorker.
- */
+// Union of all request messages that can be sent to the storage SharedWorker.
 export type StorageRequest =
   | {
       type: 'init';
@@ -85,9 +77,7 @@ export type StorageRequest =
   | { type: 'deleteFile'; collection: string; filename: string }
   | { type: 'teardown' };
 
-/**
- * Union of all response messages from the storage SharedWorker.
- */
+// Union of all response messages from the storage SharedWorker.
 export type StorageResponse =
   | { type: 'init'; ok: true }
   | { type: 'init'; ok: false; error: string }

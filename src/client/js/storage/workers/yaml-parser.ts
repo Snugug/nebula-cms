@@ -1,64 +1,41 @@
+/*
+ * YAML Parser Worker
+ *
+ * Handles YAML parsing and serialization on behalf of the main thread.
+ * Messages are dispatched by type: 'parse', 'parse-batch', 'stringify'.
+ * Each handler wraps its logic in try/catch and always posts a typed result.
+ */
+
 import { load, dump } from 'js-yaml';
 
-//////////////////////////////
-// YAML Parser Worker
-//
-// Handles YAML parsing and serialization on behalf of the main thread.
-// Messages are dispatched by type: 'parse', 'parse-batch', 'stringify'.
-// Each handler wraps its logic in try/catch and always posts a typed result.
-//////////////////////////////
-
-/**
- * Inbound message shape for a single YAML parse request.
- * @typedef {object} ParseMessage
- * @property {'parse'} type
- * @property {string} id - Correlation ID for matching responses
- * @property {string} content - Raw YAML string to parse
- */
+// Inbound message shape for a single YAML parse request.
 interface ParseMessage {
   type: 'parse';
   id: string;
   content: string;
 }
 
-/**
- * A single item in a batch parse request.
- * @typedef {object} BatchItem
- * @property {string} key - Key used to identify this item in the result map
- * @property {string} content - Raw YAML string to parse
- */
+// A single item in a batch parse request.
 interface BatchItem {
   key: string;
   content: string;
 }
 
-/**
- * Inbound message shape for a batch YAML parse request.
- * @typedef {object} ParseBatchMessage
- * @property {'parse-batch'} type
- * @property {string} id - Correlation ID for matching responses
- * @property {BatchItem[]} items - Array of key/content pairs to parse
- */
+// Inbound message shape for a batch YAML parse request.
 interface ParseBatchMessage {
   type: 'parse-batch';
   id: string;
   items: BatchItem[];
 }
 
-/**
- * Inbound message shape for a YAML stringify request.
- * @typedef {object} StringifyMessage
- * @property {'stringify'} type
- * @property {string} id - Correlation ID for matching responses
- * @property {Record<string, unknown>} data - Object to serialize to YAML
- */
+// Inbound message shape for a YAML stringify request.
 interface StringifyMessage {
   type: 'stringify';
   id: string;
   data: Record<string, unknown>;
 }
 
-/** Union of all inbound message types. */
+// Union of all inbound message types.
 type InboundMessage = ParseMessage | ParseBatchMessage | StringifyMessage;
 
 //////////////////////////////

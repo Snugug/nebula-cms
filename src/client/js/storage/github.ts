@@ -11,9 +11,7 @@ function uint8ToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-/**
- * Storage adapter backed by the GitHub REST API. Uses a Personal Access Token for authentication. All file operations target src/content/{collection}/ within the repository.
- */
+// Storage adapter backed by the GitHub REST API. Uses a Personal Access Token for authentication. All file operations target src/content/{collection}/ within the repository.
 export class GitHubAdapter implements StorageAdapter {
   private token: string;
   private owner: string;

@@ -18,17 +18,15 @@ import { getSchemaExtensions } from './schema.svelte';
 
 export { getDrafts, getOutdatedMap, refreshDrafts };
 
-/**
- * Content item with full frontmatter data returned by the worker.
- */
+// Content item with full frontmatter data returned by the worker.
 export type ContentItem = {
   filename: string;
   data: Record<string, unknown>;
 };
 
-/** Permission state for the stored FSA directory handle. */
+// Permission state for the stored FSA directory handle.
 type PermissionState = 'granted' | 'prompt' | 'denied';
-/** Backend type discriminator. */
+// Backend type discriminator.
 type BackendType = 'fsa' | 'github' | null;
 const collectionNames = Object.keys(schemas).sort();
 // Uses .js extension because svelte-package does not rewrite URL string literals;

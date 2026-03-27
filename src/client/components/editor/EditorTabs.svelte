@@ -9,9 +9,7 @@
   } from '../../js/editor/editor.svelte';
   import { hasBodyEditor } from '../../js/utils/file-types';
 
-  /**
-   * Props for the EditorTabs component, which renders the tab bar above the editor, including the default Metadata and Body tabs plus any custom schema-defined tabs.
-   */
+  // Props for the EditorTabs component, which renders the tab bar above the editor, including the default Metadata and Body tabs plus any custom schema-defined tabs.
   interface Props {
     // The JSON Schema for the current collection (null if not loaded yet)
     schema: SchemaNode | null;

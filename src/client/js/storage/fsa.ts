@@ -1,8 +1,6 @@
 import type { StorageAdapter, FileEntry, FileWrite } from './adapter';
 
-/**
- * Storage adapter backed by the File System Access API. Traverses from a project root handle through src/content/{collection}/ for all operations.
- */
+// Storage adapter backed by the File System Access API. Traverses from a project root handle through src/content/{collection}/ for all operations.
 export class FsaAdapter implements StorageAdapter {
   /**
    * Creates an FSA adapter rooted at the given directory handle.

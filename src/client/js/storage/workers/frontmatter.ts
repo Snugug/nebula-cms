@@ -1,15 +1,15 @@
+/*
+ * Orchestrator Worker
+ *
+ * Routes file parsing by category: frontmatter files have their YAML block
+ * extracted via string manipulation and sent to the YAML parser worker;
+ * JSON data files are parsed inline; YAML/TOML data files are sent to their
+ * respective parser workers. Parser workers are lazily spawned on first need.
+ */
+
 import { StorageClient } from '../client';
 import { getFileCategory, getDataFormat } from '../../utils/file-types';
 import type { FileEntry } from '../adapter';
-
-//////////////////////////////
-// Orchestrator Worker
-//
-// Routes file parsing by category: frontmatter files have their YAML block
-// extracted via string manipulation and sent to the YAML parser worker;
-// JSON data files are parsed inline; YAML/TOML data files are sent to their
-// respective parser workers. Parser workers are lazily spawned on first need.
-//////////////////////////////
 
 /**
  * Extracts the raw YAML block from a frontmatter-delimited file (markdown/MDX/Markdoc).
@@ -51,9 +51,7 @@ function extractYamlBlock(content: string): string | null {
 // Batch item type for parser worker communication
 //////////////////////////////
 
-/**
- * A key/content pair for batch parsing requests.
- */
+// A key/content pair for batch parsing requests.
 type BatchItem = {
   key: string;
   content: string;

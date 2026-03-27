@@ -1,27 +1,23 @@
-//////////////////////////////
-// File Type Registry
-// Central source of truth for supported file formats. All other modules
-// (storage adapters, orchestrator worker, editor, publish handler) derive
-// extension lists, category, and serialization format from this registry.
-//////////////////////////////
-
-/**
- * Configuration for a single supported file type.
+/*
+ * File Type Registry
+ * Central source of truth for supported file formats. All other modules
+ * (storage adapters, orchestrator worker, editor, publish handler) derive
+ * extension lists, category, and serialization format from this registry.
  */
+
+// Configuration for a single supported file type.
 export type FileTypeConfig = {
-  /** All file extensions associated with this type, first entry is the default. */
+  // All file extensions associated with this type, first entry is the default.
   extensions: string[];
-  /** Whether this type has a body editor (markdown/MDX/Markdoc). */
+  // Whether this type has a body editor (markdown/MDX/Markdoc).
   hasBody: boolean;
-  /** Whether the file holds frontmatter+body or pure data. */
+  // Whether the file holds frontmatter+body or pure data.
   category: 'frontmatter' | 'data';
-  /** For data files, which serialization format to use. */
+  // For data files, which serialization format to use.
   dataFormat?: 'json' | 'yaml' | 'toml';
 };
 
-/**
- * Registry mapping type identifiers (as used in schema `files` arrays) to their config.
- */
+// Registry mapping type identifiers (as used in schema `files` arrays) to their config.
 export const FILE_TYPES: Record<string, FileTypeConfig> = {
   md: {
     extensions: ['.md', '.markdown'],
@@ -63,7 +59,7 @@ export const FILE_TYPES: Record<string, FileTypeConfig> = {
 // Built once at module load for O(1) extension-to-config lookups.
 //////////////////////////////
 
-/** Maps each known extension to its FileTypeConfig. */
+// Maps each known extension to its FileTypeConfig.
 const extensionMap = new Map<string, FileTypeConfig>();
 
 for (const config of Object.values(FILE_TYPES)) {

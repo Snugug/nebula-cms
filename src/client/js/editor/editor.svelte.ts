@@ -5,9 +5,8 @@ import type { PathSegment } from '../utils/schema-utils';
 import { getDraftByFile } from '../drafts/storage';
 import { getStorageClient } from '../state/state.svelte';
 import { getFileCategory } from '../utils/file-types';
-/**
- * Editor file state exposed via getEditorFile().
- */
+
+// Editor file state exposed via getEditorFile().
 export type EditorFile = {
   body: string;
   formData: Record<string, unknown>;
@@ -22,9 +21,7 @@ export type EditorFile = {
   isNewDraft: boolean;
 };
 
-/**
- * Shape for bulk-setting all editor state via applyEditorState. Avoids repetitive assignments across load/preload/clear functions.
- */
+// Shape for bulk-setting all editor state via applyEditorState. Avoids repetitive assignments across load/preload/clear functions.
 export type EditorStateConfig = {
   body: string;
   formData: Record<string, unknown>;

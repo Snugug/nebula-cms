@@ -89,9 +89,7 @@ export async function handleSave(
   }
 }
 
-/**
- * Result of attempting a publish operation.
- */
+// Result of attempting a publish operation.
 export type PublishResult =
   | { status: 'ok' }
   | { status: 'no-file' }

@@ -1,4 +1,4 @@
-/**
+/*
  * Fetches a subsetted Material Symbols Outlined woff2 font from Google Fonts
  * and inlines it as base64 in a self-contained CSS file. Run this script
  * whenever the icon set changes to regenerate src/client/css/icons.css.
@@ -14,7 +14,7 @@ import { dirname, join } from 'path';
 // Icon set definition
 //////////////////////////////
 
-/** Icons used across the admin UI — keep sorted alphabetically. */
+// Icons used across the admin UI — keep sorted alphabetically.
 const ICON_NAMES = [
   'add',
   'arrow_downward',
@@ -36,7 +36,7 @@ const ICON_NAMES = [
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/** Absolute path where the generated CSS will be written. */
+// Absolute path where the generated CSS will be written.
 const OUTPUT_PATH = join(__dirname, '../src/client/css/icons.css');
 
 //////////////////////////////

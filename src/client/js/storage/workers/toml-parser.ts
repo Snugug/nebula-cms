@@ -1,13 +1,13 @@
-import { parse, stringify } from 'smol-toml';
+/*
+ * TOML parser worker
+ *
+ * Runs as a dedicated Worker. Handles three message types — parse, parse-batch,
+ * stringify — and posts results back to the main thread via self.postMessage.
+ * All handlers are wrapped in try/catch so errors are returned as structured
+ * failure messages rather than unhandled rejections.
+ */
 
-//////////////////////////////
-// TOML parser worker
-//
-// Runs as a dedicated Worker. Handles three message types — parse, parse-batch,
-// stringify — and posts results back to the main thread via self.postMessage.
-// All handlers are wrapped in try/catch so errors are returned as structured
-// failure messages rather than unhandled rejections.
-//////////////////////////////
+import { parse, stringify } from 'smol-toml';
 
 /**
  * Handles a 'parse' request: parses a single TOML string and posts the result.
