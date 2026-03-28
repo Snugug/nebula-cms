@@ -62,9 +62,13 @@ export const FILE_TYPES: Record<string, FileTypeConfig> = {
 // Maps each known extension to its FileTypeConfig.
 const extensionMap = new Map<string, FileTypeConfig>();
 
-for (const config of Object.values(FILE_TYPES)) {
+// Maps each known extension to its type identifier (e.g. '.md' -> 'md').
+const extensionToTypeID = new Map<string, string>();
+
+for (const [typeId, config] of Object.entries(FILE_TYPES)) {
   for (const ext of config.extensions) {
     extensionMap.set(ext, config);
+    extensionToTypeID.set(ext, typeId);
   }
 }
 
@@ -178,10 +182,5 @@ export function getDefaultExtension(type: string): string | null {
  * @return {string | null} The type identifier (e.g. 'md', 'yaml'), or null for unrecognised extensions
  */
 export function getTypeForFilename(filename: string): string | null {
-  const ext = getExtension(filename);
-  if (!ext) return null;
-  for (const [typeId, config] of Object.entries(FILE_TYPES)) {
-    if (config.extensions.includes(ext)) return typeId;
-  }
-  return null;
+  return extensionToTypeID.get(getExtension(filename)) ?? null;
 }

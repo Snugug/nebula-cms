@@ -9,42 +9,19 @@
 
 import { StorageClient } from '../client';
 import { getFileCategory, getDataFormat } from '../../utils/file-types';
+import { splitFrontmatter } from '../../utils/frontmatter';
 import type { FileEntry } from '../adapter';
 
 /**
  * Extracts the raw YAML block from a frontmatter-delimited file (markdown/MDX/Markdoc).
- * Handles BOM stripping, CRLF normalization, and horizontal rule rejection.
+ * Delegates BOM stripping, CRLF normalization, and delimiter logic to splitFrontmatter.
  * Returns the raw YAML string without parsing it — parsing is delegated to the YAML parser worker.
  * @param {string} content - Raw file content
  * @return {string | null} The raw YAML string between --- delimiters, or null if none found
  */
 function extractYamlBlock(content: string): string | null {
-  // Strip BOM if present
-  let str = content.startsWith('\uFEFF') ? content.slice(1) : content;
-
-  // Normalize line endings
-  str = str.replace(/\r\n/g, '\n');
-
-  // Reject ---- (horizontal rule) before checking for valid frontmatter opener
-  if (str.startsWith('----')) return null;
-  if (!str.startsWith('---\n')) return null;
-
-  // Find closing delimiter
-  const closeIndex = str.indexOf('\n---\n', 3);
-  if (closeIndex === -1) {
-    // Check for --- at end of file with no trailing newline
-    if (str.endsWith('\n---')) {
-      const yaml = str.slice(4, str.length - 4);
-      if (!yaml.trim()) return null;
-      return yaml;
-    }
-    return null;
-  }
-
-  const yaml = str.slice(4, closeIndex);
-  if (!yaml.trim()) return null;
-
-  return yaml;
+  const { rawFrontmatter } = splitFrontmatter(content);
+  return rawFrontmatter.trim() ? rawFrontmatter : null;
 }
 
 //////////////////////////////
@@ -88,6 +65,7 @@ function getYamlWorker(): Worker {
       type: 'module',
     });
     yamlWorker.onmessage = handleParserResponse;
+    yamlWorker.onerror = handleWorkerError;
   }
   return yamlWorker;
 }
@@ -103,8 +81,22 @@ function getTomlWorker(): Worker {
       type: 'module',
     });
     tomlWorker.onmessage = handleParserResponse;
+    tomlWorker.onerror = handleWorkerError;
   }
   return tomlWorker;
+}
+
+/**
+ * Handles fatal errors from parser workers by rejecting all pending batch promises
+ * so callers don't hang indefinitely waiting for a response that will never arrive.
+ * @param {ErrorEvent} e - The error event from the worker
+ * @return {void}
+ */
+function handleWorkerError(e: ErrorEvent): void {
+  for (const [id, { reject }] of pendingBatches) {
+    reject(new Error(`Parser worker error: ${e.message}`));
+    pendingBatches.delete(id);
+  }
 }
 
 /**
@@ -114,7 +106,9 @@ function getTomlWorker(): Worker {
  * @return {void}
  */
 function handleParserResponse(event: MessageEvent): void {
-  const { id, ok, results, error } = event.data;
+  const { type, id, ok, results, error } = event.data;
+  // Ignore messages that aren't batch results (e.g. single parse results, stringify results)
+  if (type !== 'parse-batch-result') return;
   const pending = pendingBatches.get(id);
   if (!pending) return;
   pendingBatches.delete(id);
@@ -169,9 +163,6 @@ async function processFiles(
   const yamlBatch: BatchItem[] = [];
   // Batch items for TOML worker
   const tomlBatch: BatchItem[] = [];
-  // Track which filenames map to which batch for reassembly
-  const yamlFilenames: string[] = [];
-  const tomlFilenames: string[] = [];
   // Files with no frontmatter get empty data
   const emptyDataFiles: string[] = [];
 
@@ -182,7 +173,6 @@ async function processFiles(
       const yamlBlock = extractYamlBlock(file.content);
       if (yamlBlock) {
         yamlBatch.push({ key: file.filename, content: yamlBlock });
-        yamlFilenames.push(file.filename);
       } else {
         // No frontmatter found — include with empty data
         emptyDataFiles.push(file.filename);
@@ -206,13 +196,11 @@ async function processFiles(
 
       if (format === 'yaml') {
         yamlBatch.push({ key: file.filename, content: file.content });
-        yamlFilenames.push(file.filename);
         continue;
       }
 
       if (format === 'toml') {
         tomlBatch.push({ key: file.filename, content: file.content });
-        tomlFilenames.push(file.filename);
         continue;
       }
     }
@@ -244,25 +232,19 @@ async function processFiles(
   // Add inline results (JSON)
   items.push(...inlineResults);
 
-  // Add YAML results
+  // Add YAML results — filenames are derived from the batch result keys
   if (yamlPromiseIdx >= 0) {
     const yamlResults = batchResults[yamlPromiseIdx];
-    for (const filename of yamlFilenames) {
-      items.push({
-        filename,
-        data: yamlResults[filename] ?? {},
-      });
+    for (const [filename, data] of Object.entries(yamlResults)) {
+      items.push({ filename, data });
     }
   }
 
-  // Add TOML results
+  // Add TOML results — filenames are derived from the batch result keys
   if (tomlPromiseIdx >= 0) {
     const tomlResults = batchResults[tomlPromiseIdx];
-    for (const filename of tomlFilenames) {
-      items.push({
-        filename,
-        data: tomlResults[filename] ?? {},
-      });
+    for (const [filename, data] of Object.entries(tomlResults)) {
+      items.push({ filename, data });
     }
   }
 

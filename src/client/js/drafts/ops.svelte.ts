@@ -130,18 +130,21 @@ async function serializeContent(
 ): Promise<string> {
   const category = getFileCategory(filename);
 
+  // Lazy-load js-yaml once for both data and frontmatter YAML paths
+  const loadYAML = () => import('js-yaml');
+
   if (category === 'data') {
     const format = getDataFormat(filename);
     switch (format) {
       case 'json':
         return JSON.stringify(formData, null, 2) + '\n';
       case 'yaml': {
-        const { dump } = await import('js-yaml');
+        const { dump } = await loadYAML();
         return dump(formData, { lineWidth: -1 });
       }
       case 'toml': {
         const { stringify } = await import('smol-toml');
-        return stringify(formData as any);
+        return stringify(formData);
       }
       default:
         throw new Error(`Unsupported data format: ${format}`);
@@ -149,7 +152,7 @@ async function serializeContent(
   }
 
   // Frontmatter files: ---\nyaml\n---\n\nbody\n
-  const { dump } = await import('js-yaml');
+  const { dump } = await loadYAML();
   // dump() adds a trailing newline, so the template omits a \n before ---
   const yaml = dump(formData, { lineWidth: -1 });
   return `---\n${yaml}---\n\n${body}\n`;

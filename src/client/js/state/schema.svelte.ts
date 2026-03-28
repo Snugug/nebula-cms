@@ -113,6 +113,12 @@ export function getCollectionDescription(collection: string): string | null {
 /**
  * Returns the resolved file extensions for a collection from its cached schema.
  * Falls back to ['.md', '.mdx'] if the schema hasn't been fetched or declares no files.
+ *
+ * Known race condition: if a caller invokes this before prefetchAllSchemas() has
+ * completed, the schema won't be cached yet and the fallback is returned. The caller
+ * (dispatchWorker in state.svelte.ts) mitigates this by awaiting initPromise, which
+ * includes prefetchAllSchemas(). If the ordering changes, callers should check
+ * areSchemasReady() or await prefetchAllSchemas() before calling this function.
  * @param {string} collection - The collection name
  * @return {string[]} Array of file extensions
  */

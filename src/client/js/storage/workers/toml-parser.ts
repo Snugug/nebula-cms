@@ -9,13 +9,43 @@
 
 import { parse, stringify } from 'smol-toml';
 
+// Inbound message shape for a single TOML parse request.
+interface ParseMessage {
+  type: 'parse';
+  id: string;
+  content: string;
+}
+
+// A single item in a batch parse request.
+interface BatchItem {
+  key: string;
+  content: string;
+}
+
+// Inbound message shape for a batch TOML parse request.
+interface ParseBatchMessage {
+  type: 'parse-batch';
+  id: string;
+  items: BatchItem[];
+}
+
+// Inbound message shape for a TOML stringify request.
+interface StringifyMessage {
+  type: 'stringify';
+  id: string;
+  data: Record<string, unknown>;
+}
+
+// Union of all inbound message types.
+type InboundMessage = ParseMessage | ParseBatchMessage | StringifyMessage;
+
 /**
  * Handles a 'parse' request: parses a single TOML string and posts the result.
- * @param {string} id - Correlation ID echoed back in the response
- * @param {string} content - Raw TOML content to parse
+ * @param {ParseMessage} msg - The inbound parse message
  * @return {void}
  */
-function handleParse(id: string, content: string): void {
+function handleParse(msg: ParseMessage): void {
+  const { id, content } = msg;
   try {
     const data = parse(content) as Record<string, unknown>;
     self.postMessage({ type: 'parse-result', id, ok: true, data });
@@ -28,14 +58,11 @@ function handleParse(id: string, content: string): void {
 /**
  * Handles a 'parse-batch' request: parses multiple TOML strings keyed by
  * a caller-supplied key, and posts a single result containing all parsed values.
- * @param {string} id - Correlation ID echoed back in the response
- * @param {Array<{ key: string; content: string }>} items - Keyed TOML inputs
+ * @param {ParseBatchMessage} msg - The inbound parse-batch message
  * @return {void}
  */
-function handleParseBatch(
-  id: string,
-  items: Array<{ key: string; content: string }>,
-): void {
+function handleParseBatch(msg: ParseBatchMessage): void {
+  const { id, items } = msg;
   try {
     const results: Record<string, Record<string, unknown>> = {};
     for (const item of items) {
@@ -51,11 +78,11 @@ function handleParseBatch(
 /**
  * Handles a 'stringify' request: serializes a plain object to a TOML string
  * and posts the result.
- * @param {string} id - Correlation ID echoed back in the response
- * @param {Record<string, unknown>} data - Data to serialize
+ * @param {StringifyMessage} msg - The inbound stringify message
  * @return {void}
  */
-function handleStringify(id: string, data: Record<string, unknown>): void {
+function handleStringify(msg: StringifyMessage): void {
+  const { id, data } = msg;
   try {
     const content = stringify(data);
     self.postMessage({ type: 'stringify-result', id, ok: true, content });
@@ -66,25 +93,14 @@ function handleStringify(id: string, data: Record<string, unknown>): void {
 }
 
 // Dispatch incoming messages by type
-self.addEventListener('message', (event) => {
-  const { type, id } = event.data as { type: string; id: string };
+self.addEventListener('message', (event: MessageEvent<InboundMessage>) => {
+  const msg = event.data;
 
-  if (type === 'parse') {
-    const { content } = event.data as { content: string };
-    handleParse(id, content);
-    return;
-  }
-
-  if (type === 'parse-batch') {
-    const { items } = event.data as {
-      items: Array<{ key: string; content: string }>;
-    };
-    handleParseBatch(id, items);
-    return;
-  }
-
-  if (type === 'stringify') {
-    const { data } = event.data as { data: Record<string, unknown> };
-    handleStringify(id, data);
+  if (msg.type === 'parse') {
+    handleParse(msg);
+  } else if (msg.type === 'parse-batch') {
+    handleParseBatch(msg);
+  } else if (msg.type === 'stringify') {
+    handleStringify(msg);
   }
 });
