@@ -1,3 +1,8 @@
+/*
+ * Admin action handlers for save, publish, delete, and sidebar data construction.
+ * Extracted from Admin.svelte to keep the component under the 350-line limit
+ * and to centralize URL construction that depends on the configurable basePath.
+ */
 import {
   saveDraftToIDB,
   publishFile,
@@ -14,8 +19,7 @@ import {
   updateContentItem,
   type ContentItem,
 } from '../state/state.svelte';
-import { navigate, getBasePath } from '../state/router.svelte';
-import type { AdminRoute } from '../state/router.svelte';
+import { navigate, getBasePath, type AdminRoute } from '../state/router.svelte';
 import {
   getCollectionTitle,
   getCollectionDescription,

@@ -26,12 +26,13 @@ export function getBasePath(): string {
 }
 
 /**
- * Escapes special regex characters in a string so it can be used as a literal pattern.
- * @param {string} str - The string to escape
- * @return {string} The escaped string safe for RegExp construction
+ * Checks whether a pathname falls under the configured basePath.
+ * Matches the basePath exactly or as a prefix followed by '/'.
+ * @param {string} pathname - The URL pathname to test
+ * @return {boolean} True if the pathname is within the basePath
  */
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function isUnderBasePath(pathname: string): boolean {
+  return pathname === basePath || pathname.startsWith(basePath + '/');
 }
 
 /**
@@ -40,10 +41,11 @@ function escapeRegex(str: string): string {
  * @return {AdminRoute} The route corresponding to the given pathname
  */
 function parsePathname(pathname: string): AdminRoute {
-  const segments = pathname
-    .replace(new RegExp(`^${escapeRegex(basePath)}\\/?`), '')
-    .split('/')
-    .filter(Boolean);
+  // Strip the basePath prefix, then split the remainder into segments
+  const rest = pathname.startsWith(basePath)
+    ? pathname.slice(basePath.length)
+    : pathname;
+  const segments = rest.split('/').filter(Boolean);
   // Draft URLs use a 2-segment pattern: {basePath}/{collection}/draft-{draftId}
   // This keeps the same URL depth as regular files so Astro static paths work
   if (segments.length >= 2 && segments[1].startsWith('draft-')) {
@@ -104,7 +106,10 @@ let initialized = false;
 export function initRouter(configuredBasePath?: string): void {
   if (configuredBasePath !== undefined) {
     // Normalize: strip trailing slashes but keep leading slash
-    basePath = configuredBasePath.replace(/\/+$/, '') || '/';
+    const trimmed = configuredBasePath.endsWith('/')
+      ? configuredBasePath.slice(0, -1)
+      : configuredBasePath;
+    basePath = trimmed || '/';
     // Re-parse current pathname with the correct basePath
     route = parsePathname(location.pathname);
   }
@@ -116,7 +121,7 @@ export function initRouter(configuredBasePath?: string): void {
     const url = new URL(event.destination.url);
 
     // Only intercept navigations within the configured basePath
-    if (!url.pathname.startsWith(basePath)) return;
+    if (!isUnderBasePath(url.pathname)) return;
 
     // Don't intercept downloads or hash-only changes
     if (event.hashChange || event.downloadRequest) return;
