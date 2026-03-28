@@ -109,7 +109,7 @@ export async function saveDraftToIDB(): Promise<void> {
 }
 
 /**
- * Legacy alias for saveDraftToIDB — preserves existing call sites until Tasks 11-13 rewire them.
+ * Legacy alias for saveDraftToIDB — preserves existing test mock call sites.
  * @return {Promise<void>}
  */
 export async function saveFile(): Promise<void> {
