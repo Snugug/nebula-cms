@@ -1,8 +1,7 @@
 import schemas from 'virtual:collections';
+import { getExtensionsForSchema } from '../utils/file-types';
 
-/**
- * JSON Schema object type.
- */
+// JSON Schema object type.
 type JsonSchema = Record<string, unknown>;
 
 // Cache of fetched schemas keyed by collection name
@@ -83,6 +82,51 @@ export function collectionHasDates(collection: string): boolean {
   const props = s['properties'] as Record<string, JsonSchema> | undefined;
   if (!props) return false;
   return Object.values(props).some((p) => p['format'] === 'date-time');
+}
+
+/**
+ * Returns the display title for a collection from its cached schema.
+ * Returns null if the schema hasn't been fetched or has no title.
+ * @param {string} collection - The collection name
+ * @return {string | null} The schema title, or null
+ */
+export function getCollectionTitle(collection: string): string | null {
+  const s = cache.get(collection);
+  if (!s) return null;
+  const title = s['title'];
+  return typeof title === 'string' ? title : null;
+}
+
+/**
+ * Returns the description for a collection from its cached schema.
+ * Returns null if the schema hasn't been fetched or has no description.
+ * @param {string} collection - The collection name
+ * @return {string | null} The schema description, or null
+ */
+export function getCollectionDescription(collection: string): string | null {
+  const s = cache.get(collection);
+  if (!s) return null;
+  const desc = s['description'];
+  return typeof desc === 'string' ? desc : null;
+}
+
+/**
+ * Returns the resolved file extensions for a collection from its cached schema.
+ * Falls back to ['.md', '.mdx'] if the schema hasn't been fetched or declares no files.
+ *
+ * Known race condition: if a caller invokes this before prefetchAllSchemas() has
+ * completed, the schema won't be cached yet and the fallback is returned. The caller
+ * (dispatchWorker in state.svelte.ts) mitigates this by awaiting initPromise, which
+ * includes prefetchAllSchemas(). If the ordering changes, callers should check
+ * areSchemasReady() or await prefetchAllSchemas() before calling this function.
+ * @param {string} collection - The collection name
+ * @return {string[]} Array of file extensions
+ */
+export function getSchemaExtensions(collection: string): string[] {
+  const s = cache.get(collection);
+  if (!s) return ['.md', '.mdx'];
+  const extensions = getExtensionsForSchema(s);
+  return extensions.length > 0 ? extensions : ['.md', '.mdx'];
 }
 
 /**

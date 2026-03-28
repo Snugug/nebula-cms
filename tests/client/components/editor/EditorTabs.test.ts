@@ -10,13 +10,17 @@ import EditorTabs from '../../../../src/client/components/editor/EditorTabs.svel
 
 // vi.hoisted ensures these declarations are available when vi.mock factories run,
 // since vi.mock calls are hoisted to the top of the file by Vitest.
-const { mockGetActiveTab, mockSetActiveTab, mockExtractTabs } = vi.hoisted(
-  () => ({
-    mockGetActiveTab: vi.fn(() => 'metadata'),
-    mockSetActiveTab: vi.fn(),
-    mockExtractTabs: vi.fn(() => [] as string[]),
-  }),
-);
+const {
+  mockGetActiveTab,
+  mockSetActiveTab,
+  mockExtractTabs,
+  mockGetEditorFile,
+} = vi.hoisted(() => ({
+  mockGetActiveTab: vi.fn(() => 'metadata'),
+  mockSetActiveTab: vi.fn(),
+  mockExtractTabs: vi.fn(() => [] as string[]),
+  mockGetEditorFile: vi.fn(() => null),
+}));
 
 vi.mock('../../../../src/client/js/utils/schema-utils', () => ({
   extractTabs: mockExtractTabs,
@@ -25,6 +29,7 @@ vi.mock('../../../../src/client/js/utils/schema-utils', () => ({
 vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
   getActiveTab: mockGetActiveTab,
   setActiveTab: mockSetActiveTab,
+  getEditorFile: mockGetEditorFile,
 }));
 
 // Prevent accumulated renders from bleeding between tests
@@ -182,5 +187,51 @@ describe('EditorTabs', () => {
     await fireEvent.click(metaBtn);
 
     expect(mockSetActiveTab).toHaveBeenCalledWith('metadata');
+  });
+
+  //////////////////////////////
+  // Body tab visibility by file type
+  //////////////////////////////
+
+  it('shows the Body tab when the open file is a .md file', () => {
+    mockGetEditorFile.mockReturnValueOnce({ filename: 'post.md' });
+    mockExtractTabs.mockReturnValueOnce([]);
+
+    const { container } = render(EditorTabs, {
+      props: { schema: null },
+    });
+
+    const buttons = Array.from(container.querySelectorAll('.tabs__tab'));
+    const labels = buttons.map((b) => b.textContent?.trim());
+
+    expect(labels).toContain('Body');
+  });
+
+  it('hides the Body tab when the open file is a .json file', () => {
+    mockGetEditorFile.mockReturnValueOnce({ filename: 'data.json' });
+    mockExtractTabs.mockReturnValueOnce([]);
+
+    const { container } = render(EditorTabs, {
+      props: { schema: null },
+    });
+
+    const buttons = Array.from(container.querySelectorAll('.tabs__tab'));
+    const labels = buttons.map((b) => b.textContent?.trim());
+
+    expect(labels).not.toContain('Body');
+  });
+
+  it('shows the Body tab when no file is open (fallback default)', () => {
+    mockGetEditorFile.mockReturnValueOnce(null);
+    mockExtractTabs.mockReturnValueOnce([]);
+
+    const { container } = render(EditorTabs, {
+      props: { schema: null },
+    });
+
+    const buttons = Array.from(container.querySelectorAll('.tabs__tab'));
+    const labels = buttons.map((b) => b.textContent?.trim());
+
+    expect(labels).toContain('Body');
   });
 });

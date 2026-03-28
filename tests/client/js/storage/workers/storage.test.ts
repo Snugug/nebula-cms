@@ -31,6 +31,7 @@ vi.mock('../../../../../src/client/js/storage/fsa', () => ({
       readFile: vi.fn().mockResolvedValue('A content'),
       writeFile: vi.fn().mockResolvedValue(undefined),
       writeFiles: vi.fn().mockResolvedValue(undefined),
+      deleteFile: vi.fn().mockResolvedValue(undefined),
     };
   },
 }));
@@ -45,6 +46,7 @@ vi.mock('../../../../../src/client/js/storage/github', () => ({
       readFile: vi.fn().mockResolvedValue('B content'),
       writeFile: vi.fn().mockResolvedValue(undefined),
       writeFiles: vi.fn().mockResolvedValue(undefined),
+      deleteFile: vi.fn().mockResolvedValue(undefined),
     };
   },
 }));
@@ -117,7 +119,7 @@ function connectPort(port: MessagePort): void {
  * @param {string} id - A unique _id for this init request
  * @return {Promise<void>}
  */
-async function initFsa(
+async function initFSA(
   postSpy: MockInstance,
   send: (req: StorageRequest & { _id?: string }) => void,
   id: string,
@@ -155,7 +157,7 @@ describe('storage worker', () => {
   it('responds to FSA init with ok: true', async () => {
     const { port, postSpy, send } = makeMockPort();
     connectPort(port);
-    await initFsa(postSpy, send, 'init-fsa-1');
+    await initFSA(postSpy, send, 'init-fsa-1');
     const resp = postSpy.mock.calls.find((c) => c[0]._id === 'init-fsa-1')[0];
     expect(resp.ok).toBe(true);
     expect(resp.type).toBe('init');
@@ -190,9 +192,14 @@ describe('storage worker', () => {
   it('responds to listFiles after init', async () => {
     const { port, postSpy, send } = makeMockPort();
     connectPort(port);
-    await initFsa(postSpy, send, 'init-list');
+    await initFSA(postSpy, send, 'init-list');
 
-    send({ type: 'listFiles', collection: 'posts', _id: 'list-1' });
+    send({
+      type: 'listFiles',
+      collection: 'posts',
+      extensions: ['.md', '.mdx'],
+      _id: 'list-1',
+    });
     await vi.waitUntil(
       () => postSpy.mock.calls.some((c) => c[0]._id === 'list-1'),
       { timeout: 2000 },
@@ -224,7 +231,12 @@ describe('storage worker', () => {
 
     const { port, postSpy, send } = makeMockPort();
     connectPort(port);
-    send({ type: 'listFiles', collection: 'posts', _id: 'list-no-adapter' });
+    send({
+      type: 'listFiles',
+      collection: 'posts',
+      extensions: ['.md', '.mdx'],
+      _id: 'list-no-adapter',
+    });
     await vi.waitUntil(
       () => postSpy.mock.calls.some((c) => c[0]._id === 'list-no-adapter'),
       { timeout: 2000 },
@@ -237,10 +249,69 @@ describe('storage worker', () => {
     expect(resp.error).toContain('No backend');
   });
 
+  it('responds to deleteFile after init', async () => {
+    const { port, postSpy, send } = makeMockPort();
+    connectPort(port);
+    await initFSA(postSpy, send, 'init-delete');
+
+    send({
+      type: 'deleteFile',
+      collection: 'posts',
+      filename: 'old.md',
+      _id: 'delete-1',
+    });
+    await vi.waitUntil(
+      () => postSpy.mock.calls.some((c) => c[0]._id === 'delete-1'),
+      { timeout: 2000 },
+    );
+
+    const resp = postSpy.mock.calls.find((c) => c[0]._id === 'delete-1')[0];
+    expect(resp.type).toBe('deleteFile');
+    expect(resp.ok).toBe(true);
+
+    send({ type: 'teardown', _id: 'teardown-delete' });
+    await vi.waitUntil(() =>
+      postSpy.mock.calls.some((c) => c[0]._id === 'teardown-delete'),
+    );
+  });
+
+  it('returns an error response for deleteFile before init', async () => {
+    // Teardown any adapter left by previous tests
+    const {
+      port: cleanPort,
+      postSpy: cleanSpy,
+      send: cleanSend,
+    } = makeMockPort();
+    connectPort(cleanPort);
+    cleanSend({ type: 'teardown', _id: 'pre-teardown-del' });
+    await vi.waitUntil(() =>
+      cleanSpy.mock.calls.some((c) => c[0]._id === 'pre-teardown-del'),
+    );
+
+    const { port, postSpy, send } = makeMockPort();
+    connectPort(port);
+    send({
+      type: 'deleteFile',
+      collection: 'posts',
+      filename: 'old.md',
+      _id: 'delete-no-adapter',
+    });
+    await vi.waitUntil(
+      () => postSpy.mock.calls.some((c) => c[0]._id === 'delete-no-adapter'),
+      { timeout: 2000 },
+    );
+
+    const resp = postSpy.mock.calls.find(
+      (c) => c[0]._id === 'delete-no-adapter',
+    )[0];
+    expect(resp.ok).toBe(false);
+    expect(resp.error).toContain('No backend');
+  });
+
   it('responds to teardown with ok: true and clears the adapter', async () => {
     const { port, postSpy, send } = makeMockPort();
     connectPort(port);
-    await initFsa(postSpy, send, 'init-teardown');
+    await initFSA(postSpy, send, 'init-teardown');
 
     send({ type: 'teardown', _id: 'td-1' });
     await vi.waitUntil(

@@ -97,6 +97,8 @@ vi.mock('../../../src/client/js/state/schema.svelte', () => ({
   clearSchema: vi.fn(),
   prefetchAllSchemas: vi.fn(() => Promise.resolve()),
   collectionHasDates: mockCollectionHasDates,
+  getCollectionTitle: vi.fn(() => null),
+  getCollectionDescription: vi.fn(() => null),
 }));
 
 vi.mock('../../../src/client/js/editor/editor.svelte', () => ({
@@ -116,6 +118,7 @@ vi.mock('../../../src/client/js/handlers/admin', () => ({
   handleDeleteDraft: vi.fn(() => Promise.resolve()),
   handleFilenameConfirm: vi.fn(() => Promise.resolve()),
   computePublishDisabled: mockComputePublishDisabled,
+  buildContentItems: vi.fn(() => []),
 }));
 
 // sort is used by Admin.svelte to build contentItems

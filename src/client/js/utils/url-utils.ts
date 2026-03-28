@@ -7,7 +7,7 @@
  * @param {string} text - The string to validate
  * @return {boolean} True if the text is a valid URL or absolute path
  */
-export function isUrl(text: string): boolean {
+export function isURL(text: string): boolean {
   const trimmed = text.trim();
   if (!trimmed) return false;
 

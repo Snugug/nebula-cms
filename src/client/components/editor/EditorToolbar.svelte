@@ -1,9 +1,7 @@
 <script lang="ts">
   import { getEditorFile } from '../../js/editor/editor.svelte';
 
-  /**
-   * Props for the editor toolbar.
-   */
+  // Props for the editor toolbar.
   interface Props {
     // Handler for saving a draft to IndexedDB
     onSave: () => void;

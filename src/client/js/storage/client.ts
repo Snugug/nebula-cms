@@ -5,9 +5,7 @@ import type {
   FileWrite,
 } from './adapter';
 
-/**
- * Typed client for communicating with the storage SharedWorker over a MessagePort. Wraps postMessage/onmessage into async request/response calls.
- */
+// Typed client for communicating with the storage SharedWorker over a MessagePort. Wraps postMessage/onmessage into async request/response calls.
 export class StorageClient {
   private port: MessagePort;
   private pending = new Map<
@@ -68,16 +66,21 @@ export class StorageClient {
   }
 
   /**
-   * Lists all files in a collection.
+   * Lists files in a collection matching the given extensions.
    * @param {string} collection - The collection name
+   * @param {string[]} extensions - File extensions to include (e.g. ['.md', '.mdx'])
    * @return {Promise<FileEntry[]>} Array of file entries
    */
-  async listFiles(collection: string): Promise<FileEntry[]> {
+  async listFiles(
+    collection: string,
+    extensions: string[],
+  ): Promise<FileEntry[]> {
     const res = await this.send<
       Extract<StorageResponse, { type: 'listFiles'; ok: true }>
     >({
       type: 'listFiles',
       collection,
+      extensions,
     });
     return res.files;
   }
@@ -121,6 +124,16 @@ export class StorageClient {
    */
   async writeFiles(files: FileWrite[]): Promise<void> {
     await this.send({ type: 'writeFiles', files });
+  }
+
+  /**
+   * Deletes a file from a collection. Used during file type conversion to remove the old file after the new one is written.
+   * @param {string} collection - The collection name
+   * @param {string} filename - The filename to delete
+   * @return {Promise<void>}
+   */
+  async deleteFile(collection: string, filename: string): Promise<void> {
+    await this.send({ type: 'deleteFile', collection, filename });
   }
 
   /**

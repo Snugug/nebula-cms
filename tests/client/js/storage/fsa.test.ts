@@ -128,6 +128,18 @@ class MockDirHandle {
   }
 
   /**
+   * Removes a child entry by name.
+   * @param {string} name - The entry name to remove
+   * @return {Promise<void>}
+   */
+  async removeEntry(name: string): Promise<void> {
+    if (!this.children.has(name)) {
+      throw new DOMException(`${name} not found`, 'NotFoundError');
+    }
+    this.children.delete(name);
+  }
+
+  /**
    * Async generator that yields [name, entry] pairs for all children.
    * @return {AsyncIterable<[string, MockFileHandle | MockDirHandle]>}
    */
@@ -170,19 +182,19 @@ describe('FsaAdapter', () => {
 
   describe('listFiles', () => {
     it('returns all .md and .mdx files with their content', async () => {
-      const files = await adapter.listFiles('posts');
+      const files = await adapter.listFiles('posts', ['.md', '.mdx']);
       const names = files.map((f) => f.filename).sort();
       expect(names).toEqual(['hello.md', 'page.mdx', 'world.md']);
     });
 
     it('returns the correct content for each file', async () => {
-      const files = await adapter.listFiles('posts');
+      const files = await adapter.listFiles('posts', ['.md', '.mdx']);
       const hello = files.find((f) => f.filename === 'hello.md');
       expect(hello?.content).toBe('---\ntitle: Hello\n---\n');
     });
 
     it('skips directory entries', async () => {
-      const files = await adapter.listFiles('posts');
+      const files = await adapter.listFiles('posts', ['.md', '.mdx']);
       const names = files.map((f) => f.filename);
       expect(names).not.toContain('subdir');
     });
@@ -195,7 +207,19 @@ describe('FsaAdapter', () => {
       const emptyAdapter = new FsaAdapter(
         emptyRoot as unknown as FileSystemDirectoryHandle,
       );
-      const files = await emptyAdapter.listFiles('empty');
+      const files = await emptyAdapter.listFiles('empty', ['.md', '.mdx']);
+      expect(files).toEqual([]);
+    });
+
+    it('filters by the given extensions', async () => {
+      const mdOnly = await adapter.listFiles('posts', ['.md']);
+      const names = mdOnly.map((f) => f.filename).sort();
+      expect(names).toEqual(['hello.md', 'world.md']);
+      expect(names).not.toContain('page.mdx');
+    });
+
+    it('returns nothing when no files match the extensions', async () => {
+      const files = await adapter.listFiles('posts', ['.yaml']);
       expect(files).toEqual([]);
     });
   });
@@ -222,6 +246,21 @@ describe('FsaAdapter', () => {
       await adapter.writeFile('posts', 'brand-new.md', 'fresh content');
       const content = await adapter.readFile('posts', 'brand-new.md');
       expect(content).toBe('fresh content');
+    });
+  });
+
+  describe('deleteFile', () => {
+    it('removes an existing file from the collection', async () => {
+      await adapter.deleteFile('posts', 'hello.md');
+      const files = await adapter.listFiles('posts', ['.md', '.mdx']);
+      const names = files.map((f) => f.filename);
+      expect(names).not.toContain('hello.md');
+    });
+
+    it('throws when the file does not exist', async () => {
+      await expect(
+        adapter.deleteFile('posts', 'nonexistent.md'),
+      ).rejects.toThrow();
     });
   });
 

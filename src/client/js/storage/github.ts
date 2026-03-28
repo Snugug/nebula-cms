@@ -11,9 +11,7 @@ function uint8ToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-/**
- * Storage adapter backed by the GitHub REST API. Uses a Personal Access Token for authentication. All file operations target src/content/{collection}/ within the repository.
- */
+// Storage adapter backed by the GitHub REST API. Uses a Personal Access Token for authentication. All file operations target src/content/{collection}/ within the repository.
 export class GitHubAdapter implements StorageAdapter {
   private token: string;
   private owner: string;
@@ -51,11 +49,15 @@ export class GitHubAdapter implements StorageAdapter {
   }
 
   /**
-   * Lists all .md/.mdx files in a collection with their raw content.
+   * Lists files in a collection matching the given extensions, with their raw content.
    * @param {string} collection - The collection name
+   * @param {string[]} extensions - File extensions to include (e.g. ['.md', '.mdx'])
    * @return {Promise<FileEntry[]>} Array of filename + content pairs
    */
-  async listFiles(collection: string): Promise<FileEntry[]> {
+  async listFiles(
+    collection: string,
+    extensions: string[],
+  ): Promise<FileEntry[]> {
     const path = `src/content/${collection}`;
     // Get directory listing
     const listRes = await this.request(
@@ -69,17 +71,46 @@ export class GitHubAdapter implements StorageAdapter {
     const listing: Array<{ name: string; download_url: string }> =
       await listRes.json();
 
-    // Filter to markdown and fetch all files in parallel
-    const mdFiles = listing.filter(
-      (f) => f.name.endsWith('.md') || f.name.endsWith('.mdx'),
+    // Filter to requested extensions and fetch all files in parallel
+    const filtered = listing.filter((f) =>
+      extensions.some((ext) => f.name.endsWith(ext)),
     );
 
     return Promise.all(
-      mdFiles.map(async (file) => ({
+      filtered.map(async (file) => ({
         filename: file.name,
         content: await this.readFile(collection, file.name),
       })),
     );
+  }
+
+  /**
+   * Deletes a file from the repository via the Contents API.
+   * @param {string} collection - The collection name
+   * @param {string} filename - The filename to delete
+   * @return {Promise<void>}
+   */
+  async deleteFile(collection: string, filename: string): Promise<void> {
+    const path = `src/content/${collection}/${filename}`;
+    // Get the current SHA (required by the GitHub Contents API for deletion)
+    const existing = await this.request(
+      'GET',
+      `/repos/${this.owner}/${this.repo}/contents/${path}?ref=${this.defaultBranch}`,
+    );
+    if (!existing.ok) throw new Error(`File not found for deletion: ${path}`);
+    const data = await existing.json();
+
+    const res = await this.request(
+      'DELETE',
+      `/repos/${this.owner}/${this.repo}/contents/${path}`,
+      undefined,
+      {
+        message: `Delete ${path}`,
+        sha: data.sha,
+        branch: this.defaultBranch,
+      },
+    );
+    if (!res.ok) throw new Error(`Failed to delete ${path}: ${res.status}`);
   }
 
   /**
@@ -168,17 +199,17 @@ export class GitHubAdapter implements StorageAdapter {
     if (!refRes.ok)
       throw new Error(`Failed to get branch ref: ${refRes.status}`);
     const refData = await refRes.json();
-    const baseCommitSha = refData.object.sha;
+    const baseCommitSHA = refData.object.sha;
 
     // Get the base tree SHA from the current commit
     const commitRes = await this.request(
       'GET',
-      `/repos/${this.owner}/${this.repo}/git/commits/${baseCommitSha}`,
+      `/repos/${this.owner}/${this.repo}/git/commits/${baseCommitSHA}`,
     );
     if (!commitRes.ok)
       throw new Error(`Failed to get commit: ${commitRes.status}`);
     const commitData = await commitRes.json();
-    const baseTreeSha = commitData.tree.sha;
+    const baseTreeSHA = commitData.tree.sha;
 
     // 2. Create a new tree containing all file changes
     const tree = files.map((f) => ({
@@ -192,7 +223,7 @@ export class GitHubAdapter implements StorageAdapter {
       'POST',
       `/repos/${this.owner}/${this.repo}/git/trees`,
       undefined,
-      { base_tree: baseTreeSha, tree },
+      { base_tree: baseTreeSHA, tree },
     );
     if (!treeRes.ok)
       throw new Error(`Failed to create tree: ${treeRes.status}`);
@@ -207,7 +238,7 @@ export class GitHubAdapter implements StorageAdapter {
       {
         message: `Update ${paths}`,
         tree: treeData.sha,
-        parents: [baseCommitSha],
+        parents: [baseCommitSHA],
       },
     );
     if (!newCommitRes.ok)

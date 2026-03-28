@@ -102,15 +102,17 @@ describe('StorageClient', () => {
   describe('listFiles', () => {
     it('resolves with the files array from the worker response', async () => {
       const files = [{ filename: 'a.md', content: 'A' }];
-      const promise = client.listFiles('posts');
+      const promise = client.listFiles('posts', ['.md', '.mdx']);
 
       const sentMsg = postSpy.mock.calls[0][0] as {
         _id: string;
         type: string;
         collection: string;
+        extensions: string[];
       };
       expect(sentMsg.type).toBe('listFiles');
       expect(sentMsg.collection).toBe('posts');
+      expect(sentMsg.extensions).toEqual(['.md', '.mdx']);
 
       respond({
         type: 'listFiles',
@@ -124,7 +126,7 @@ describe('StorageClient', () => {
     });
 
     it('rejects on error response', async () => {
-      const promise = client.listFiles('posts');
+      const promise = client.listFiles('posts', ['.md', '.mdx']);
       const sentMsg = postSpy.mock.calls[0][0] as { _id: string };
       respond({
         type: 'listFiles',
@@ -133,6 +135,35 @@ describe('StorageClient', () => {
         _id: sentMsg._id,
       } as any);
       await expect(promise).rejects.toThrow('storage error');
+    });
+  });
+
+  describe('deleteFile', () => {
+    it('resolves when the worker responds with ok: true', async () => {
+      const promise = client.deleteFile('posts', 'old.md');
+      const sentMsg = postSpy.mock.calls[0][0] as {
+        _id: string;
+        type: string;
+        collection: string;
+        filename: string;
+      };
+      expect(sentMsg.type).toBe('deleteFile');
+      expect(sentMsg.collection).toBe('posts');
+      expect(sentMsg.filename).toBe('old.md');
+      respond({ type: 'deleteFile', ok: true, _id: sentMsg._id } as any);
+      await expect(promise).resolves.toBeUndefined();
+    });
+
+    it('rejects on error response', async () => {
+      const promise = client.deleteFile('posts', 'missing.md');
+      const sentMsg = postSpy.mock.calls[0][0] as { _id: string };
+      respond({
+        type: 'deleteFile',
+        ok: false,
+        error: 'File not found',
+        _id: sentMsg._id,
+      } as any);
+      await expect(promise).rejects.toThrow('File not found');
     });
   });
 
@@ -206,7 +237,7 @@ describe('StorageClient', () => {
   describe('message correlation', () => {
     it('ignores broadcast messages without an _id', async () => {
       // port-connected has no _id and should not reject any pending promise
-      const promise = client.listFiles('posts');
+      const promise = client.listFiles('posts', ['.md', '.mdx']);
       respond({ type: 'port-connected' } as any);
       // Promise should still be pending — resolve it now with a proper response
       const sentMsg = postSpy.mock.calls[0][0] as { _id: string };
@@ -220,7 +251,7 @@ describe('StorageClient', () => {
     });
 
     it('increments _id for each request so concurrent calls are independent', async () => {
-      const p1 = client.listFiles('posts');
+      const p1 = client.listFiles('posts', ['.md', '.mdx']);
       const p2 = client.readFile('posts', 'a.md');
 
       const msg1 = postSpy.mock.calls[0][0] as { _id: string };

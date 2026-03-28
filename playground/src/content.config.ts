@@ -107,4 +107,92 @@ const courses = defineCollection({
     }),
 });
 
-export const collections = { posts, authors, products, courses };
+// How-to guides authored in MDX
+const guides = defineCollection({
+  loader: glob({ base: './src/content/guides', pattern: '**/*.mdx' }),
+  schema: z
+    .object({
+      title: z.string(),
+      order: z.number(),
+    })
+    .meta({
+      title: 'Guides',
+      description: 'How-to guides in MDX',
+      files: ['mdx'],
+    }),
+});
+
+// Cooking recipes authored in Markdoc
+const recipes = defineCollection({
+  loader: glob({
+    base: './src/content/recipes',
+    pattern: '**/*.{mdoc,markdoc}',
+  }),
+  schema: z
+    .object({
+      title: z.string(),
+      servings: z.number(),
+    })
+    .meta({
+      title: 'Recipes',
+      description: 'Cooking recipes in Markdoc',
+      files: ['markdoc'],
+    }),
+});
+
+// Site configuration stored as YAML
+const settings = defineCollection({
+  loader: glob({ base: './src/content/settings', pattern: '**/*.{yml,yaml}' }),
+  schema: z
+    .object({
+      siteName: z.string(),
+      maxPosts: z.number(),
+    })
+    .meta({
+      title: 'Settings',
+      description: 'Site configuration in YAML',
+      files: ['yaml'],
+    }),
+});
+
+// Build configuration stored as TOML
+const config = defineCollection({
+  loader: glob({ base: './src/content/config', pattern: '**/*.toml' }),
+  schema: z
+    .object({
+      name: z.string(),
+      debug: z.boolean(),
+    })
+    .meta({
+      title: 'Config',
+      description: 'Build configuration in TOML',
+      files: ['toml'],
+    }),
+});
+
+// Documentation pages supporting both MD and MDX
+const docs = defineCollection({
+  loader: glob({ base: './src/content/docs', pattern: '**/*.{md,mdx}' }),
+  schema: z
+    .object({
+      title: z.string(),
+      category: z.string(),
+    })
+    .meta({
+      title: 'Documentation',
+      description: 'Docs in MD and MDX',
+      files: ['md', 'mdx'],
+    }),
+});
+
+export const collections = {
+  posts,
+  authors,
+  products,
+  courses,
+  guides,
+  recipes,
+  settings,
+  config,
+  docs,
+};

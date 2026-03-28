@@ -72,6 +72,8 @@ vi.mock('../../src/client/js/state/schema.svelte', () => ({
   clearSchema: vi.fn(),
   prefetchAllSchemas: vi.fn(async () => {}),
   collectionHasDates: mocks.mockCollectionHasDates,
+  getCollectionTitle: vi.fn(() => null),
+  getCollectionDescription: vi.fn(() => null),
 }));
 vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   preloadFile: vi.fn(async () => {}),
@@ -92,14 +94,22 @@ vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   applyEditorState: vi.fn(),
   _getDraftState: vi.fn(() => ({})),
   _setDraftState: vi.fn(),
+  changeFileFormat: vi.fn(),
+  setDefaultFormat: vi.fn(),
+  getOriginalFilename: vi.fn(() => ''),
 }));
-vi.mock('../../src/client/js/handlers/admin', () => ({
-  handleSave: vi.fn(async () => {}),
-  handlePublish: vi.fn(async () => ({ status: 'ok' })),
-  handleDeleteDraft: vi.fn(async () => {}),
-  handleFilenameConfirm: vi.fn(async () => {}),
-  computePublishDisabled: mocks.mockComputePublishDisabled,
-}));
+vi.mock('../../src/client/js/handlers/admin', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../../src/client/js/handlers/admin')>();
+  return {
+    ...actual,
+    handleSave: vi.fn(async () => {}),
+    handlePublish: vi.fn(async () => ({ status: 'ok' })),
+    handleDeleteDraft: vi.fn(async () => {}),
+    handleFilenameConfirm: vi.fn(async () => {}),
+    computePublishDisabled: mocks.mockComputePublishDisabled,
+  };
+});
 vi.mock('../../src/client/js/utils/sort', () => ({
   toSortDate: vi.fn(() => undefined),
   readSortMode: vi.fn(() => 'alpha'),

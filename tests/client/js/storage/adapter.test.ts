@@ -41,11 +41,13 @@ describe('adapter type exports', () => {
       readFile: async () => '',
       writeFile: async () => undefined,
       writeFiles: async () => undefined,
+      deleteFile: async () => undefined,
     };
     expect(typeof adapter.listFiles).toBe('function');
     expect(typeof adapter.readFile).toBe('function');
     expect(typeof adapter.writeFile).toBe('function');
     expect(typeof adapter.writeFiles).toBe('function');
+    expect(typeof adapter.deleteFile).toBe('function');
   });
 
   it('StorageRequest union members resolve without type errors', () => {
@@ -53,7 +55,11 @@ describe('adapter type exports', () => {
       type: 'init',
       backend: { type: 'github', token: 'tok', repo: 'owner/repo' },
     };
-    const list: StorageRequest = { type: 'listFiles', collection: 'posts' };
+    const list: StorageRequest = {
+      type: 'listFiles',
+      collection: 'posts',
+      extensions: ['.md', '.mdx'],
+    };
     const read: StorageRequest = {
       type: 'readFile',
       collection: 'posts',
@@ -69,6 +75,11 @@ describe('adapter type exports', () => {
       type: 'writeFiles',
       files: [{ collection: 'posts', filename: 'a.md', content: 'body' }],
     };
+    const del: StorageRequest = {
+      type: 'deleteFile',
+      collection: 'posts',
+      filename: 'old.md',
+    };
     const teardown: StorageRequest = { type: 'teardown' };
 
     expect(init.type).toBe('init');
@@ -76,6 +87,7 @@ describe('adapter type exports', () => {
     expect(read.type).toBe('readFile');
     expect(write.type).toBe('writeFile');
     expect(writeMany.type).toBe('writeFiles');
+    expect(del.type).toBe('deleteFile');
     expect(teardown.type).toBe('teardown');
   });
 
@@ -86,10 +98,18 @@ describe('adapter type exports', () => {
       ok: false,
       error: 'bad token',
     };
+    const delOk: StorageResponse = { type: 'deleteFile', ok: true };
+    const delFail: StorageResponse = {
+      type: 'deleteFile',
+      ok: false,
+      error: 'not found',
+    };
     const portConn: StorageResponse = { type: 'port-connected' };
 
     expect(ok.type).toBe('init');
     expect(fail.ok).toBe(false);
+    expect(delOk.type).toBe('deleteFile');
+    expect(delFail.ok).toBe(false);
     expect(portConn.type).toBe('port-connected');
   });
 });

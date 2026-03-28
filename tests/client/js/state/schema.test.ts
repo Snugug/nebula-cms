@@ -20,14 +20,18 @@ import {
   prefetchAllSchemas,
   collectionHasDates,
   areSchemasReady,
+  getCollectionTitle,
+  getCollectionDescription,
 } from '../../../../src/client/js/state/schema.svelte';
 
 //////////////////////////////
 // Mock schema fixtures
 //////////////////////////////
 
-/** Posts schema — includes a date-time field for date-sort testing. */
+/** Posts schema — includes a date-time field for date-sort testing and root-level title/description. */
 const POSTS_SCHEMA = {
+  title: 'Blog Posts',
+  description: 'Articles published on the blog',
   type: 'object',
   properties: {
     title: { type: 'string' },
@@ -205,5 +209,55 @@ describe('collectionHasDates', () => {
   it('returns false for an unknown collection even after prefetch', async () => {
     await prefetchAllSchemas();
     expect(collectionHasDates('unknown')).toBe(false);
+  });
+});
+
+//////////////////////////////
+// getCollectionTitle
+//////////////////////////////
+
+describe('getCollectionTitle', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', makeFetchMock());
+  });
+
+  it('returns the title string when schema has a title', async () => {
+    await prefetchAllSchemas();
+    expect(getCollectionTitle('posts')).toBe('Blog Posts');
+  });
+
+  it('returns null when schema has no title', async () => {
+    await prefetchAllSchemas();
+    expect(getCollectionTitle('products')).toBeNull();
+  });
+
+  it('returns null when schema is not cached', () => {
+    expect(getCollectionTitle('uncached')).toBeNull();
+  });
+});
+
+//////////////////////////////
+// getCollectionDescription
+//////////////////////////////
+
+describe('getCollectionDescription', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', makeFetchMock());
+  });
+
+  it('returns the description string when schema has a description', async () => {
+    await prefetchAllSchemas();
+    expect(getCollectionDescription('posts')).toBe(
+      'Articles published on the blog',
+    );
+  });
+
+  it('returns null when schema has no description', async () => {
+    await prefetchAllSchemas();
+    expect(getCollectionDescription('products')).toBeNull();
+  });
+
+  it('returns null when schema is not cached', () => {
+    expect(getCollectionDescription('uncached')).toBeNull();
   });
 });

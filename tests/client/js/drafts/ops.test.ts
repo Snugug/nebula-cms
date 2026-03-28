@@ -34,6 +34,7 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
     formData: { title: 'Hello' },
     body: 'Current body',
     filename: 'post.md',
+    originalFilename: 'post.md',
     dirty: false,
   })),
   _setDraftState: vi.fn(),
@@ -41,6 +42,19 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
 
 vi.mock('../../../../src/client/js/state/state.svelte', () => ({
   getStorageClient: vi.fn(() => null),
+}));
+
+vi.mock('../../../../src/client/js/utils/file-types', () => ({
+  getFileCategory: vi.fn(() => 'frontmatter'),
+  getDataFormat: vi.fn(() => null),
+}));
+
+vi.mock('js-yaml', () => ({
+  dump: vi.fn((data: unknown) => 'title: Hello\n'),
+}));
+
+vi.mock('smol-toml', () => ({
+  stringify: vi.fn((data: unknown) => 'title = "Hello"\n'),
 }));
 
 import {
@@ -55,6 +69,12 @@ import {
 } from '../../../../src/client/js/editor/editor.svelte';
 import { getStorageClient } from '../../../../src/client/js/state/state.svelte';
 import { stableStringify } from '../../../../src/client/js/utils/stable-stringify';
+import {
+  getFileCategory,
+  getDataFormat,
+} from '../../../../src/client/js/utils/file-types';
+import { dump } from 'js-yaml';
+import { stringify as tomlStringify } from 'smol-toml';
 
 import type { Draft } from '../../../../src/client/js/drafts/storage';
 
@@ -97,6 +117,7 @@ function makeEditorState(
     formData: { title: 'Hello' },
     body: 'Current body',
     filename: 'post.md',
+    originalFilename: 'post.md',
     dirty: false,
     ...overrides,
   };
@@ -465,5 +486,188 @@ describe('deleteCurrentDraft', () => {
         draftCreatedAt: null,
       }),
     );
+  });
+});
+
+//////////////////////////////
+// publishFile — multi-format serialization
+//////////////////////////////
+
+describe('publishFile multi-format serialization', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('serializes JSON data files as formatted JSON', async () => {
+    const writeFile = vi.fn(async () => undefined);
+    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    vi.mocked(getFileCategory).mockReturnValue('data');
+    vi.mocked(getDataFormat).mockReturnValue('json');
+    vi.mocked(_getDraftState).mockReturnValue(
+      makeEditorState({
+        formData: { name: 'Alice', age: 30 },
+        body: '',
+        filename: 'author.json',
+      }),
+    );
+
+    const { publishFile } =
+      await import('../../../../src/client/js/drafts/ops.svelte');
+    await publishFile('data', 'author.json');
+
+    expect(writeFile).toHaveBeenCalledWith(
+      'data',
+      'author.json',
+      expect.any(String),
+    );
+    const content = writeFile.mock.calls[0][2];
+    // JSON output should be indented (multi-line) and end with a newline
+    expect(content).toContain('\n');
+    expect(content).toMatch(/^\{/);
+    expect(content.endsWith('\n')).toBe(true);
+    // No frontmatter delimiters
+    expect(content).not.toContain('---');
+  });
+
+  it('serializes YAML data files as plain YAML without frontmatter delimiters', async () => {
+    const writeFile = vi.fn(async () => undefined);
+    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    vi.mocked(getFileCategory).mockReturnValue('data');
+    vi.mocked(getDataFormat).mockReturnValue('yaml');
+    vi.mocked(dump).mockReturnValue('title: Hello\n');
+    vi.mocked(_getDraftState).mockReturnValue(
+      makeEditorState({
+        formData: { title: 'Hello' },
+        body: '',
+        filename: 'config.yml',
+      }),
+    );
+
+    const { publishFile } =
+      await import('../../../../src/client/js/drafts/ops.svelte');
+    await publishFile('data', 'config.yml');
+
+    expect(writeFile).toHaveBeenCalledWith(
+      'data',
+      'config.yml',
+      expect.any(String),
+    );
+    const content = writeFile.mock.calls[0][2];
+    // Plain YAML without frontmatter delimiters
+    expect(content).not.toContain('---');
+    expect(dump).toHaveBeenCalled();
+  });
+
+  it('serializes TOML data files', async () => {
+    const writeFile = vi.fn(async () => undefined);
+    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    vi.mocked(getFileCategory).mockReturnValue('data');
+    vi.mocked(getDataFormat).mockReturnValue('toml');
+    vi.mocked(tomlStringify).mockReturnValue('title = "Hello"\n');
+    vi.mocked(_getDraftState).mockReturnValue(
+      makeEditorState({
+        formData: { title: 'Hello' },
+        body: '',
+        filename: 'config.toml',
+      }),
+    );
+
+    const { publishFile } =
+      await import('../../../../src/client/js/drafts/ops.svelte');
+    await publishFile('data', 'config.toml');
+
+    expect(writeFile).toHaveBeenCalledWith(
+      'data',
+      'config.toml',
+      expect.any(String),
+    );
+    const content = writeFile.mock.calls[0][2];
+    expect(content).not.toContain('---');
+    expect(tomlStringify).toHaveBeenCalled();
+  });
+
+  it('serializes frontmatter files with --- delimiters', async () => {
+    const writeFile = vi.fn(async () => undefined);
+    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    vi.mocked(getFileCategory).mockReturnValue('frontmatter');
+    vi.mocked(getDataFormat).mockReturnValue(null);
+    vi.mocked(dump).mockReturnValue('title: Hello\n');
+    vi.mocked(_getDraftState).mockReturnValue(
+      makeEditorState({
+        formData: { title: 'Hello' },
+        body: 'The body',
+        filename: 'post.md',
+      }),
+    );
+
+    const { publishFile } =
+      await import('../../../../src/client/js/drafts/ops.svelte');
+    await publishFile('posts', 'post.md');
+
+    expect(writeFile).toHaveBeenCalledWith(
+      'posts',
+      'post.md',
+      expect.any(String),
+    );
+    const content = writeFile.mock.calls[0][2];
+    expect(content).toMatch(/^---\n/);
+    expect(content).toContain('---\n\n');
+    expect(content).toContain('The body');
+  });
+
+  it('deletes old file on type conversion when originalFilename differs', async () => {
+    const writeFile = vi.fn(async () => undefined);
+    const deleteFile = vi.fn(async () => undefined);
+    vi.mocked(getStorageClient).mockReturnValue({
+      writeFile,
+      deleteFile,
+    } as any);
+    vi.mocked(getFileCategory).mockReturnValue('frontmatter');
+    vi.mocked(getDataFormat).mockReturnValue(null);
+    vi.mocked(dump).mockReturnValue('title: Hello\n');
+    vi.mocked(_getDraftState).mockReturnValue(
+      makeEditorState({
+        formData: { title: 'Hello' },
+        body: 'The body',
+        filename: 'post.mdx',
+      }),
+    );
+
+    const { publishFile } =
+      await import('../../../../src/client/js/drafts/ops.svelte');
+    await publishFile('posts', 'post.mdx', 'post.md');
+
+    expect(writeFile).toHaveBeenCalledWith(
+      'posts',
+      'post.mdx',
+      expect.any(String),
+    );
+    expect(deleteFile).toHaveBeenCalledWith('posts', 'post.md');
+  });
+
+  it('does not delete when originalFilename matches filename', async () => {
+    const writeFile = vi.fn(async () => undefined);
+    const deleteFile = vi.fn(async () => undefined);
+    vi.mocked(getStorageClient).mockReturnValue({
+      writeFile,
+      deleteFile,
+    } as any);
+    vi.mocked(getFileCategory).mockReturnValue('frontmatter');
+    vi.mocked(getDataFormat).mockReturnValue(null);
+    vi.mocked(dump).mockReturnValue('title: Hello\n');
+    vi.mocked(_getDraftState).mockReturnValue(
+      makeEditorState({
+        formData: { title: 'Hello' },
+        body: 'The body',
+        filename: 'post.md',
+      }),
+    );
+
+    const { publishFile } =
+      await import('../../../../src/client/js/drafts/ops.svelte');
+    await publishFile('posts', 'post.md', 'post.md');
+
+    expect(writeFile).toHaveBeenCalled();
+    expect(deleteFile).not.toHaveBeenCalled();
   });
 });

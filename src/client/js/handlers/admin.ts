@@ -5,13 +5,76 @@ import {
   clearEditor,
   getEditorFile,
   setFilename,
+  getOriginalFilename,
 } from '../editor/editor.svelte';
 import {
   reloadCollection,
   refreshDrafts,
   updateContentItem,
+  type ContentItem,
 } from '../state/state.svelte';
 import { navigate } from '../state/router.svelte';
+import type { Draft } from '../drafts/storage';
+import { toSortDate } from '../utils/sort';
+import { stripExtension } from '../utils/file-types';
+import type { SidebarItem } from '../utils/sort';
+
+/**
+ * Builds the content sidebar item list by merging live content with draft data. Extracted from Admin.svelte to keep that component under the 350-line limit.
+ * @param {ContentItem[]} contentList - Live content items from the storage worker
+ * @param {Draft[]} drafts - All drafts for the active collection
+ * @param {Record<string, boolean>} outdatedMap - Map of draft ID to outdated status
+ * @param {string | null} activeCollection - The currently active collection name
+ * @return {SidebarItem[]} Merged list of live and draft sidebar items
+ */
+export function buildContentItems(
+  contentList: ContentItem[],
+  drafts: Draft[],
+  outdatedMap: Record<string, boolean>,
+  activeCollection: string | null,
+): SidebarItem[] {
+  // Build a filename → draft lookup map for O(1) access per content item
+  const draftByFile = new Map(
+    drafts.filter((d) => !d.isNew && d.filename).map((d) => [d.filename, d]),
+  );
+  const liveItems = contentList.map((item) => {
+    const title =
+      typeof item.data.title === 'string' ? item.data.title : item.filename;
+    const slug = stripExtension(item.filename);
+    const draft = draftByFile.get(item.filename);
+    const date = toSortDate(item.data.published);
+    return {
+      label: title,
+      href: `/admin/${activeCollection}/${slug}`,
+      subtitle: item.filename,
+      ...(date ? { date } : {}),
+      ...(draft
+        ? {
+            draftId: draft.id,
+            isDraft: true,
+            isOutdated: outdatedMap[draft.id] ?? false,
+          }
+        : {}),
+    };
+  });
+  const newDraftItems = drafts
+    .filter((d) => d.isNew)
+    .map((d) => {
+      const date = toSortDate(d.formData.published);
+      return {
+        label:
+          typeof d.formData.title === 'string'
+            ? d.formData.title
+            : 'Untitled Draft',
+        href: `/admin/${activeCollection}/draft-${d.id}`,
+        draftId: d.id,
+        isDraft: true as const,
+        isOutdated: false,
+        ...(date ? { date } : {}),
+      };
+    });
+  return [...liveItems, ...newDraftItems];
+}
 
 /**
  * Saves the current editor content as a draft to IndexedDB and refreshes the sidebar's draft list so changes appear immediately.
@@ -27,9 +90,7 @@ export async function handleSave(
   }
 }
 
-/**
- * Result of attempting a publish operation.
- */
+// Result of attempting a publish operation.
 export type PublishResult =
   | { status: 'ok' }
   | { status: 'no-file' }
@@ -48,13 +109,22 @@ export async function handlePublish(
   if (!file.filename) return { status: 'needs-filename' };
   if (!activeCollection) return { status: 'no-file' };
 
-  await publishFile(activeCollection, file.filename);
+  // Pass originalFilename so publishFile can delete the old file when format changes
+  const originalFn = getOriginalFilename();
+  await publishFile(
+    activeCollection,
+    file.filename,
+    originalFn !== file.filename ? originalFn : undefined,
+  );
 
-  if (file.isNewDraft) {
-    // New file — not in contentList yet, need a background refresh to pick it up
+  // Determine if the filename changed (format conversion or new file)
+  const filenameChanged = originalFn && originalFn !== file.filename;
+
+  if (file.isNewDraft || filenameChanged) {
+    // New file or renamed file — not in contentList under this name, need a full refresh
     reloadCollection(activeCollection);
   } else {
-    // Existing file — optimistically update sidebar with current formData
+    // Existing file, same name — optimistically update sidebar with current formData
     // so the title reflects edits instantly without re-fetching all files
     updateContentItem(file.filename, file.formData);
   }
@@ -88,7 +158,7 @@ export async function handleDeleteDraft(
 
   if (!wasNewDraft && liveFilename) {
     // Draft of live content — navigate to the live file so it reloads from disk
-    const slug = liveFilename.replace(/\.mdx?$/, '');
+    const slug = stripExtension(liveFilename);
     navigate(`/admin/${activeCollection}/${slug}`);
   } else {
     // New draft — no live file to return to, go to collection list

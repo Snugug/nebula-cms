@@ -92,8 +92,9 @@ You are REQUIRED to professionally comment your code. Comments should be short a
 
 For JavaScript and TypeScript:
 
-- Functions, classes, interfaces, and type declarations MUST have JSDoc formatted comments. They MUST start with `/**`, have at least one newline starting with `*`, and end with `*/`. They MUST include a description of why they've been written. Functions MUST also include `@param` and `@return`, all with proper TypeScript typing, EVEN IF ITS ALREADY DOCUMENTED WITH TYPESCRIPT TYPES AT THE METHOD LEVEL
-- Single line comments MUST use inline comments `//`
+- Single line comments MUST ALWAYS use `//`, even when describing types, interfaces, or classes. NEVER use single-line JSDoc (`/** foo */`).
+- Functions MUST have multi-line JSDoc comments (`/** ... */` with newlines). They MUST include a description of why they've been written, plus `@param` and `@return` with proper TypeScript typing, EVEN IF ITS ALREADY DOCUMENTED WITH TYPESCRIPT TYPES AT THE METHOD LEVEL
+- File-level description comments MUST come BEFORE any imports and MUST use standard JavaScript multi-line comment syntax (`/* ... */`). They describe what the file is for and why it exists.
 
 For SCSS/Sass:
 
@@ -110,6 +111,10 @@ Comment Blocks that are meant to draw the eye and describe a section of code mus
 Comments MUST NOT have arbitrary line breaks to conform to an invisible max character count, just write normally and have line wrapping handle comment wrapping.
 
 It is CRITICAL that you write comments explaining specific items that we've gone back and forth on a number of times to ensure that the reason why it exists the way it does (which likely went against your normal thinking) so that future developers and agents can learn from it and improve.
+
+### Naming Conventions
+
+When writing CamelCase variable, function, type, or class names, abbreviations (like CSS, URL, HTML, API, ID, UUID, IDB, FSA, DOM, BOM, CRLF, SHA, TOML, YAML, JSON, MDX) MUST ALWAYS be all-caps. For example: `parseURL`, `getCSS`, `buildHTML`, `tomlStringifyURL`, `fetchAPIData`. Never `parseUrl`, `getCss`, `buildHtml`.
 
 ### Component Reuse (CRITICAL)
 

@@ -1,7 +1,7 @@
 import { syntaxTree } from '@codemirror/language';
 import { EditorSelection, type EditorState } from '@codemirror/state';
 import { EditorView, type KeyBinding } from '@codemirror/view';
-import { isUrl } from '../utils/url-utils';
+import { isURL } from '../utils/url-utils';
 
 //////////////////////////////
 // Bracket/Quote Pair Map
@@ -180,7 +180,7 @@ const smartPasteHandler = EditorView.domEventHandlers({
     if (empty) return false;
 
     const clipboardText = event.clipboardData?.getData('text/plain') ?? '';
-    if (!isUrl(clipboardText)) return false;
+    if (!isURL(clipboardText)) return false;
 
     const url = clipboardText.trim();
     const selectedText = view.state.sliceDoc(from, to);

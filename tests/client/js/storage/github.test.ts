@@ -60,9 +60,9 @@ describe('GitHubAdapter', () => {
       await adapter.validate();
       // Confirm the branch is used in subsequent calls by inspecting listFiles
       fetchMock.mockResolvedValueOnce(mockResponse([]));
-      await adapter.listFiles('posts');
-      const listUrl = fetchMock.mock.calls[1][0] as string;
-      expect(listUrl).toContain('ref=develop');
+      await adapter.listFiles('posts', ['.md', '.mdx']);
+      const listURL = fetchMock.mock.calls[1][0] as string;
+      expect(listURL).toContain('ref=develop');
     });
 
     it('throws for a 401 response', async () => {
@@ -94,11 +94,11 @@ describe('GitHubAdapter', () => {
     it('returns empty array when the collection path returns 404', async () => {
       fetchMock.mockResolvedValueOnce(mockResponse({}, 404));
       const adapter = new GitHubAdapter(TOKEN, REPO);
-      const files = await adapter.listFiles('posts');
+      const files = await adapter.listFiles('posts', ['.md', '.mdx']);
       expect(files).toEqual([]);
     });
 
-    it('returns only .md and .mdx files, fetching their content', async () => {
+    it('returns only files matching the given extensions', async () => {
       // Directory listing response
       fetchMock.mockResolvedValueOnce(
         mockResponse([
@@ -125,16 +125,84 @@ describe('GitHubAdapter', () => {
       );
 
       const adapter = new GitHubAdapter(TOKEN, REPO);
-      const files = await adapter.listFiles('posts');
+      const files = await adapter.listFiles('posts', ['.md', '.mdx']);
       const names = files.map((f) => f.filename).sort();
       expect(names).toEqual(['hello.md', 'world.mdx']);
+    });
+
+    it('filters to only the requested extensions', async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockResponse([
+          {
+            name: 'hello.md',
+            download_url: 'https://raw.github.com/hello.md',
+          },
+          {
+            name: 'world.mdx',
+            download_url: 'https://raw.github.com/world.mdx',
+          },
+          {
+            name: 'data.yaml',
+            download_url: 'https://raw.github.com/data.yaml',
+          },
+        ]),
+      );
+      // Only .yaml file should be fetched
+      fetchMock.mockResolvedValueOnce(
+        mockResponse('key: value', 200, { text: true }),
+      );
+
+      const adapter = new GitHubAdapter(TOKEN, REPO);
+      const files = await adapter.listFiles('posts', ['.yaml']);
+      expect(files).toHaveLength(1);
+      expect(files[0].filename).toBe('data.yaml');
     });
 
     it('throws when the listing request fails with a non-404 error', async () => {
       fetchMock.mockResolvedValueOnce(mockResponse({}, 500));
       const adapter = new GitHubAdapter(TOKEN, REPO);
-      await expect(adapter.listFiles('posts')).rejects.toThrow(
+      await expect(adapter.listFiles('posts', ['.md', '.mdx'])).rejects.toThrow(
         'Failed to list files',
+      );
+    });
+  });
+
+  describe('deleteFile', () => {
+    it('sends a DELETE request with the current SHA', async () => {
+      // GET to retrieve the current SHA
+      fetchMock.mockResolvedValueOnce(
+        mockResponse({ sha: 'file-sha-123', name: 'old.md' }),
+      );
+      // DELETE succeeds
+      fetchMock.mockResolvedValueOnce(mockResponse({ commit: {} }));
+
+      const adapter = new GitHubAdapter(TOKEN, REPO);
+      await adapter.deleteFile('posts', 'old.md');
+
+      // Verify the DELETE call
+      const deleteCall = fetchMock.mock.calls[1];
+      expect(deleteCall[1].method).toBe('DELETE');
+      const deleteBody = JSON.parse(deleteCall[1].body as string);
+      expect(deleteBody.sha).toBe('file-sha-123');
+      expect(deleteBody.message).toContain('old.md');
+    });
+
+    it('throws when the file does not exist', async () => {
+      fetchMock.mockResolvedValueOnce(mockResponse({}, 404));
+      const adapter = new GitHubAdapter(TOKEN, REPO);
+      await expect(adapter.deleteFile('posts', 'missing.md')).rejects.toThrow(
+        'File not found for deletion',
+      );
+    });
+
+    it('throws when the DELETE request fails', async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockResponse({ sha: 'sha-abc', name: 'target.md' }),
+      );
+      fetchMock.mockResolvedValueOnce(mockResponse({}, 422));
+      const adapter = new GitHubAdapter(TOKEN, REPO);
+      await expect(adapter.deleteFile('posts', 'target.md')).rejects.toThrow(
+        'Failed to delete',
       );
     });
   });
