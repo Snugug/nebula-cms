@@ -7,7 +7,7 @@
   } from '../../js/utils/sort';
   import DraftChip from '../DraftChip.svelte';
   import AdminSidebarSort from './AdminSidebarSort.svelte';
-  import { navigate } from '../../js/state/router.svelte';
+  import { navigate, getBasePath } from '../../js/state/router.svelte';
   import { saveDraft } from '../../js/drafts/storage';
   import { refreshDrafts, disconnect } from '../../js/state/state.svelte';
 
@@ -87,7 +87,7 @@
     // Only refresh drafts — the live file list hasn't changed, so a full
     // collection reload (which re-reads all files from disk/GitHub) is wasteful
     await refreshDrafts(collection);
-    navigate(`/admin/${collection}/draft-${id}`);
+    navigate(`${getBasePath()}/${collection}/draft-${id}`);
   }
 
   /**

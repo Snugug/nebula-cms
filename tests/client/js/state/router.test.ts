@@ -132,6 +132,148 @@ describe('getRoute — initial route parsing', () => {
 });
 
 //////////////////////////////
+// getBasePath()
+//////////////////////////////
+
+describe('getBasePath', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('returns /admin by default', async () => {
+    vi.stubGlobal('location', { pathname: '/admin' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    const { getBasePath } =
+      await import('../../../../src/client/js/state/router.svelte');
+    expect(getBasePath()).toBe('/admin');
+  });
+
+  it('returns the configured basePath after initRouter', async () => {
+    vi.stubGlobal('location', { pathname: '/cms' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { getBasePath, initRouter } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/cms');
+    expect(getBasePath()).toBe('/cms');
+  });
+
+  it('strips trailing slashes from configured basePath', async () => {
+    vi.stubGlobal('location', { pathname: '/cms/' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { getBasePath, initRouter } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/cms/');
+    expect(getBasePath()).toBe('/cms');
+  });
+});
+
+//////////////////////////////
+// Custom basePath route parsing
+//////////////////////////////
+
+describe('initRouter with custom basePath', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('parses home route with custom basePath', async () => {
+    vi.stubGlobal('location', { pathname: '/cms' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/cms');
+    expect(getRoute()).toEqual({ view: 'home' });
+  });
+
+  it('parses collection route with custom basePath', async () => {
+    vi.stubGlobal('location', { pathname: '/cms/posts' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/cms');
+    expect(getRoute()).toEqual({ view: 'collection', collection: 'posts' });
+  });
+
+  it('parses file route with custom basePath', async () => {
+    vi.stubGlobal('location', { pathname: '/cms/posts/hello-world' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/cms');
+    expect(getRoute()).toEqual({
+      view: 'file',
+      collection: 'posts',
+      slug: 'hello-world',
+    });
+  });
+
+  it('parses draft route with custom basePath', async () => {
+    vi.stubGlobal('location', { pathname: '/cms/posts/draft-abc123' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/cms');
+    expect(getRoute()).toEqual({
+      view: 'draft',
+      collection: 'posts',
+      draftId: 'abc123',
+    });
+  });
+
+  it('intercepts navigations under custom basePath', async () => {
+    const navStub = makeNavigationStub();
+    vi.stubGlobal('location', { pathname: '/cms' });
+    vi.stubGlobal('navigation', navStub);
+    vi.stubGlobal('window', {
+      addEventListener: vi.fn(),
+      confirm: vi.fn(() => true),
+    });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/cms');
+
+    const event = makeFakeNavigateEvent('http://localhost/cms/posts');
+    navStub.fire(event);
+    expect(event.intercepted).toBe(true);
+    event.interceptHandler!();
+    expect(getRoute()).toEqual({ view: 'collection', collection: 'posts' });
+  });
+
+  it('does not intercept navigations outside custom basePath', async () => {
+    const navStub = makeNavigationStub();
+    vi.stubGlobal('location', { pathname: '/cms' });
+    vi.stubGlobal('navigation', navStub);
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/cms');
+
+    const event = makeFakeNavigateEvent('http://localhost/admin/posts');
+    navStub.fire(event);
+    expect(event.intercepted).toBe(false);
+    expect(getRoute()).toEqual({ view: 'home' });
+  });
+
+  it('handles nested basePath like /app/dashboard', async () => {
+    vi.stubGlobal('location', { pathname: '/app/dashboard/posts' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/app/dashboard');
+    expect(getRoute()).toEqual({ view: 'collection', collection: 'posts' });
+  });
+});
+
+//////////////////////////////
 // navigate()
 //////////////////////////////
 

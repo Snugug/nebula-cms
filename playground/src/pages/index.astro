@@ -9,6 +9,6 @@ import Admin from 'nebula-cms/client';
     <title>nebula-cms playground</title>
   </head>
   <body>
-    <Admin client:only="svelte" />
+    <Admin config={{ basePath: '/admin' }} client:only="svelte" />
   </body>
 </html>

@@ -27,6 +27,7 @@ const {
   mockRefreshDrafts,
   mockUpdateContentItem,
   mockNavigate,
+  mockGetBasePath,
 } = vi.hoisted(() => ({
   mockSaveDraftToIDB: vi.fn(),
   mockPublishFile: vi.fn(),
@@ -39,6 +40,7 @@ const {
   mockRefreshDrafts: vi.fn(),
   mockUpdateContentItem: vi.fn(),
   mockNavigate: vi.fn(),
+  mockGetBasePath: vi.fn(() => '/admin'),
 }));
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
@@ -54,13 +56,20 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
 }));
 
 vi.mock('../../../../src/client/js/state/state.svelte', () => ({
+  getCollections: vi.fn(() => ['posts', 'pages']),
   reloadCollection: mockReloadCollection,
   refreshDrafts: mockRefreshDrafts,
   updateContentItem: mockUpdateContentItem,
 }));
 
+vi.mock('../../../../src/client/js/state/schema.svelte', () => ({
+  getCollectionTitle: vi.fn(() => null),
+  getCollectionDescription: vi.fn(() => null),
+}));
+
 vi.mock('../../../../src/client/js/state/router.svelte', () => ({
   navigate: mockNavigate,
+  getBasePath: mockGetBasePath,
 }));
 
 // ── Import handlers ────────────────────────────────────────────────────────
@@ -71,6 +80,7 @@ import {
   handleDeleteDraft,
   handleFilenameConfirm,
   computePublishDisabled,
+  buildContentItems,
 } from '../../../../src/client/js/handlers/admin';
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -272,6 +282,67 @@ describe('handleFilenameConfirm', () => {
   it('passes the chosen filename to setFilename', async () => {
     await handleFilenameConfirm('my-article.md', 'posts');
     expect(mockSetFilename).toHaveBeenCalledWith('my-article.md');
+  });
+});
+
+describe('handlers use configurable basePath', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockRefreshDrafts.mockResolvedValue(undefined);
+    mockDeleteCurrentDraft.mockResolvedValue(undefined);
+    // Override the default basePath for this group
+    mockGetBasePath.mockReturnValue('/cms');
+  });
+
+  it('buildContentItems uses getBasePath for live item hrefs', () => {
+    const items = buildContentItems(
+      [{ filename: 'hello.md', data: { title: 'Hello' } }],
+      [],
+      {},
+      'posts',
+    );
+    expect(items[0].href).toBe('/cms/posts/hello');
+  });
+
+  it('buildContentItems uses getBasePath for new draft hrefs', () => {
+    const items = buildContentItems(
+      [],
+      [
+        {
+          id: 'abc',
+          collection: 'posts',
+          filename: null,
+          isNew: true,
+          formData: { title: 'Draft' },
+          body: '',
+          snapshot: null,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      {},
+      'posts',
+    );
+    expect(items[0].href).toBe('/cms/posts/draft-abc');
+  });
+
+  it('handleDeleteDraft navigates with custom basePath for new draft', async () => {
+    mockGetEditorFile.mockReturnValue({
+      filename: null,
+      isNewDraft: true,
+      formData: {},
+    });
+    await handleDeleteDraft('posts');
+    expect(mockNavigate).toHaveBeenCalledWith('/cms/posts');
+  });
+
+  it('handleDeleteDraft navigates with custom basePath for live file', async () => {
+    mockGetEditorFile.mockReturnValue({
+      filename: 'my-post.md',
+      isNewDraft: false,
+      formData: {},
+    });
+    await handleDeleteDraft('posts');
+    expect(mockNavigate).toHaveBeenCalledWith('/cms/posts/my-post');
   });
 });
 

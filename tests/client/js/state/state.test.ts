@@ -102,6 +102,7 @@ vi.mock('../../../../src/client/js/storage/client', () => {
 vi.mock('../../../../src/client/js/state/router.svelte', () => ({
   getRoute: vi.fn(() => ({ view: 'home' as const })),
   navigate: vi.fn(),
+  getBasePath: vi.fn(() => '/admin'),
 }));
 
 vi.mock('../../../../src/client/js/drafts/merge.svelte', () => ({
