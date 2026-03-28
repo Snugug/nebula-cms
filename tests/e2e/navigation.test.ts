@@ -94,6 +94,9 @@ vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   applyEditorState: vi.fn(),
   _getDraftState: vi.fn(() => ({})),
   _setDraftState: vi.fn(),
+  changeFileFormat: vi.fn(),
+  setDefaultFormat: vi.fn(),
+  getOriginalFilename: vi.fn(() => ''),
 }));
 vi.mock('../../src/client/js/handlers/admin', async (importOriginal) => {
   const actual =

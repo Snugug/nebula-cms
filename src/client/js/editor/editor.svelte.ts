@@ -1,10 +1,14 @@
 import { registerDirtyChecker } from '../state/router.svelte';
 import { splitFrontmatter } from '../utils/frontmatter';
-import { setByPath } from '../utils/schema-utils';
-import type { PathSegment } from '../utils/schema-utils';
+import { setByPath, type PathSegment } from '../utils/schema-utils';
 import { getDraftByFile } from '../drafts/storage';
 import { getStorageClient } from '../state/state.svelte';
-import { getFileCategory } from '../utils/file-types';
+import {
+  getFileCategory,
+  stripExtension,
+  getDefaultExtension,
+  FILE_TYPES,
+} from '../utils/file-types';
 
 // Editor file state exposed via getEditorFile().
 export type EditorFile = {
@@ -13,15 +17,12 @@ export type EditorFile = {
   dirty: boolean;
   saving: boolean;
   filename: string;
-  // Whether the body content has been loaded from disk
   bodyLoaded: boolean;
-  // Draft ID if editing a draft, null for live content without a draft
   draftId: string | null;
-  // Whether this is a brand-new draft (not yet published)
   isNewDraft: boolean;
 };
 
-// Shape for bulk-setting all editor state via applyEditorState. Avoids repetitive assignments across load/preload/clear functions.
+// Shape for bulk-setting all editor state via applyEditorState.
 export type EditorStateConfig = {
   body: string;
   formData: Record<string, unknown>;
@@ -82,7 +83,6 @@ export function applyEditorState(c: EditorStateConfig, open: boolean): void {
 // Tracks whether formData has diverged from its saved snapshot.
 // Updated only by updateFormField to avoid re-serializing on every body keystroke.
 let formDataDirty = false;
-
 /**
  * Recomputes dirty state from body comparison and the cached formData flag.
  * @return {void}
@@ -93,23 +93,9 @@ function recomputeDirty(): void {
 
 /**
  * Returns a snapshot of draft-related internal state for use by editor-draft-ops. Exposes private module state without leaking $state reactivity.
- * @return {{ saving: boolean, draftId: string | null, isNewDraft: boolean, snapshot: string | null, currentCollection: string, draftCreatedAt: string | null, lastSavedFormData: string, lastSavedBody: string, formData: Record<string, unknown>, body: string, filename: string, originalFilename: string, dirty: boolean }}
+ * @return {object} Snapshot of all draft-related editor state
  */
-export function _getDraftState(): {
-  saving: boolean;
-  draftId: string | null;
-  isNewDraft: boolean;
-  snapshot: string | null;
-  currentCollection: string;
-  draftCreatedAt: string | null;
-  lastSavedFormData: string;
-  lastSavedBody: string;
-  formData: Record<string, unknown>;
-  body: string;
-  filename: string;
-  originalFilename: string;
-  dirty: boolean;
-} {
+export function _getDraftState() {
   return {
     saving,
     draftId,
@@ -129,20 +115,11 @@ export function _getDraftState(): {
 
 /**
  * Applies draft-related state mutations from editor-draft-ops back into the reactive module state.
- * @param {Partial<{ saving: boolean, draftId: string | null, isNewDraft: boolean, snapshot: string | null, draftCreatedAt: string | null, lastSavedFormData: string, lastSavedBody: string, dirty: boolean }>} updates - Fields to update
+ * @param {Partial<ReturnType<typeof _getDraftState>>} updates - Fields to update
  * @return {void}
  */
 export function _setDraftState(
-  updates: Partial<{
-    saving: boolean;
-    draftId: string | null;
-    isNewDraft: boolean;
-    snapshot: string | null;
-    draftCreatedAt: string | null;
-    lastSavedFormData: string;
-    lastSavedBody: string;
-    dirty: boolean;
-  }>,
+  updates: Partial<ReturnType<typeof _getDraftState>>,
 ): void {
   if ('saving' in updates) saving = updates.saving!;
   if ('draftId' in updates) draftId = updates.draftId!;
@@ -154,7 +131,6 @@ export function _setDraftState(
   if ('lastSavedBody' in updates) lastSavedBody = updates.lastSavedBody!;
   if ('dirty' in updates) dirty = updates.dirty!;
 }
-
 /**
  * Returns the current editor file state, or null if no file is open.
  * @return {EditorFile | null} The current editor file state, or null
@@ -172,7 +148,6 @@ export function getEditorFile(): EditorFile | null {
     isNewDraft,
   };
 }
-
 /**
  * Returns the current formData object (reactive).
  * @return {Record<string, unknown>} The current form data
@@ -180,7 +155,6 @@ export function getEditorFile(): EditorFile | null {
 export function getFormData(): Record<string, unknown> {
   return formData;
 }
-
 /**
  * Returns the currently active editor tab (reactive).
  * @return {string} The active tab identifier
@@ -188,7 +162,6 @@ export function getFormData(): Record<string, unknown> {
 export function getActiveTab(): string {
   return activeTab;
 }
-
 /**
  * Sets the active editor tab.
  * @param {string} tab - The tab identifier to activate
@@ -197,7 +170,6 @@ export function getActiveTab(): string {
 export function setActiveTab(tab: string): void {
   activeTab = tab;
 }
-
 /**
  * Updates a single field within formData by path and recomputes dirty state.
  * @param {PathSegment[]} path - Ordered path segments addressing the field
@@ -276,6 +248,37 @@ export function setFilename(newFilename: string): void {
  */
 export function getOriginalFilename(): string {
   return originalFilename;
+}
+
+/**
+ * Changes the file format by swapping the filename extension to the new type's default. Preserves the slug (base filename without extension) and leaves originalFilename untouched so publishFile can detect the rename and delete the old file on disk.
+ * @param {string} newType - The type identifier to switch to (e.g. 'md', 'json')
+ * @return {void}
+ */
+export function changeFileFormat(newType: string): void {
+  const ext = getDefaultExtension(newType);
+  if (!ext) return;
+  const slug = filename ? stripExtension(filename) : '';
+  filename = slug ? slug + ext : '';
+  // Switch to metadata tab if the new format has no body editor
+  const config = FILE_TYPES[newType];
+  if (config && !config.hasBody && activeTab === 'body') activeTab = 'metadata';
+}
+
+/**
+ * Sets a default file format for a new draft based on the collection's supported file types. Only applies when the editor has no filename yet (new draft). Sets the activeTab to 'body' if the format supports body editing.
+ * @param {string[]} fileTypes - Type identifiers from the schema's files array
+ * @return {void}
+ */
+export function setDefaultFormat(fileTypes: string[]): void {
+  if (filename || fileTypes.length === 0) return;
+  const defaultType = fileTypes[0];
+  const ext = getDefaultExtension(defaultType);
+  if (!ext) return;
+  // Set just the extension so EditorTabs and FormatSelector derive the correct type
+  filename = ext;
+  // Activate body tab for content types that support it
+  if (FILE_TYPES[defaultType]?.hasBody) activeTab = 'body';
 }
 
 /**

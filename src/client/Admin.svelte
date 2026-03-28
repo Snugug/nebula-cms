@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { initRouter, getRoute } from './js/state/router.svelte';
-  import { toSortDate } from './js/utils/sort';
   import {
     getCollections,
     isBackendReady,
@@ -20,6 +19,8 @@
     getActiveTab,
     getEditorFile,
     loadDraftById,
+    changeFileFormat,
+    setDefaultFormat,
   } from './js/editor/editor.svelte';
   import {
     fetchSchema,
@@ -177,6 +178,16 @@
     }
   });
 
+  // Set the default format for new drafts once the schema is available.
+  // New drafts start with an empty filename, so setDefaultFormat assigns
+  // the collection's first file type extension (e.g. '.mdx' for guides).
+  $effect(() => {
+    const file = getEditorFile();
+    if (file?.isNewDraft && !file.filename && schemaFileTypes.length > 0) {
+      setDefaultFormat(schemaFileTypes);
+    }
+  });
+
   // Fetch the JSON Schema when the active collection changes
   $effect(() => {
     if (ready && currentRoute.view !== 'home') {
@@ -266,7 +277,7 @@
         <FormatSelector
           fileTypes={schemaFileTypes}
           activeType={activeFileType}
-          onChange={() => {}}
+          onChange={changeFileFormat}
         />
         <div class="editor-content">
           {#if activeTab === 'body'}

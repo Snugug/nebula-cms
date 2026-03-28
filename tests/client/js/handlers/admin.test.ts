@@ -22,6 +22,7 @@ const {
   mockClearEditor,
   mockGetEditorFile,
   mockSetFilename,
+  mockGetOriginalFilename,
   mockReloadCollection,
   mockRefreshDrafts,
   mockUpdateContentItem,
@@ -33,6 +34,7 @@ const {
   mockClearEditor: vi.fn(),
   mockGetEditorFile: vi.fn(),
   mockSetFilename: vi.fn(),
+  mockGetOriginalFilename: vi.fn(),
   mockReloadCollection: vi.fn(),
   mockRefreshDrafts: vi.fn(),
   mockUpdateContentItem: vi.fn(),
@@ -48,6 +50,7 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
   clearEditor: mockClearEditor,
   getEditorFile: mockGetEditorFile,
   setFilename: mockSetFilename,
+  getOriginalFilename: mockGetOriginalFilename,
 }));
 
 vi.mock('../../../../src/client/js/state/state.svelte', () => ({
@@ -134,8 +137,14 @@ describe('handlePublish', () => {
       isNewDraft: false,
       formData: { title: 'Hello' },
     });
+    // Same filename means no rename — originalFilename arg should be undefined
+    mockGetOriginalFilename.mockReturnValue('hello.md');
     const result = await handlePublish('posts');
-    expect(mockPublishFile).toHaveBeenCalledWith('posts', 'hello.md');
+    expect(mockPublishFile).toHaveBeenCalledWith(
+      'posts',
+      'hello.md',
+      undefined,
+    );
     expect(result).toEqual({ status: 'ok' });
   });
 
@@ -145,6 +154,8 @@ describe('handlePublish', () => {
       isNewDraft: true,
       formData: {},
     });
+    // New draft — originalFilename is empty
+    mockGetOriginalFilename.mockReturnValue('');
     await handlePublish('posts');
     expect(mockReloadCollection).toHaveBeenCalledWith('posts');
     expect(mockUpdateContentItem).not.toHaveBeenCalled();
@@ -157,6 +168,8 @@ describe('handlePublish', () => {
       isNewDraft: false,
       formData,
     });
+    // Same filename — no rename
+    mockGetOriginalFilename.mockReturnValue('existing.md');
     await handlePublish('posts');
     expect(mockUpdateContentItem).toHaveBeenCalledWith('existing.md', formData);
     expect(mockReloadCollection).not.toHaveBeenCalled();
@@ -168,6 +181,7 @@ describe('handlePublish', () => {
       isNewDraft: false,
       formData: {},
     });
+    mockGetOriginalFilename.mockReturnValue('f.md');
     await handlePublish('posts');
     expect(mockRefreshDrafts).toHaveBeenCalledWith('posts');
   });
@@ -245,6 +259,8 @@ describe('handleFilenameConfirm', () => {
       isNewDraft: true,
       formData: {},
     });
+    // New draft — no original filename
+    mockGetOriginalFilename.mockReturnValue('');
   });
 
   it('sets the filename then calls handlePublish', async () => {

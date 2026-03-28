@@ -5,6 +5,7 @@ import {
   clearEditor,
   getEditorFile,
   setFilename,
+  getOriginalFilename,
 } from '../editor/editor.svelte';
 import {
   reloadCollection,
@@ -108,13 +109,22 @@ export async function handlePublish(
   if (!file.filename) return { status: 'needs-filename' };
   if (!activeCollection) return { status: 'no-file' };
 
-  await publishFile(activeCollection, file.filename);
+  // Pass originalFilename so publishFile can delete the old file when format changes
+  const originalFn = getOriginalFilename();
+  await publishFile(
+    activeCollection,
+    file.filename,
+    originalFn !== file.filename ? originalFn : undefined,
+  );
 
-  if (file.isNewDraft) {
-    // New file — not in contentList yet, need a background refresh to pick it up
+  // Determine if the filename changed (format conversion or new file)
+  const filenameChanged = originalFn && originalFn !== file.filename;
+
+  if (file.isNewDraft || filenameChanged) {
+    // New file or renamed file — not in contentList under this name, need a full refresh
     reloadCollection(activeCollection);
   } else {
-    // Existing file — optimistically update sidebar with current formData
+    // Existing file, same name — optimistically update sidebar with current formData
     // so the title reflects edits instantly without re-fetching all files
     updateContentItem(file.filename, file.formData);
   }
