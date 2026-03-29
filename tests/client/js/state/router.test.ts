@@ -171,6 +171,119 @@ describe('getBasePath', () => {
 });
 
 //////////////////////////////
+// adminPath()
+//////////////////////////////
+
+describe('adminPath', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('joins segments under default /admin basePath', async () => {
+    vi.stubGlobal('location', { pathname: '/admin' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    const { adminPath } =
+      await import('../../../../src/client/js/state/router.svelte');
+    expect(adminPath('posts')).toBe('/admin/posts');
+    expect(adminPath('posts', 'hello-world')).toBe('/admin/posts/hello-world');
+  });
+
+  it('produces single-slash paths when basePath is /', async () => {
+    vi.stubGlobal('location', { pathname: '/' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { adminPath, initRouter } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/');
+    expect(adminPath('authors')).toBe('/authors');
+    expect(adminPath('posts', 'my-post')).toBe('/posts/my-post');
+    expect(adminPath('posts', 'draft-abc')).toBe('/posts/draft-abc');
+  });
+
+  it('joins segments under custom basePath', async () => {
+    vi.stubGlobal('location', { pathname: '/cms' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { adminPath, initRouter } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/cms');
+    expect(adminPath('posts')).toBe('/cms/posts');
+    expect(adminPath('posts', 'hello')).toBe('/cms/posts/hello');
+  });
+
+  it('joins segments under nested basePath', async () => {
+    vi.stubGlobal('location', { pathname: '/app/dashboard' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { adminPath, initRouter } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/app/dashboard');
+    expect(adminPath('posts')).toBe('/app/dashboard/posts');
+  });
+});
+
+//////////////////////////////
+// Root basePath (/) — interception and parsing
+//////////////////////////////
+
+describe('initRouter with root basePath (/)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('parses home route for /', async () => {
+    vi.stubGlobal('location', { pathname: '/' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/');
+    expect(getRoute()).toEqual({ view: 'home' });
+  });
+
+  it('parses collection route for /authors', async () => {
+    vi.stubGlobal('location', { pathname: '/authors' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/');
+    expect(getRoute()).toEqual({ view: 'collection', collection: 'authors' });
+  });
+
+  it('intercepts navigations under root basePath', async () => {
+    const navStub = makeNavigationStub();
+    vi.stubGlobal('location', { pathname: '/' });
+    vi.stubGlobal('navigation', navStub);
+    vi.stubGlobal('window', {
+      addEventListener: vi.fn(),
+      confirm: vi.fn(() => true),
+    });
+    const { initRouter, getRoute } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/');
+
+    const event = makeFakeNavigateEvent('http://localhost/authors');
+    navStub.fire(event);
+    expect(event.intercepted).toBe(true);
+    event.interceptHandler!();
+    expect(getRoute()).toEqual({ view: 'collection', collection: 'authors' });
+  });
+
+  it('returns / for getBasePath when basePath is root', async () => {
+    vi.stubGlobal('location', { pathname: '/' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    vi.stubGlobal('window', { addEventListener: vi.fn() });
+    const { initRouter, getBasePath } =
+      await import('../../../../src/client/js/state/router.svelte');
+    initRouter('/');
+    expect(getBasePath()).toBe('/');
+  });
+});
+
+//////////////////////////////
 // Custom basePath route parsing
 //////////////////////////////
 

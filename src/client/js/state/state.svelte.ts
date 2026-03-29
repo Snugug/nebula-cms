@@ -6,7 +6,7 @@ import {
   type BackendConfig,
 } from '../storage/storage';
 import { StorageClient } from '../storage/client';
-import { getRoute, navigate, getBasePath } from './router.svelte';
+import { getRoute, navigate, getBasePath, adminPath } from './router.svelte';
 import {
   getDrafts,
   getOutdatedMap,
@@ -302,7 +302,7 @@ export async function disconnect(): Promise<void> {
 function navigateToFirstCollectionIfHome(): void {
   const current = getRoute();
   if (current.view === 'home' && collectionNames.length > 0) {
-    navigate(`${getBasePath()}/${collectionNames[0]}`);
+    navigate(adminPath(collectionNames[0]));
   }
 }
 

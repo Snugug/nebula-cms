@@ -27,6 +27,7 @@ vi.mock('../../../../src/client/js/utils/sort', () => ({
 vi.mock('../../../../src/client/js/state/router.svelte', () => ({
   navigate: vi.fn(),
   getBasePath: vi.fn(() => '/admin'),
+  adminPath: vi.fn((...segments) => '/admin/' + segments.join('/')),
 }));
 
 vi.mock('../../../../src/client/js/drafts/storage', () => ({

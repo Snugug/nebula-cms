@@ -28,6 +28,7 @@ const {
   mockUpdateContentItem,
   mockNavigate,
   mockGetBasePath,
+  mockAdminPath,
 } = vi.hoisted(() => ({
   mockSaveDraftToIDB: vi.fn(),
   mockPublishFile: vi.fn(),
@@ -41,6 +42,10 @@ const {
   mockUpdateContentItem: vi.fn(),
   mockNavigate: vi.fn(),
   mockGetBasePath: vi.fn(() => '/admin'),
+  // Default implementation for /admin; tests that change basePath override via mockImplementation
+  mockAdminPath: vi.fn(
+    (...segments: string[]) => '/admin/' + segments.join('/'),
+  ),
 }));
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
@@ -70,6 +75,7 @@ vi.mock('../../../../src/client/js/state/schema.svelte', () => ({
 vi.mock('../../../../src/client/js/state/router.svelte', () => ({
   navigate: mockNavigate,
   getBasePath: mockGetBasePath,
+  adminPath: mockAdminPath,
 }));
 
 // ── Import handlers ────────────────────────────────────────────────────────
@@ -292,6 +298,9 @@ describe('handlers use configurable basePath', () => {
     mockDeleteCurrentDraft.mockResolvedValue(undefined);
     // Override the default basePath for this group
     mockGetBasePath.mockReturnValue('/cms');
+    mockAdminPath.mockImplementation(
+      (...segments: string[]) => '/cms/' + segments.join('/'),
+    );
   });
 
   it('buildContentItems uses getBasePath for live item hrefs', () => {
@@ -343,6 +352,70 @@ describe('handlers use configurable basePath', () => {
     });
     await handleDeleteDraft('posts');
     expect(mockNavigate).toHaveBeenCalledWith('/cms/posts/my-post');
+  });
+});
+
+describe('handlers with root basePath (/)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockRefreshDrafts.mockResolvedValue(undefined);
+    mockDeleteCurrentDraft.mockResolvedValue(undefined);
+    // Root basePath — the bug scenario where paths got double-slashed
+    mockGetBasePath.mockReturnValue('/');
+    mockAdminPath.mockImplementation(
+      (...segments: string[]) => '/' + segments.join('/'),
+    );
+  });
+
+  it('buildContentItems produces single-slash hrefs for live items', () => {
+    const items = buildContentItems(
+      [{ filename: 'hello.md', data: { title: 'Hello' } }],
+      [],
+      {},
+      'posts',
+    );
+    expect(items[0].href).toBe('/posts/hello');
+  });
+
+  it('buildContentItems produces single-slash hrefs for new drafts', () => {
+    const items = buildContentItems(
+      [],
+      [
+        {
+          id: 'abc',
+          collection: 'posts',
+          filename: null,
+          isNew: true,
+          formData: { title: 'Draft' },
+          body: '',
+          snapshot: null,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      {},
+      'posts',
+    );
+    expect(items[0].href).toBe('/posts/draft-abc');
+  });
+
+  it('handleDeleteDraft navigates to /posts (not //posts) for new draft', async () => {
+    mockGetEditorFile.mockReturnValue({
+      filename: null,
+      isNewDraft: true,
+      formData: {},
+    });
+    await handleDeleteDraft('posts');
+    expect(mockNavigate).toHaveBeenCalledWith('/posts');
+  });
+
+  it('handleDeleteDraft navigates to /posts/my-post (not //posts/my-post) for live file', async () => {
+    mockGetEditorFile.mockReturnValue({
+      filename: 'my-post.md',
+      isNewDraft: false,
+      formData: {},
+    });
+    await handleDeleteDraft('posts');
+    expect(mockNavigate).toHaveBeenCalledWith('/posts/my-post');
   });
 });
 

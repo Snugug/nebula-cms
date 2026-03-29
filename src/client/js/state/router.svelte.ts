@@ -26,12 +26,25 @@ export function getBasePath(): string {
 }
 
 /**
+ * Builds an absolute path under the configured basePath by joining segments.
+ * Handles the root basePath case ('/') without producing double slashes.
+ * @param {...string} segments - Path segments to append (e.g. 'authors', 'my-post')
+ * @return {string} The joined path (e.g. '/admin/authors/my-post' or '/authors/my-post')
+ */
+export function adminPath(...segments: string[]): string {
+  const prefix = basePath === '/' ? '' : basePath;
+  return prefix + '/' + segments.join('/');
+}
+
+/**
  * Checks whether a pathname falls under the configured basePath.
  * Matches the basePath exactly or as a prefix followed by '/'.
  * @param {string} pathname - The URL pathname to test
  * @return {boolean} True if the pathname is within the basePath
  */
 function isUnderBasePath(pathname: string): boolean {
+  // When basePath is '/', every absolute path is under it
+  if (basePath === '/') return pathname.startsWith('/');
   return pathname === basePath || pathname.startsWith(basePath + '/');
 }
 

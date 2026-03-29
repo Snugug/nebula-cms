@@ -19,7 +19,7 @@ import {
   updateContentItem,
   type ContentItem,
 } from '../state/state.svelte';
-import { navigate, getBasePath, type AdminRoute } from '../state/router.svelte';
+import { navigate, adminPath, type AdminRoute } from '../state/router.svelte';
 import {
   getCollectionTitle,
   getCollectionDescription,
@@ -55,7 +55,7 @@ export function buildContentItems(
     const date = toSortDate(item.data.published);
     return {
       label: title,
-      href: `${getBasePath()}/${activeCollection}/${slug}`,
+      href: adminPath(activeCollection!, slug),
       subtitle: item.filename,
       ...(date ? { date } : {}),
       ...(draft
@@ -76,7 +76,7 @@ export function buildContentItems(
           typeof d.formData.title === 'string'
             ? d.formData.title
             : 'Untitled Draft',
-        href: `${getBasePath()}/${activeCollection}/draft-${d.id}`,
+        href: adminPath(activeCollection!, `draft-${d.id}`),
         draftId: d.id,
         isDraft: true as const,
         isOutdated: false,
@@ -94,7 +94,7 @@ export function buildCollectionItems(): SidebarItem[] {
   return getCollections().map((name) => ({
     label:
       getCollectionTitle(name) ?? name.charAt(0).toUpperCase() + name.slice(1),
-    href: `${getBasePath()}/${name}`,
+    href: adminPath(name),
     subtitle: getCollectionDescription(name) ?? undefined,
   }));
 }
@@ -106,10 +106,10 @@ export function buildCollectionItems(): SidebarItem[] {
  */
 export function buildActiveFileHref(route: AdminRoute): string | undefined {
   if (route.view === 'file') {
-    return `${getBasePath()}/${route.collection}/${route.slug}`;
+    return adminPath(route.collection, route.slug);
   }
   if (route.view === 'draft') {
-    return `${getBasePath()}/${route.collection}/draft-${route.draftId}`;
+    return adminPath(route.collection, `draft-${route.draftId}`);
   }
   return undefined;
 }
@@ -197,10 +197,10 @@ export async function handleDeleteDraft(
   if (!wasNewDraft && liveFilename) {
     // Draft of live content — navigate to the live file so it reloads from disk
     const slug = stripExtension(liveFilename);
-    navigate(`${getBasePath()}/${activeCollection}/${slug}`);
+    navigate(adminPath(activeCollection!, slug));
   } else {
     // New draft — no live file to return to, go to collection list
-    navigate(`${getBasePath()}/${activeCollection}`);
+    navigate(adminPath(activeCollection!));
   }
 }
 

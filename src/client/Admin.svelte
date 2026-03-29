@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { initRouter, getRoute, getBasePath } from './js/state/router.svelte';
+  import { initRouter, getRoute, adminPath } from './js/state/router.svelte';
   import {
     isBackendReady,
     restoreBackend,
@@ -240,9 +240,7 @@
     <AdminSidebar
       title="Collections"
       items={collectionItems}
-      activeItem={activeCollection
-        ? `${getBasePath()}/${activeCollection}`
-        : undefined}
+      activeItem={activeCollection ? adminPath(activeCollection) : undefined}
       showFooter={true}
     />
     {#if hasCollection && activeCollection}
