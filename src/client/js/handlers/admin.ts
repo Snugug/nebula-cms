@@ -1,7 +1,5 @@
 /*
  * Admin action handlers for save, publish, delete, and sidebar data construction.
- * Extracted from Admin.svelte to keep the component under the 350-line limit
- * and to centralize URL construction that depends on the configurable basePath.
  */
 import {
   saveDraftToIDB,
