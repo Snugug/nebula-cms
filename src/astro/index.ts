@@ -51,9 +51,6 @@ export default function NebulaCMS(
         });
       },
       // Copy schema files into the build output after Astro finishes.
-      // By this point .astro/collections is guaranteed to exist, avoiding
-      // the race condition where Vite's buildStart fires before Astro
-      // generates the collection schemas.
       'astro:build:done': ({ dir, logger }) => {
         const source = resolve(process.cwd(), '.astro/collections');
         if (!existsSync(source)) {
