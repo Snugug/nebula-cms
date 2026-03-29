@@ -290,17 +290,18 @@
   }
 
   button {
-    background: var(--plum);
+    background: var(--button-bg, var(--plum));
     border: none;
     border-radius: 0.5rem;
-    color: var(--white);
+    color: var(--button-color, var(--white));
     cursor: pointer;
     font-size: 1rem;
     padding: 0.75rem 1.5rem;
     text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 
     &:hover {
-      background: var(--light-plum);
+      background: var(--button-hover-bg, var(--light-plum));
     }
 
     &:disabled {

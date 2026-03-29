@@ -40,7 +40,9 @@
     buildActiveFileHref,
   } from './js/handlers/admin';
   import { stripExtension, getTypeForFilename } from './js/utils/file-types';
+  import { initTheme, getResolvedTheme } from './js/state/theme.svelte';
   import './css/icons.css';
+  import './css/theme.css';
   import BackendPicker from './components/BackendPicker.svelte';
   import AdminSidebar from './components/sidebar/AdminSidebar.svelte';
   import EditorToolbar from './components/editor/EditorToolbar.svelte';
@@ -222,6 +224,7 @@
   }
 
   onMount(() => {
+    initTheme();
     initRouter(config?.basePath);
     restoreBackend();
     prefetchAllSchemas();
@@ -233,6 +236,7 @@
   class:admin--connected={ready}
   class:admin--collection={ready && hasCollection}
   class:admin--file-open={ready && fileOpen}
+  data-theme={getResolvedTheme()}
 >
   {#if !ready}
     <BackendPicker />

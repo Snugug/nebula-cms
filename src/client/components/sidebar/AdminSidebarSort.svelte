@@ -140,6 +140,7 @@
 
     &:hover {
       background: var(--grey);
+      color: var(--black);
     }
   }
 </style>

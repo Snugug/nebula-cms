@@ -10,6 +10,7 @@
   import { navigate, adminPath } from '../../js/state/router.svelte';
   import { saveDraft } from '../../js/drafts/storage';
   import { refreshDrafts, disconnect } from '../../js/state/state.svelte';
+  import ThemeToggle from '../ThemeToggle.svelte';
 
   export type { SidebarItem };
 
@@ -178,6 +179,7 @@
         <span class="material-symbols-outlined">logout</span>
         <span>Log out</span>
       </button>
+      <ThemeToggle />
     </div>
   {/if}
 </nav>
@@ -309,6 +311,9 @@
   }
 
   .sidebar-footer {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
     border-top: 1px solid var(--dark-grey);
     padding: 0.75rem 1rem;
   }
@@ -324,7 +329,6 @@
     gap: 0.5rem;
     font-size: 0.875rem;
     padding: 0.25rem 0;
-    width: 100%;
 
     &:hover {
       color: var(--white);

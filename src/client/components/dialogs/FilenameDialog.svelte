@@ -160,11 +160,12 @@
   }
 
   .btn--confirm {
-    background: var(--plum);
-    color: var(--white);
+    background: var(--button-bg, var(--plum));
+    color: var(--button-color, var(--white));
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 
     &:hover:not(:disabled) {
-      background: var(--light-plum);
+      background: var(--button-hover-bg, var(--light-plum));
     }
 
     &:disabled {

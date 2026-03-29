@@ -1,0 +1,122 @@
+/*
+ * Theme definitions for nebula-cms.
+ * Provides CSS custom properties for both light and dark modes using the
+ * Astro brand gradient (#D83333 -> #F041FF) with rose highlights and
+ * gradient primary buttons. The resolved theme is applied via a data-theme
+ * attribute on the .admin root element.
+ */
+
+/* Dark mode — deep black background with rose accent and gradient buttons */
+
+.admin[data-theme='dark'] {
+  --black: rgb(13, 15, 20);
+  --near-black: #151720;
+  --dark-grey: #252830;
+  --grey: #8b90a0;
+  --white: #e8eaf0;
+  --plum: #e03a80;
+  --light-plum: #e8508f;
+  --button-bg: linear-gradient(135deg, #d83333, #f041ff);
+  --button-hover-bg: linear-gradient(135deg, #e04848, #f565ff);
+  --button-color: #e8eaf0;
+  --gold: #fbbf24;
+  --light-red: #f87171;
+  --red: #dc2626;
+  --light-green: #34d399;
+  --green: #059669;
+  --light-orange: #fb923c;
+  --light-teal: #5eead4;
+  --light-purple: #e879f9;
+  --editor-caret: #e8eaf0;
+  --editor-active-line: rgba(224, 58, 128, 0.1);
+  --spacing: 2rem;
+  color-scheme: dark;
+}
+
+/* Light mode — white background, same key color, same gradient buttons */
+
+.admin[data-theme='light'] {
+  --black: #ffffff;
+  --near-black: #f8f5f7;
+  --dark-grey: #ddd5da;
+  --grey: #6e6870;
+  --white: #1e1a1c;
+  --plum: #e03a80;
+  --light-plum: #e8508f;
+  --button-bg: linear-gradient(135deg, #d83333, #f041ff);
+  --button-hover-bg: linear-gradient(135deg, #e04848, #f565ff);
+  --button-color: #e8eaf0;
+  --gold: #b45309;
+  --light-red: #dc2626;
+  --red: #b91c1c;
+  --light-green: #059669;
+  --green: #047857;
+  --light-orange: #c2410c;
+  --light-teal: #0f766e;
+  --light-purple: #a21caf;
+  --editor-caret: #1e1a1c;
+  --editor-active-line: rgba(224, 58, 128, 0.06);
+  --spacing: 2rem;
+  color-scheme: light;
+}
+
+/* Global base styles and resets for the admin shell */
+
+.admin {
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background: var(--black);
+  color: var(--white);
+}
+
+/* Prevent padding/border from inflating element sizes */
+
+.admin *,
+.admin *::before,
+.admin *::after {
+  box-sizing: border-box;
+}
+
+/* Form elements don't inherit font by default */
+
+.admin input,
+.admin select,
+.admin textarea,
+.admin button {
+  font-family: inherit;
+}
+
+/* Reset browser defaults that leak through without a host-page reset */
+
+.admin h1,
+.admin h2,
+.admin h3,
+.admin p,
+.admin ul,
+.admin ol,
+.admin dl {
+  margin: 0;
+}
+
+.admin ul,
+.admin ol {
+  list-style: none;
+  padding: 0;
+}
+
+/* Subtitles on active sidebar items need higher contrast than the default --grey */
+
+.admin [aria-current='page'] .item-subtitle {
+  color: var(--white);
+  opacity: 0.75;
+}
+
+/* Top-layer elements (dialogs) need explicit token values
+   because they render outside the component DOM tree */
+
+.admin dialog[open] {
+  background: var(--near-black);
+  color: var(--white);
+}

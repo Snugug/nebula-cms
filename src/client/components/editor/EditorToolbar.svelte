@@ -110,8 +110,9 @@
     gap: 0.5rem;
   }
 
+  /* All buttons share a 1px transparent border so they render at the same optical size */
   .btn {
-    border: none;
+    border: 1px solid transparent;
     border-radius: 0.25rem;
     color: var(--white);
     cursor: pointer;
@@ -125,25 +126,29 @@
   }
 
   .btn--save {
-    background: var(--plum);
+    background: none;
+    border-color: var(--light-teal);
+    color: var(--light-teal);
 
     &:hover:not(:disabled) {
-      background: var(--light-plum);
+      background: var(--light-teal);
+      color: var(--black);
     }
   }
 
   .btn--publish {
-    background: var(--light-green);
-    color: var(--black);
+    background: var(--button-bg, var(--light-green));
+    color: var(--button-color, var(--white));
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 
     &:hover:not(:disabled) {
-      background: var(--green);
+      background: var(--button-hover-bg, var(--green));
     }
   }
 
   .btn--delete {
     background: none;
-    border: 1px solid var(--light-red);
+    border-color: var(--light-red);
     color: var(--light-red);
 
     &:hover {

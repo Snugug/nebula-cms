@@ -80,9 +80,6 @@
     padding: 0.5rem;
     font-size: 1rem;
     color: var(--white);
-    /* Ensures the date picker UI respects the dark background theme */
-    color-scheme: dark;
-
     &:focus {
       outline: 2px solid var(--plum);
       outline-offset: -1px;
