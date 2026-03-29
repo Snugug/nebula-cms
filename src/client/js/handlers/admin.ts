@@ -30,7 +30,7 @@ import { stripExtension } from '../utils/file-types';
 import type { SidebarItem } from '../utils/sort';
 
 /**
- * Builds the content sidebar item list by merging live content with draft data. Extracted from Admin.svelte to keep that component under the 350-line limit.
+ * Builds the content sidebar item list by merging live content with draft data.
  * @param {ContentItem[]} contentList - Live content items from the storage worker
  * @param {Draft[]} drafts - All drafts for the active collection
  * @param {Record<string, boolean>} outdatedMap - Map of draft ID to outdated status
@@ -87,7 +87,7 @@ export function buildContentItems(
 }
 
 /**
- * Builds the collection sidebar items from collection names, using schema title/description when available. Extracted from Admin.svelte to keep that component under the 350-line limit.
+ * Builds the collection sidebar items from collection names, using schema title/description when available.
  * @return {SidebarItem[]} Collection sidebar items with hrefs under the configured basePath
  */
 export function buildCollectionItems(): SidebarItem[] {
