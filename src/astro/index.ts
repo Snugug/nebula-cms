@@ -19,7 +19,7 @@ const RESOLVED_ID = '\0' + VIRTUAL_ID;
 const VALID_PATH_SEGMENT = /^[a-zA-Z0-9_-]+$/;
 
 /**
- * Astro integration that exposes content collection JSON schemas to client-side JavaScript via a symlink and virtual module.
+ * Astro integration that exposes content collection JSON schemas to client-side JavaScript via a virtual module, dev middleware, and build-time file copy.
  * @param {NebulaCMSConfig} config - Optional configuration object
  * @return {AstroIntegration} The configured Astro integration object
  */
@@ -93,9 +93,9 @@ export function collectionsVitePlugin(
     name: 'vite-plugin-nebula-cms',
 
     /**
-     * Serves schema files from .astro/collections/ during dev.
-     * Avoids a race condition where buildStart may run before Astro
-     * generates the collection schemas, leaving the symlink missing.
+     * Serves schema files from .astro/collections/ during dev via middleware.
+     * This avoids needing a symlink in public/, which would require the
+     * directory to exist before Vite starts (a timing issue in fresh checkouts).
      * @param {import('vite').ViteDevServer} server - The Vite dev server
      * @return {void}
      */
@@ -114,6 +114,8 @@ export function collectionsVitePlugin(
           }
           const filename = url.slice(prefix.length);
           const filePath = resolve(collectionsDir, filename);
+          // Reject path traversal attempts (e.g. /../../../etc/passwd.schema.json)
+          if (!filePath.startsWith(collectionsDir + '/')) return next();
           if (!existsSync(filePath)) return next();
 
           res.setHeader('Content-Type', 'application/json');

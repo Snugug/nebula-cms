@@ -180,6 +180,14 @@ describe('adminPath', () => {
     vi.resetModules();
   });
 
+  it('returns basePath when called with no segments', async () => {
+    vi.stubGlobal('location', { pathname: '/admin' });
+    vi.stubGlobal('navigation', makeNavigationStub());
+    const { adminPath } =
+      await import('../../../../src/client/js/state/router.svelte');
+    expect(adminPath()).toBe('/admin');
+  });
+
   it('joins segments under default /admin basePath', async () => {
     vi.stubGlobal('location', { pathname: '/admin' });
     vi.stubGlobal('navigation', makeNavigationStub());

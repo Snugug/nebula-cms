@@ -32,6 +32,7 @@ export function getBasePath(): string {
  * @return {string} The joined path (e.g. '/admin/authors/my-post' or '/authors/my-post')
  */
 export function adminPath(...segments: string[]): string {
+  if (segments.length === 0) return basePath;
   const prefix = basePath === '/' ? '' : basePath;
   return prefix + '/' + segments.join('/');
 }

@@ -185,10 +185,12 @@ export async function handleDeleteDraft(
   await deleteCurrentDraft();
 
   if (!activeCollection) return;
+  // Capture narrowed value before awaits (TS can't narrow across async boundaries)
+  const collection = activeCollection;
 
   // Refresh drafts list only — live content hasn't changed, so no need to
   // reload the full collection (which re-reads all files and causes a flash)
-  await refreshDrafts(activeCollection);
+  await refreshDrafts(collection);
 
   // Clear editor so the route change triggers a fresh load (preloadFile has
   // an early return if the same filename is already open)
@@ -197,10 +199,10 @@ export async function handleDeleteDraft(
   if (!wasNewDraft && liveFilename) {
     // Draft of live content — navigate to the live file so it reloads from disk
     const slug = stripExtension(liveFilename);
-    navigate(adminPath(activeCollection!, slug));
+    navigate(adminPath(collection, slug));
   } else {
     // New draft — no live file to return to, go to collection list
-    navigate(adminPath(activeCollection!));
+    navigate(adminPath(collection));
   }
 }
 

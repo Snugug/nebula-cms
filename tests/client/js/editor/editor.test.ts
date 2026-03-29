@@ -13,7 +13,9 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 
 vi.mock('../../../../src/client/js/state/router.svelte', () => ({
   registerDirtyChecker: vi.fn(),
-  adminPath: vi.fn((...segments) => '/admin/' + segments.join('/')),
+  adminPath: vi.fn((...segments) =>
+    segments.length === 0 ? '/admin' : '/admin/' + segments.join('/'),
+  ),
 }));
 
 vi.mock('../../../../src/client/js/utils/frontmatter', () => ({

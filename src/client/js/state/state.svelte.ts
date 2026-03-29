@@ -6,7 +6,7 @@ import {
   type BackendConfig,
 } from '../storage/storage';
 import { StorageClient } from '../storage/client';
-import { getRoute, navigate, getBasePath, adminPath } from './router.svelte';
+import { getRoute, navigate, adminPath } from './router.svelte';
 import {
   getDrafts,
   getOutdatedMap,
@@ -204,7 +204,7 @@ export async function restoreBackend(): Promise<void> {
           contentList = [];
           contentCache.clear();
           loadedCollection = '';
-          navigate(getBasePath());
+          navigate(adminPath());
         })
         .finally(() => {
           initPromise = null;
@@ -292,7 +292,7 @@ export async function disconnect(): Promise<void> {
   loadedCollection = '';
   error = null;
   loading = false;
-  navigate(getBasePath());
+  navigate(adminPath());
 }
 
 /**

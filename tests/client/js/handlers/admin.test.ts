@@ -43,8 +43,8 @@ const {
   mockNavigate: vi.fn(),
   mockGetBasePath: vi.fn(() => '/admin'),
   // Default implementation for /admin; tests that change basePath override via mockImplementation
-  mockAdminPath: vi.fn(
-    (...segments: string[]) => '/admin/' + segments.join('/'),
+  mockAdminPath: vi.fn((...segments: string[]) =>
+    segments.length === 0 ? '/admin' : '/admin/' + segments.join('/'),
   ),
 }));
 
@@ -298,8 +298,8 @@ describe('handlers use configurable basePath', () => {
     mockDeleteCurrentDraft.mockResolvedValue(undefined);
     // Override the default basePath for this group
     mockGetBasePath.mockReturnValue('/cms');
-    mockAdminPath.mockImplementation(
-      (...segments: string[]) => '/cms/' + segments.join('/'),
+    mockAdminPath.mockImplementation((...segments: string[]) =>
+      segments.length === 0 ? '/cms' : '/cms/' + segments.join('/'),
     );
   });
 
@@ -362,8 +362,8 @@ describe('handlers with root basePath (/)', () => {
     mockDeleteCurrentDraft.mockResolvedValue(undefined);
     // Root basePath — the bug scenario where paths got double-slashed
     mockGetBasePath.mockReturnValue('/');
-    mockAdminPath.mockImplementation(
-      (...segments: string[]) => '/' + segments.join('/'),
+    mockAdminPath.mockImplementation((...segments: string[]) =>
+      segments.length === 0 ? '/' : '/' + segments.join('/'),
     );
   });
 
