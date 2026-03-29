@@ -1,3 +1,6 @@
+/*
+ * Admin action handlers for save, publish, delete, and sidebar data construction.
+ */
 import {
   saveDraftToIDB,
   publishFile,
@@ -8,19 +11,24 @@ import {
   getOriginalFilename,
 } from '../editor/editor.svelte';
 import {
+  getCollections,
   reloadCollection,
   refreshDrafts,
   updateContentItem,
   type ContentItem,
 } from '../state/state.svelte';
-import { navigate } from '../state/router.svelte';
+import { navigate, adminPath, type AdminRoute } from '../state/router.svelte';
+import {
+  getCollectionTitle,
+  getCollectionDescription,
+} from '../state/schema.svelte';
 import type { Draft } from '../drafts/storage';
 import { toSortDate } from '../utils/sort';
 import { stripExtension } from '../utils/file-types';
 import type { SidebarItem } from '../utils/sort';
 
 /**
- * Builds the content sidebar item list by merging live content with draft data. Extracted from Admin.svelte to keep that component under the 350-line limit.
+ * Builds the content sidebar item list by merging live content with draft data.
  * @param {ContentItem[]} contentList - Live content items from the storage worker
  * @param {Draft[]} drafts - All drafts for the active collection
  * @param {Record<string, boolean>} outdatedMap - Map of draft ID to outdated status
@@ -45,7 +53,7 @@ export function buildContentItems(
     const date = toSortDate(item.data.published);
     return {
       label: title,
-      href: `/admin/${activeCollection}/${slug}`,
+      href: adminPath(activeCollection!, slug),
       subtitle: item.filename,
       ...(date ? { date } : {}),
       ...(draft
@@ -66,7 +74,7 @@ export function buildContentItems(
           typeof d.formData.title === 'string'
             ? d.formData.title
             : 'Untitled Draft',
-        href: `/admin/${activeCollection}/draft-${d.id}`,
+        href: adminPath(activeCollection!, `draft-${d.id}`),
         draftId: d.id,
         isDraft: true as const,
         isOutdated: false,
@@ -74,6 +82,34 @@ export function buildContentItems(
       };
     });
   return [...liveItems, ...newDraftItems];
+}
+
+/**
+ * Builds the collection sidebar items from collection names, using schema title/description when available.
+ * @return {SidebarItem[]} Collection sidebar items with hrefs under the configured basePath
+ */
+export function buildCollectionItems(): SidebarItem[] {
+  return getCollections().map((name) => ({
+    label:
+      getCollectionTitle(name) ?? name.charAt(0).toUpperCase() + name.slice(1),
+    href: adminPath(name),
+    subtitle: getCollectionDescription(name) ?? undefined,
+  }));
+}
+
+/**
+ * Derives the active file/draft href for sidebar highlighting from the current route.
+ * @param {AdminRoute} route - The current admin route
+ * @return {string | undefined} The href of the active file or draft, or undefined if not in a file/draft view
+ */
+export function buildActiveFileHref(route: AdminRoute): string | undefined {
+  if (route.view === 'file') {
+    return adminPath(route.collection, route.slug);
+  }
+  if (route.view === 'draft') {
+    return adminPath(route.collection, `draft-${route.draftId}`);
+  }
+  return undefined;
 }
 
 /**
@@ -147,10 +183,12 @@ export async function handleDeleteDraft(
   await deleteCurrentDraft();
 
   if (!activeCollection) return;
+  // Capture narrowed value before awaits (TS can't narrow across async boundaries)
+  const collection = activeCollection;
 
   // Refresh drafts list only — live content hasn't changed, so no need to
   // reload the full collection (which re-reads all files and causes a flash)
-  await refreshDrafts(activeCollection);
+  await refreshDrafts(collection);
 
   // Clear editor so the route change triggers a fresh load (preloadFile has
   // an early return if the same filename is already open)
@@ -159,10 +197,10 @@ export async function handleDeleteDraft(
   if (!wasNewDraft && liveFilename) {
     // Draft of live content — navigate to the live file so it reloads from disk
     const slug = stripExtension(liveFilename);
-    navigate(`/admin/${activeCollection}/${slug}`);
+    navigate(adminPath(collection, slug));
   } else {
     // New draft — no live file to return to, go to collection list
-    navigate(`/admin/${activeCollection}`);
+    navigate(adminPath(collection));
   }
 }
 

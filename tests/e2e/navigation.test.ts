@@ -65,6 +65,10 @@ vi.mock('../../src/client/js/state/router.svelte', () => ({
   getRoute: mocks.mockGetRoute,
   navigate: vi.fn(),
   registerDirtyChecker: vi.fn(),
+  getBasePath: vi.fn(() => '/admin'),
+  adminPath: vi.fn((...segments) =>
+    segments.length === 0 ? '/admin' : '/admin/' + segments.join('/'),
+  ),
 }));
 vi.mock('../../src/client/js/state/schema.svelte', () => ({
   fetchSchema: vi.fn(async () => {}),

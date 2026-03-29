@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { initRouter, getRoute } from './js/state/router.svelte';
+  import { initRouter, getRoute, adminPath } from './js/state/router.svelte';
   import {
-    getCollections,
     isBackendReady,
     restoreBackend,
     loadCollection,
@@ -29,7 +28,6 @@
     prefetchAllSchemas,
     collectionHasDates,
     getCollectionTitle,
-    getCollectionDescription,
   } from './js/state/schema.svelte';
   import {
     handleSave,
@@ -38,6 +36,8 @@
     handleFilenameConfirm,
     computePublishDisabled,
     buildContentItems,
+    buildCollectionItems,
+    buildActiveFileHref,
   } from './js/handlers/admin';
   import { stripExtension, getTypeForFilename } from './js/utils/file-types';
   import './css/icons.css';
@@ -50,6 +50,14 @@
   import MetadataForm from './components/MetadataForm.svelte';
   import FilenameDialog from './components/dialogs/FilenameDialog.svelte';
   import DeleteDraftDialog from './components/dialogs/DeleteDraftDialog.svelte';
+
+  // Host application config — basePath controls the URL prefix for all admin routes
+  interface Props {
+    config?: {
+      basePath?: string;
+    };
+  }
+  let { config }: Props = $props();
 
   // Whether the admin backend is ready to serve content
   const ready = $derived(isBackendReady());
@@ -74,24 +82,10 @@
   const activeTab = $derived(getActiveTab());
 
   // The active file/draft href for highlighting in the content sidebar
-  const activeFileHref = $derived(
-    currentRoute.view === 'file'
-      ? `/admin/${currentRoute.collection}/${currentRoute.slug}`
-      : currentRoute.view === 'draft'
-        ? `/admin/${currentRoute.collection}/draft-${currentRoute.draftId}`
-        : undefined,
-  );
+  const activeFileHref = $derived(buildActiveFileHref(currentRoute));
 
   // Collection names mapped to SidebarItems, using schema title/description when available
-  const collectionItems = $derived(
-    getCollections().map((name) => ({
-      label:
-        getCollectionTitle(name) ??
-        name.charAt(0).toUpperCase() + name.slice(1),
-      href: `/admin/${name}`,
-      subtitle: getCollectionDescription(name) ?? undefined,
-    })),
-  );
+  const collectionItems = $derived(buildCollectionItems());
 
   // Content items merged with draft data (DRAFT/OUTDATED chips) plus new draft items
   const contentItems = $derived(
@@ -228,7 +222,7 @@
   }
 
   onMount(() => {
-    initRouter();
+    initRouter(config?.basePath);
     restoreBackend();
     prefetchAllSchemas();
   });
@@ -246,7 +240,7 @@
     <AdminSidebar
       title="Collections"
       items={collectionItems}
-      activeItem={activeCollection ? `/admin/${activeCollection}` : undefined}
+      activeItem={activeCollection ? adminPath(activeCollection) : undefined}
       showFooter={true}
     />
     {#if hasCollection && activeCollection}

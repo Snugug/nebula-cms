@@ -89,6 +89,10 @@ vi.mock('../../../src/client/js/state/router.svelte', () => ({
   getRoute: mockGetRoute,
   navigate: vi.fn(),
   registerDirtyChecker: vi.fn(),
+  getBasePath: vi.fn(() => '/admin'),
+  adminPath: vi.fn((...segments) =>
+    segments.length === 0 ? '/admin' : '/admin/' + segments.join('/'),
+  ),
 }));
 
 vi.mock('../../../src/client/js/state/schema.svelte', () => ({
@@ -112,14 +116,20 @@ vi.mock('../../../src/client/js/editor/editor.svelte', () => ({
   updateBody: vi.fn(),
 }));
 
-vi.mock('../../../src/client/js/handlers/admin', () => ({
-  handleSave: vi.fn(() => Promise.resolve()),
-  handlePublish: vi.fn(() => Promise.resolve({ status: 'ok' })),
-  handleDeleteDraft: vi.fn(() => Promise.resolve()),
-  handleFilenameConfirm: vi.fn(() => Promise.resolve()),
-  computePublishDisabled: mockComputePublishDisabled,
-  buildContentItems: vi.fn(() => []),
-}));
+vi.mock('../../../src/client/js/handlers/admin', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('../../../src/client/js/handlers/admin')
+    >();
+  return {
+    ...actual,
+    handleSave: vi.fn(() => Promise.resolve()),
+    handlePublish: vi.fn(() => Promise.resolve({ status: 'ok' })),
+    handleDeleteDraft: vi.fn(() => Promise.resolve()),
+    handleFilenameConfirm: vi.fn(() => Promise.resolve()),
+    computePublishDisabled: mockComputePublishDisabled,
+  };
+});
 
 // sort is used by Admin.svelte to build contentItems
 vi.mock('../../../src/client/js/utils/sort', () => ({

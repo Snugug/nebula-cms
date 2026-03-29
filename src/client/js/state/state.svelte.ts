@@ -6,7 +6,7 @@ import {
   type BackendConfig,
 } from '../storage/storage';
 import { StorageClient } from '../storage/client';
-import { getRoute, navigate } from './router.svelte';
+import { getRoute, navigate, adminPath } from './router.svelte';
 import {
   getDrafts,
   getOutdatedMap,
@@ -204,7 +204,7 @@ export async function restoreBackend(): Promise<void> {
           contentList = [];
           contentCache.clear();
           loadedCollection = '';
-          navigate('/admin');
+          navigate(adminPath());
         })
         .finally(() => {
           initPromise = null;
@@ -292,17 +292,17 @@ export async function disconnect(): Promise<void> {
   loadedCollection = '';
   error = null;
   loading = false;
-  navigate('/admin');
+  navigate(adminPath());
 }
 
 /**
- * Navigates to the first collection if currently on the /admin home view.
+ * Navigates to the first collection if currently on the home view.
  * @return {void}
  */
 function navigateToFirstCollectionIfHome(): void {
   const current = getRoute();
   if (current.view === 'home' && collectionNames.length > 0) {
-    navigate(`/admin/${collectionNames[0]}`);
+    navigate(adminPath(collectionNames[0]));
   }
 }
 
