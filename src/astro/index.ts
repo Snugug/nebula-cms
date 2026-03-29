@@ -94,8 +94,6 @@ export function collectionsVitePlugin(
 
     /**
      * Serves schema files from .astro/collections/ during dev via middleware.
-     * This avoids needing a symlink in public/, which would require the
-     * directory to exist before Vite starts (a timing issue in fresh checkouts).
      * @param {import('vite').ViteDevServer} server - The Vite dev server
      * @return {void}
      */
