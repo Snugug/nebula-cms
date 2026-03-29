@@ -5,13 +5,11 @@ import {
   writeFileSync,
   rmSync,
   existsSync,
-  lstatSync,
-  readlinkSync,
-  symlinkSync,
-  unlinkSync,
+  readFileSync,
 } from 'node:fs';
-import { resolve, relative, dirname, join } from 'node:path';
+import { resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';
 import NebulaCMS, { collectionsVitePlugin } from '../../src/astro/index.js';
 import type { AstroIntegrationLogger } from 'astro';
 
@@ -103,10 +101,10 @@ describe('collectionsVitePlugin resolveId', () => {
 });
 
 //////////////////////////////
-// buildStart hook
+// configureServer middleware
 //////////////////////////////
 
-describe('collectionsVitePlugin buildStart', () => {
+describe('collectionsVitePlugin configureServer', () => {
   let tmpDir: string;
   let logger: AstroIntegrationLogger;
 
@@ -119,124 +117,179 @@ describe('collectionsVitePlugin buildStart', () => {
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('creates a relative symlink when source exists and target does not', () => {
-    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
+  /**
+   * Creates a fake Connect-style middleware stack to capture the registered handler.
+   * @return {{ use: ReturnType<typeof vi.fn>, handler: Function | null }}
+   */
+  function createMiddlewareStub() {
+    let handler: Function | null = null;
+    return {
+      use: vi.fn((fn: Function) => {
+        handler = fn;
+      }),
+      get handler() {
+        return handler;
+      },
+    };
+  }
+
+  /**
+   * Simulates a middleware request/response cycle.
+   * @param {Function} handler - The middleware handler
+   * @param {string} url - The request URL
+   * @return {{ status: 'served' | 'skipped', body?: string, contentType?: string }}
+   */
+  function callMiddleware(handler: Function, url: string) {
+    let result: { status: string; body?: string; contentType?: string } = {
+      status: 'skipped',
+    };
+    const req = { url };
+    const headers: Record<string, string> = {};
+    const res = {
+      setHeader: (k: string, v: string) => {
+        headers[k] = v;
+      },
+      end: (body: string) => {
+        result = {
+          status: 'served',
+          body,
+          contentType: headers['Content-Type'],
+        };
+      },
+    };
+    const next = () => {
+      result = { status: 'skipped' };
+    };
+    handler(req, res, next);
+    return result;
+  }
+
+  it('serves schema files from .astro/collections', () => {
+    const dir = resolve(tmpDir, '.astro/collections');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(resolve(dir, 'posts.schema.json'), '{"type":"object"}');
+
     const plugin = collectionsVitePlugin(logger, tmpDir);
-    plugin.buildStart();
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
 
-    const target = resolve(tmpDir, 'public/collections');
-    const stat = lstatSync(target);
-    expect(stat.isSymbolicLink()).toBe(true);
-
-    // Verify the symlink is relative, not absolute
-    const linkValue = readlinkSync(target);
-    const expected = relative(
-      resolve(tmpDir, 'public'),
-      resolve(tmpDir, '.astro/collections'),
+    const result = callMiddleware(
+      mw.handler!,
+      '/collections/posts.schema.json',
     );
-    expect(linkValue).toBe(expected);
+    expect(result.status).toBe('served');
+    expect(result.body).toBe('{"type":"object"}');
+    expect(result.contentType).toBe('application/json');
   });
 
-  it('no-ops when the correct symlink already exists', () => {
-    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
+  it('calls next() for non-schema requests', () => {
     const plugin = collectionsVitePlugin(logger, tmpDir);
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
 
-    // Create the symlink on first call
-    plugin.buildStart();
-    // Second call should not throw, warn, or change anything
-    plugin.buildStart();
-
-    const target = resolve(tmpDir, 'public/collections');
-    const stat = lstatSync(target);
-    expect(stat.isSymbolicLink()).toBe(true);
-    // Verify the symlink still points to the correct target
-    const resolvedLink = resolve(dirname(target), readlinkSync(target));
-    expect(resolvedLink).toBe(resolve(tmpDir, '.astro/collections'));
-    // Verify no warning was logged on the idempotent call
-    expect(logger.warn).not.toHaveBeenCalled();
+    const result = callMiddleware(mw.handler!, '/some/other/path');
+    expect(result.status).toBe('skipped');
   });
 
-  it('replaces a symlink pointing to the wrong target', () => {
-    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
-    mkdirSync(resolve(tmpDir, 'wrong-target'), { recursive: true });
-
+  it('calls next() when schema file does not exist', () => {
     const plugin = collectionsVitePlugin(logger, tmpDir);
-    // First call creates the correct symlink (and public/)
-    plugin.buildStart();
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
 
-    // Replace the correct symlink with one pointing to the wrong place
-    const target = resolve(tmpDir, 'public/collections');
-    unlinkSync(target);
-    const wrongRel = relative(dirname(target), resolve(tmpDir, 'wrong-target'));
-    symlinkSync(wrongRel, target);
-
-    // Second call should detect the wrong target and fix it
-    plugin.buildStart();
-
-    const resolvedLink = resolve(dirname(target), readlinkSync(target));
-    expect(resolvedLink).toBe(resolve(tmpDir, '.astro/collections'));
+    const result = callMiddleware(
+      mw.handler!,
+      '/collections/missing.schema.json',
+    );
+    expect(result.status).toBe('skipped');
   });
 
-  it('removes a real directory at the target and replaces with symlink', () => {
-    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
-    mkdirSync(resolve(tmpDir, 'public/collections'), { recursive: true });
+  it('uses custom collectionsPath prefix', () => {
+    const dir = resolve(tmpDir, '.astro/collections');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
 
-    const plugin = collectionsVitePlugin(logger, tmpDir);
-    plugin.buildStart();
+    const plugin = collectionsVitePlugin(logger, tmpDir, 'schemas');
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
 
-    const stat = lstatSync(resolve(tmpDir, 'public/collections'));
-    expect(stat.isSymbolicLink()).toBe(true);
+    // Default path should not match
+    const miss = callMiddleware(mw.handler!, '/collections/posts.schema.json');
+    expect(miss.status).toBe('skipped');
+
+    // Custom path should match
+    const hit = callMiddleware(mw.handler!, '/schemas/posts.schema.json');
+    expect(hit.status).toBe('served');
+  });
+});
+
+//////////////////////////////
+// astro:build:done hook
+//////////////////////////////
+
+describe('NebulaCMS astro:build:done', () => {
+  let tmpDir: string;
+  let logger: AstroIntegrationLogger;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'nebula-test-'));
+    logger = createMockLogger();
+    // Override process.cwd for the integration
+    vi.spyOn(process, 'cwd').mockReturnValue(tmpDir);
   });
 
-  it('removes a regular file at the target and replaces with symlink', () => {
-    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
-
-    const plugin = collectionsVitePlugin(logger, tmpDir);
-    // First call creates the correct symlink (and public/)
-    plugin.buildStart();
-
-    // Replace the symlink with a regular file
-    const target = resolve(tmpDir, 'public/collections');
-    unlinkSync(target);
-    writeFileSync(target, 'not a symlink');
-
-    // Second call should detect the regular file and replace it
-    plugin.buildStart();
-
-    const stat = lstatSync(target);
-    expect(stat.isSymbolicLink()).toBe(true);
+  afterEach(() => {
+    vi.restoreAllMocks();
+    rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('warns and skips when .astro/collections does not exist', () => {
-    const plugin = collectionsVitePlugin(logger, tmpDir);
-    plugin.buildStart();
+  it('copies schema files into the build output directory', () => {
+    const source = resolve(tmpDir, '.astro/collections');
+    mkdirSync(source, { recursive: true });
+    writeFileSync(resolve(source, 'posts.schema.json'), '{"type":"object"}');
+    writeFileSync(resolve(source, 'authors.schema.json'), '{"a":1}');
+
+    const outDir = resolve(tmpDir, 'dist');
+    mkdirSync(outDir, { recursive: true });
+
+    const integration = NebulaCMS();
+    const hook = integration.hooks['astro:build:done'] as Function;
+    hook({ dir: pathToFileURL(outDir + '/'), logger });
+
+    const target = resolve(outDir, 'collections');
+    expect(existsSync(resolve(target, 'posts.schema.json'))).toBe(true);
+    expect(existsSync(resolve(target, 'authors.schema.json'))).toBe(true);
+    expect(readFileSync(resolve(target, 'posts.schema.json'), 'utf-8')).toBe(
+      '{"type":"object"}',
+    );
+  });
+
+  it('warns when .astro/collections does not exist', () => {
+    const outDir = resolve(tmpDir, 'dist');
+    mkdirSync(outDir, { recursive: true });
+
+    const integration = NebulaCMS();
+    const hook = integration.hooks['astro:build:done'] as Function;
+    hook({ dir: pathToFileURL(outDir + '/'), logger });
 
     expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('.astro/collections'),
     );
-    expect(existsSync(resolve(tmpDir, 'public/collections'))).toBe(false);
   });
 
-  it('creates symlink at custom collectionsPath', () => {
-    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
-    const plugin = collectionsVitePlugin(logger, tmpDir, 'schemas');
-    plugin.buildStart();
+  it('uses custom collectionsPath for the output directory', () => {
+    const source = resolve(tmpDir, '.astro/collections');
+    mkdirSync(source, { recursive: true });
+    writeFileSync(resolve(source, 'posts.schema.json'), '{}');
 
-    const target = resolve(tmpDir, 'public/schemas');
-    const stat = lstatSync(target);
-    expect(stat.isSymbolicLink()).toBe(true);
+    const outDir = resolve(tmpDir, 'dist');
+    mkdirSync(outDir, { recursive: true });
 
-    const resolvedLink = resolve(dirname(target), readlinkSync(target));
-    expect(resolvedLink).toBe(resolve(tmpDir, '.astro/collections'));
-  });
+    const integration = NebulaCMS({ collectionsPath: 'schemas' });
+    const hook = integration.hooks['astro:build:done'] as Function;
+    hook({ dir: pathToFileURL(outDir + '/'), logger });
 
-  it('does not create symlink at default path when custom path is used', () => {
-    mkdirSync(resolve(tmpDir, '.astro/collections'), { recursive: true });
-    const plugin = collectionsVitePlugin(logger, tmpDir, 'schemas');
-    plugin.buildStart();
-
-    expect(existsSync(resolve(tmpDir, 'public/collections'))).toBe(false);
-    expect(existsSync(resolve(tmpDir, 'public/schemas'))).toBe(true);
+    expect(existsSync(resolve(outDir, 'schemas/posts.schema.json'))).toBe(true);
+    expect(existsSync(resolve(outDir, 'collections'))).toBe(false);
   });
 });
 

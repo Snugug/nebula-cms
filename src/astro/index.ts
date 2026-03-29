@@ -1,14 +1,12 @@
 import {
+  copyFileSync,
   existsSync,
-  lstatSync,
   mkdirSync,
-  readlinkSync,
+  readFileSync,
   readdirSync,
-  rmSync,
-  symlinkSync,
-  unlinkSync,
 } from 'node:fs';
-import { resolve, relative, dirname } from 'node:path';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { AstroIntegration, AstroIntegrationLogger } from 'astro';
 import type { NebulaCMSConfig } from '../types.js';
 
@@ -52,17 +50,39 @@ export default function NebulaCMS(
           },
         });
       },
+      // Copy schema files into the build output after Astro finishes.
+      // By this point .astro/collections is guaranteed to exist, avoiding
+      // the race condition where Vite's buildStart fires before Astro
+      // generates the collection schemas.
+      'astro:build:done': ({ dir, logger }) => {
+        const source = resolve(process.cwd(), '.astro/collections');
+        if (!existsSync(source)) {
+          logger.warn(
+            '`.astro/collections` not found — schema files will not be in the build output.',
+          );
+          return;
+        }
+        const outDir = fileURLToPath(dir);
+        const target = resolve(outDir, collectionsPath);
+        mkdirSync(target, { recursive: true });
+        const files = readdirSync(source).filter((f) =>
+          f.endsWith('.schema.json'),
+        );
+        for (const f of files) {
+          copyFileSync(resolve(source, f), resolve(target, f));
+        }
+      },
     },
   };
 }
 
 /**
- * Vite plugin that handles symlink creation and virtual module resolution.
+ * Vite plugin that serves collection schemas in dev and resolves the virtual module.
  * @internal Not part of the public API — exported for testing only
  * @param {AstroIntegrationLogger} logger - Astro integration logger for warnings
  * @param {string} root - Project root directory, defaults to process.cwd()
- * @param {string} collectionsPath - Folder name inside public/ for the symlink, defaults to 'collections'
- * @return {object} A Vite plugin object with buildStart, resolveId, and load hooks
+ * @param {string} collectionsPath - URL path segment for schema files, defaults to 'collections'
+ * @return {object} A Vite plugin object with configureServer, resolveId, and load hooks
  */
 export function collectionsVitePlugin(
   logger: AstroIntegrationLogger,
@@ -73,51 +93,33 @@ export function collectionsVitePlugin(
     name: 'vite-plugin-nebula-cms',
 
     /**
-     * Creates symlink from public/<collectionsPath> to .astro/collections.
+     * Serves schema files from .astro/collections/ during dev.
+     * Avoids a race condition where buildStart may run before Astro
+     * generates the collection schemas, leaving the symlink missing.
+     * @param {import('vite').ViteDevServer} server - The Vite dev server
      * @return {void}
      */
-    buildStart() {
-      const source = resolve(root, '.astro/collections');
-      const target = resolve(root, 'public', collectionsPath);
-
-      // Guard: skip if .astro/collections doesn't exist yet
-      if (!existsSync(source)) {
-        logger.warn(
-          '`.astro/collections` not found — skipping symlink. Run `pnpm sync` first.',
-        );
-        return;
-      }
-
-      // lstatSync instead of existsSync because existsSync follows symlinks and returns false for broken ones
-      let targetStat: ReturnType<typeof lstatSync> | null = null;
-      try {
-        targetStat = lstatSync(target);
-      } catch {
-        /* doesn't exist at all */
-      }
-
-      if (targetStat !== null) {
-        if (targetStat.isSymbolicLink()) {
-          const linkTarget = resolve(dirname(target), readlinkSync(target));
-          if (linkTarget === source) {
-            return; // Symlink is correct, nothing to do
+    configureServer(server: { middlewares: { use: Function } }) {
+      const prefix = '/' + collectionsPath + '/';
+      const collectionsDir = resolve(root, '.astro/collections');
+      server.middlewares.use(
+        (
+          req: { url?: string },
+          res: { setHeader: Function; end: Function },
+          next: Function,
+        ) => {
+          const url = req.url ?? '';
+          if (!url.startsWith(prefix) || !url.endsWith('.schema.json')) {
+            return next();
           }
-          unlinkSync(target);
-        } else if (targetStat.isDirectory()) {
-          // rmSync needed because unlinkSync cannot remove directories
-          rmSync(target, { recursive: true });
-        } else {
-          unlinkSync(target);
-        }
-      }
+          const filename = url.slice(prefix.length);
+          const filePath = resolve(collectionsDir, filename);
+          if (!existsSync(filePath)) return next();
 
-      // Ensure the parent directory exists (e.g., public/ may not exist in a
-      // fresh clone or worktree if it has no tracked content)
-      mkdirSync(dirname(target), { recursive: true });
-
-      // Create relative symlink for portability
-      const relPath = relative(dirname(target), source);
-      symlinkSync(relPath, target);
+          res.setHeader('Content-Type', 'application/json');
+          res.end(readFileSync(filePath, 'utf-8'));
+        },
+      );
     },
 
     /**
