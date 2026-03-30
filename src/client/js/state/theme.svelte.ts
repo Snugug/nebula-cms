@@ -71,41 +71,29 @@ let systemPrefersDark = $state(mq?.matches ?? false);
 // Derived state
 //////////////////////////////
 
-// Svelte 5 prohibits exporting $derived from .svelte.ts modules, so these
-// are exposed via getter functions. The $derived runes are module-private
-// and the functions simply forward the reactive read.
-
-// The resolved theme combines preference with system detection
+// Module-private $derived values — Svelte 5 prohibits exporting $derived
+// directly from .svelte.ts modules, so they're exposed via a plain object
+// with getter properties that forward the reactive reads.
 const resolved: ResolvedTheme = $derived(
   preference === 'auto' ? (systemPrefersDark ? 'dark' : 'light') : preference,
 );
 
-// UI properties derived from the current preference
 const ui = $derived(THEME_MAP[preference]);
 
-/**
- * Returns the resolved theme for the DOM data-theme attribute.
- * @return {ResolvedTheme} Either 'light' or 'dark'
- */
-export function theme(): ResolvedTheme {
-  return resolved;
-}
-
-/**
- * Returns the Material Symbols icon name for the current preference.
- * @return {ThemeIcon} One of 'light_mode', 'dark_mode', or 'brightness_auto'
- */
-export function themeIcon(): ThemeIcon {
-  return ui.icon;
-}
-
-/**
- * Returns a human-readable label for the current preference.
- * @return {ThemeLabel} One of 'Light', 'Dark', or 'Auto'
- */
-export function themeLabel(): ThemeLabel {
-  return ui.label;
-}
+// Reactive theme state. Consumers read properties directly: theme.resolved,
+// theme.icon, theme.label. Each getter reads the underlying $derived, so
+// Svelte tracks the dependency in any reactive context.
+export const theme = {
+  get resolved(): ResolvedTheme {
+    return resolved;
+  },
+  get icon(): ThemeIcon {
+    return ui.icon;
+  },
+  get label(): ThemeLabel {
+    return ui.label;
+  },
+};
 
 //////////////////////////////
 // System preference tracking

@@ -1,14 +1,14 @@
 <script lang="ts">
   /* Tri-state theme toggle that cycles through auto / light / dark preferences. */
-  import { cycleTheme, themeIcon, themeLabel } from '../js/state/theme.svelte';
+  import { cycleTheme, theme } from '../js/state/theme.svelte';
 </script>
 
 <button
   class="theme-toggle"
-  aria-label="Theme: {themeLabel()}"
+  aria-label="Theme: {theme.label}"
   onclick={cycleTheme}
 >
-  <span class="material-symbols-outlined">{themeIcon()}</span>
+  <span class="material-symbols-outlined">{theme.icon}</span>
 </button>
 
 <style>

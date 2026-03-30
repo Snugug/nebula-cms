@@ -165,9 +165,7 @@ vi.mock('../../../src/client/js/utils/schema-utils', () => ({
 vi.mock('../../../src/client/js/state/theme.svelte', () => ({
   initTheme: vi.fn(() => () => {}),
   cycleTheme: vi.fn(),
-  theme: vi.fn(() => 'dark'),
-  themeIcon: vi.fn(() => 'brightness_auto'),
-  themeLabel: vi.fn(() => 'Auto'),
+  theme: { resolved: 'dark', icon: 'brightness_auto', label: 'Auto' },
 }));
 
 // Prevent accumulated renders from bleeding between tests

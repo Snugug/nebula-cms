@@ -1,12 +1,14 @@
 /*
  * Theme definitions for nebula-cms.
  * Provides CSS custom properties for both light and dark modes.
- * The resolved theme is applied via a data-theme attribute on the .admin root element.
+ * Variables are defined on :root so that top-layer elements (dialogs
+ * opened with showModal()) inherit them. The resolved theme is applied
+ * via a data-theme attribute on document.documentElement.
  */
 
-/* Base styles and shared tokens that don't change between themes */
+/* Shared tokens that don't change between themes */
 
-.admin {
+:root {
   --plum: #e03a80;
   --light-plum: #e8508f;
   --button-bg: linear-gradient(135deg, #d83333, #f041ff);
@@ -15,17 +17,11 @@
      which inverts in light mode and would produce dark-on-gradient */
   --button-color: #e8eaf0;
   --spacing: 2rem;
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
-  background: var(--cms-bg);
-  color: var(--cms-fg);
 }
 
 /* Dark mode — deep background with rose accent */
 
-.admin[data-theme='dark'] {
+:root[data-theme='dark'] {
   --cms-bg: rgb(13, 15, 20);
   --cms-surface: #151720;
   --cms-border: #252830;
@@ -48,7 +44,7 @@
    Variable names are functional roles (--cms-bg = page background,
    --cms-fg = body text), not literal colors. */
 
-.admin[data-theme='light'] {
+:root[data-theme='light'] {
   --cms-bg: #ffffff;
   --cms-surface: #f8f5f7;
   --cms-border: #ddd5da;
@@ -67,11 +63,13 @@
   color-scheme: light;
 }
 
-/* Top-layer elements (dialogs) need explicit token values
-   because they render outside the component DOM tree */
+/* Base styles for the admin shell */
 
-.admin dialog[open] {
-  background: var(--cms-surface);
+.admin {
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background: var(--cms-bg);
   color: var(--cms-fg);
-  color-scheme: inherit;
 }

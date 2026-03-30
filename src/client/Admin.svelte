@@ -141,6 +141,11 @@
   let showFilenameDialog = $state(false);
   let showDeleteDialog = $state(false);
 
+  // Sync the resolved theme to :root so top-layer elements (dialogs) inherit the tokens
+  $effect(() => {
+    document.documentElement.dataset.theme = theme.resolved;
+  });
+
   // Trigger collection loading when route changes to a collection, file, or draft view
   $effect(() => {
     if (ready && currentRoute.view !== 'home') {
@@ -238,7 +243,6 @@
   class:admin--connected={ready}
   class:admin--collection={ready && hasCollection}
   class:admin--file-open={ready && fileOpen}
-  data-theme={theme()}
 >
   {#if !ready}
     <BackendPicker />
