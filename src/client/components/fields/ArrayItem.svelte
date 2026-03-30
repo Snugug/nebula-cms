@@ -203,9 +203,9 @@
 
 <style>
   .array-item {
-    border: 1px solid var(--dark-grey);
+    border: 1px solid var(--cms-border);
     border-radius: 4px;
-    background: var(--near-black, #1e1e22);
+    background: var(--cms-surface, #1e1e22);
     transition:
       opacity 0.15s,
       border-color 0.15s;
@@ -230,7 +230,7 @@
   }
 
   .array-item__drag-handle {
-    color: var(--grey);
+    color: var(--cms-muted);
     cursor: grab;
     user-select: none;
     display: grid;
@@ -268,7 +268,7 @@
   /* Legend rendered inline in the controls flex row, after the drag handle and chevron */
   .array-item__legend {
     font-size: 0.875rem;
-    color: var(--grey);
+    color: var(--cms-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -306,14 +306,14 @@
   .array-item__btn {
     background: none;
     border: none;
-    color: var(--grey);
+    color: var(--cms-muted);
     cursor: pointer;
     /* Minimal padding so action buttons sit tight together */
     padding: 0;
     line-height: 1;
 
     &:hover:not(:disabled) {
-      color: var(--white);
+      color: var(--cms-fg);
     }
 
     &:disabled {

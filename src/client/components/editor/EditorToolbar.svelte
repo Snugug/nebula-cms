@@ -73,7 +73,7 @@
     grid-template-columns: 1fr auto;
     align-items: center;
     padding: 0.5rem 1rem;
-    border-bottom: 1px solid var(--dark-grey);
+    border-bottom: 1px solid var(--cms-border);
   }
 
   .toolbar__info {
@@ -83,12 +83,12 @@
   .toolbar__title {
     font-size: 1rem;
     font-weight: normal;
-    color: var(--white);
+    color: var(--cms-fg);
   }
 
   .toolbar__filename {
     font-size: 0.75rem;
-    color: var(--grey);
+    color: var(--cms-muted);
   }
 
   /* Always rendered to reserve space and prevent layout shift when toggling */
@@ -114,7 +114,7 @@
   .btn {
     border: 1px solid transparent;
     border-radius: 0.25rem;
-    color: var(--white);
+    color: var(--cms-fg);
     cursor: pointer;
     font-size: 0.875rem;
     padding: 0.25rem 0.75rem;
@@ -132,13 +132,13 @@
 
     &:hover:not(:disabled) {
       background: var(--light-teal);
-      color: var(--black);
+      color: var(--cms-bg);
     }
   }
 
   .btn--publish {
     background: var(--button-bg, var(--light-green));
-    color: var(--button-color, var(--white));
+    color: var(--button-color, var(--cms-fg));
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 
     &:hover:not(:disabled) {
@@ -153,7 +153,7 @@
 
     &:hover {
       background: var(--light-red);
-      color: var(--white);
+      color: var(--cms-fg);
     }
   }
 </style>

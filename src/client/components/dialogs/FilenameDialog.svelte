@@ -88,9 +88,9 @@
 
 <style>
   .filename-dialog {
-    background: var(--near-black);
-    color: var(--white);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-surface);
+    color: var(--cms-fg);
+    border: 1px solid var(--cms-border);
     border-radius: 0.5rem;
     padding: 1.5rem;
     min-width: 20rem;
@@ -117,15 +117,15 @@
   .slug-input {
     width: 100%;
     padding: 0.5rem;
-    background: var(--black);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-bg);
+    border: 1px solid var(--cms-border);
     border-radius: 0.25rem;
-    color: var(--white);
+    color: var(--cms-fg);
     font-size: 1rem;
   }
 
   .extension {
-    color: var(--grey);
+    color: var(--cms-muted);
     font-size: 1rem;
   }
 
@@ -151,17 +151,17 @@
   }
 
   .btn--cancel {
-    background: var(--dark-grey);
-    color: var(--white);
+    background: var(--cms-border);
+    color: var(--cms-fg);
 
     &:hover {
-      background: var(--grey);
+      background: var(--cms-muted);
     }
   }
 
   .btn--confirm {
     background: var(--button-bg, var(--plum));
-    color: var(--button-color, var(--white));
+    color: var(--button-color, var(--cms-fg));
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 
     &:hover:not(:disabled) {

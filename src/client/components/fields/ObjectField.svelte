@@ -97,7 +97,7 @@
 
 <style>
   .object-field {
-    border: 1px solid var(--dark-grey);
+    border: 1px solid var(--cms-border);
     border-radius: 4px;
     padding: 1rem;
     display: grid;
@@ -106,7 +106,7 @@
 
   .object-field__legend {
     font-size: 0.875rem;
-    color: var(--white);
+    color: var(--cms-fg);
     padding: 0 0.5rem;
   }
 

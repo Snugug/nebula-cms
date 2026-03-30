@@ -91,12 +91,12 @@
 <style>
   .field-input {
     width: auto;
-    background: var(--near-black, #2a2a2e);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-surface, #2a2a2e);
+    border: 1px solid var(--cms-border);
     border-radius: 4px;
     padding: 0.5rem;
     font-size: 1rem;
-    color: var(--white);
+    color: var(--cms-fg);
 
     &:focus {
       outline: 2px solid var(--plum);

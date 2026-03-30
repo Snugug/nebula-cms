@@ -57,13 +57,13 @@
   /* Tab bar sits below the editor toolbar, separated by a border */
   .tabs {
     display: flex;
-    border-bottom: 1px solid var(--dark-grey);
+    border-bottom: 1px solid var(--cms-border);
   }
 
   .tabs__tab {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
-    color: var(--grey);
+    color: var(--cms-muted);
     background: none;
     border: none;
     /* Bottom border reserves space to avoid layout shift on active state */
@@ -71,12 +71,12 @@
     cursor: pointer;
 
     &:hover {
-      color: var(--white);
+      color: var(--cms-fg);
     }
   }
 
   .tabs__tab--active {
-    color: var(--white);
+    color: var(--cms-fg);
     border-bottom-color: var(--plum);
   }
 </style>

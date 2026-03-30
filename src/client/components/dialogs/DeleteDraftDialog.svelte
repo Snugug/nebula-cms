@@ -37,9 +37,9 @@
   /* dialog renders in the top layer — CSS custom properties may not be inherited,
      so use a hardcoded fallback for the background */
   .confirm-dialog {
-    background: var(--near-black, #1e1e22);
-    color: var(--white, #e0e0e0);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-surface, #1e1e22);
+    color: var(--cms-fg, #e0e0e0);
+    border: 1px solid var(--cms-border);
     border-radius: 0.5rem;
     padding: 1.5rem;
     min-width: 18rem;
@@ -58,7 +58,7 @@
 
   .dialog-message {
     font-size: 0.875rem;
-    color: var(--grey);
+    color: var(--cms-muted);
     margin-bottom: 1.25rem;
   }
 
@@ -78,17 +78,17 @@
   }
 
   .btn--cancel {
-    background: var(--dark-grey);
-    color: var(--white);
+    background: var(--cms-border);
+    color: var(--cms-fg);
 
     &:hover {
-      background: var(--grey);
+      background: var(--cms-muted);
     }
   }
 
   .btn--delete {
     background: var(--light-red);
-    color: var(--white);
+    color: var(--cms-fg);
 
     &:hover {
       background: var(--red);

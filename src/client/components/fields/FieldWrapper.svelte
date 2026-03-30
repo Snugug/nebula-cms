@@ -76,7 +76,7 @@
 
   .field-label {
     font-size: 0.875rem;
-    color: var(--white);
+    color: var(--cms-fg);
   }
 
   .field-required {
@@ -86,7 +86,7 @@
 
   .field-help {
     font-size: 0.75rem;
-    color: var(--grey);
+    color: var(--cms-muted);
   }
 
   .field-constraint {

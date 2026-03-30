@@ -93,7 +93,7 @@
 
   .field-label-text {
     font-size: 0.875rem;
-    color: var(--white);
+    color: var(--cms-fg);
   }
 
   .field-required {

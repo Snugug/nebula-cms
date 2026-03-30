@@ -150,13 +150,12 @@ vi.mock('../../src/client/js/drafts/merge.svelte', () => ({
 }));
 
 vi.mock('../../src/client/js/state/theme.svelte', () => ({
-  initTheme: vi.fn(),
-  getResolvedTheme: vi.fn(() => 'dark'),
-  getThemePreference: vi.fn(() => 'auto'),
+  initTheme: vi.fn(() => () => {}),
   cycleTheme: vi.fn(),
-  getAriaChecked: vi.fn(() => 'mixed'),
-  getThemeIcon: vi.fn(() => 'brightness_auto'),
-  getThemeLabel: vi.fn(() => 'Auto'),
+  theme: vi.fn(() => 'dark'),
+  themeIcon: vi.fn(() => 'brightness_auto'),
+  themeLabel: vi.fn(() => 'Auto'),
+  themeAriaChecked: vi.fn(() => 'mixed'),
 }));
 
 import Admin from '../../src/client/Admin.svelte';

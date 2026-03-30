@@ -1,43 +1,28 @@
 <script lang="ts">
-  import {
-    cycleTheme,
-    getAriaChecked,
-    getThemeIcon,
-    getThemeLabel,
-  } from '../js/state/theme.svelte';
-
-  // Current aria-checked value reflecting the theme preference
-  const ariaChecked = $derived(getAriaChecked());
-
-  // Material Symbols icon name for the current preference
-  const icon = $derived(getThemeIcon());
-
-  // Human-readable label for the current preference
-  const label = $derived(getThemeLabel());
+  /* Tri-state theme toggle that cycles through auto / light / dark preferences. */
+  import { cycleTheme, themeIcon, themeLabel } from '../js/state/theme.svelte';
 </script>
 
 <button
   class="theme-toggle"
-  role="checkbox"
-  aria-checked={ariaChecked}
-  aria-label="Theme: {label}"
+  aria-label="Theme: {themeLabel()}"
   onclick={cycleTheme}
 >
-  <span class="material-symbols-outlined">{icon}</span>
+  <span class="material-symbols-outlined">{themeIcon()}</span>
 </button>
 
 <style>
   .theme-toggle {
     background: none;
     border: none;
-    color: var(--grey);
+    color: var(--cms-muted);
     cursor: pointer;
     display: grid;
     place-items: center;
     padding: 0;
 
     &:hover {
-      color: var(--white);
+      color: var(--cms-fg);
     }
 
     .material-symbols-outlined {
