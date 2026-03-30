@@ -300,6 +300,10 @@
     &:hover {
       color: var(--cms-fg);
     }
+
+    .material-symbols-outlined {
+      font-size: 1rem;
+    }
   }
 
   /* Flex is appropriate here because chips need inline flow with wrapping */
