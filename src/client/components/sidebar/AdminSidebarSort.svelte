@@ -45,7 +45,6 @@
 <button
   class="sort-btn"
   title={SORT_MODES[sortMode].label}
-  interestfor={popoverId}
   commandfor={popoverId}
   command="toggle-popover"
 >
@@ -79,7 +78,6 @@
 
   .sort-btn {
     anchor-name: --sort-btn;
-    interest-delay: 0s;
     background: none;
     border: none;
     color: var(--cms-muted);
@@ -107,16 +105,6 @@
     padding: 0.25rem;
     /* Prevent width from changing when popover content changes */
     min-width: 10rem;
-
-    /* Invisible bridge between the sort button and popover so hover interest isn't broken by the gap */
-    &::before {
-      content: '';
-      position: absolute;
-      bottom: 100%;
-      left: 0;
-      right: 0;
-      height: 0.25rem;
-    }
 
     &:popover-open {
       display: grid;
