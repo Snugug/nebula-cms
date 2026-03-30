@@ -168,7 +168,6 @@ vi.mock('../../../src/client/js/state/theme.svelte', () => ({
   theme: vi.fn(() => 'dark'),
   themeIcon: vi.fn(() => 'brightness_auto'),
   themeLabel: vi.fn(() => 'Auto'),
-  themeAriaChecked: vi.fn(() => 'mixed'),
 }));
 
 // Prevent accumulated renders from bleeding between tests

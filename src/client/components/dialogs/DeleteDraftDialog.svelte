@@ -34,11 +34,9 @@
 </dialog>
 
 <style>
-  /* dialog renders in the top layer — CSS custom properties may not be inherited,
-     so use a hardcoded fallback for the background */
   .confirm-dialog {
-    background: var(--cms-surface, #1e1e22);
-    color: var(--cms-fg, #e0e0e0);
+    background: var(--cms-surface);
+    color: var(--cms-fg);
     border: 1px solid var(--cms-border);
     border-radius: 0.5rem;
     padding: 1.5rem;

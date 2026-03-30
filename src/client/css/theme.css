@@ -4,7 +4,26 @@
  * The resolved theme is applied via a data-theme attribute on the .admin root element.
  */
 
-/* Dark mode — deep background with rose accent and gradient buttons */
+/* Base styles and shared tokens that don't change between themes */
+
+.admin {
+  --plum: #e03a80;
+  --light-plum: #e8508f;
+  --button-bg: linear-gradient(135deg, #d83333, #f041ff);
+  --button-hover-bg: linear-gradient(135deg, #e04848, #f565ff);
+  /* Always light text on the gradient — intentionally not --cms-fg,
+     which inverts in light mode and would produce dark-on-gradient */
+  --button-color: #e8eaf0;
+  --spacing: 2rem;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background: var(--cms-bg);
+  color: var(--cms-fg);
+}
+
+/* Dark mode — deep background with rose accent */
 
 .admin[data-theme='dark'] {
   --cms-bg: rgb(13, 15, 20);
@@ -12,11 +31,6 @@
   --cms-border: #252830;
   --cms-muted: #8b90a0;
   --cms-fg: #e8eaf0;
-  --plum: #e03a80;
-  --light-plum: #e8508f;
-  --button-bg: linear-gradient(135deg, #d83333, #f041ff);
-  --button-hover-bg: linear-gradient(135deg, #e04848, #f565ff);
-  --button-color: #e8eaf0;
   --gold: #fbbf24;
   --light-red: #f87171;
   --red: #dc2626;
@@ -27,11 +41,10 @@
   --light-purple: #e879f9;
   --editor-caret: #e8eaf0;
   --editor-active-line: rgba(224, 58, 128, 0.1);
-  --spacing: 2rem;
   color-scheme: dark;
 }
 
-/* Light mode — white background, same accent, same gradient buttons.
+/* Light mode — white background, same accent.
    Variable names are functional roles (--cms-bg = page background,
    --cms-fg = body text), not literal colors. */
 
@@ -41,11 +54,6 @@
   --cms-border: #ddd5da;
   --cms-muted: #6e6870;
   --cms-fg: #1e1a1c;
-  --plum: #e03a80;
-  --light-plum: #e8508f;
-  --button-bg: linear-gradient(135deg, #d83333, #f041ff);
-  --button-hover-bg: linear-gradient(135deg, #e04848, #f565ff);
-  --button-color: #e8eaf0;
   --gold: #b45309;
   --light-red: #dc2626;
   --red: #b91c1c;
@@ -56,19 +64,7 @@
   --light-purple: #a21caf;
   --editor-caret: #1e1a1c;
   --editor-active-line: rgba(224, 58, 128, 0.06);
-  --spacing: 2rem;
   color-scheme: light;
-}
-
-/* Base styles for the admin shell */
-
-.admin {
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
-  background: var(--cms-bg);
-  color: var(--cms-fg);
 }
 
 /* Top-layer elements (dialogs) need explicit token values

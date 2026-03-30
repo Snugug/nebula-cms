@@ -16,9 +16,6 @@ type ThemeIcon = 'light_mode' | 'dark_mode' | 'brightness_auto';
 // Human-readable label for each preference
 type ThemeLabel = 'Light' | 'Dark' | 'Auto';
 
-// Valid aria-checked values for a tri-state toggle
-type AriaChecked = 'true' | 'false' | 'mixed';
-
 // localStorage key for persisting the user's preference
 const STORAGE_KEY = 'nebula-theme';
 
@@ -31,11 +28,11 @@ const STORAGE_KEY = 'nebula-theme';
 // enforces exhaustiveness via the Record<ThemePreference, ...> type.
 const THEME_MAP: Record<
   ThemePreference,
-  { icon: ThemeIcon; label: ThemeLabel; ariaChecked: AriaChecked }
+  { icon: ThemeIcon; label: ThemeLabel }
 > = {
-  light: { icon: 'light_mode', label: 'Light', ariaChecked: 'true' },
-  dark: { icon: 'dark_mode', label: 'Dark', ariaChecked: 'false' },
-  auto: { icon: 'brightness_auto', label: 'Auto', ariaChecked: 'mixed' },
+  light: { icon: 'light_mode', label: 'Light' },
+  dark: { icon: 'dark_mode', label: 'Dark' },
+  auto: { icon: 'brightness_auto', label: 'Auto' },
 };
 
 //////////////////////////////
@@ -108,14 +105,6 @@ export function themeIcon(): ThemeIcon {
  */
 export function themeLabel(): ThemeLabel {
   return ui.label;
-}
-
-/**
- * Returns the aria-checked value for the toggle button.
- * @return {AriaChecked} One of 'true', 'false', or 'mixed'
- */
-export function themeAriaChecked(): AriaChecked {
-  return ui.ariaChecked;
 }
 
 //////////////////////////////
