@@ -10,24 +10,15 @@ const cache = new Map<string, JsonSchema>();
 // Currently active schema for the selected collection
 let schema = $state<JsonSchema | null>(null);
 
+// Reactive schema state — Svelte 5 forbids exporting $state directly.
+export const schemaState = {
+  get schema(): JsonSchema | null {
+    return schema;
+  },
+};
+
 // Whether all schemas have been prefetched
-let allFetched = $state(false);
-
-/**
- * Returns the currently loaded JSON Schema (reactive).
- * @return {JsonSchema | null} The active schema, or null if none is loaded
- */
-export function getSchema(): JsonSchema | null {
-  return schema;
-}
-
-/**
- * Returns whether all schemas have been prefetched (reactive).
- * @return {boolean} True if all collection schemas have been fetched and cached
- */
-export function areSchemasReady(): boolean {
-  return allFetched;
-}
+let allFetched = false;
 
 /**
  * Fetches all collection schemas in parallel and caches them.
@@ -118,7 +109,7 @@ export function getCollectionDescription(collection: string): string | null {
  * completed, the schema won't be cached yet and the fallback is returned. The caller
  * (dispatchWorker in state.svelte.ts) mitigates this by awaiting initPromise, which
  * includes prefetchAllSchemas(). If the ordering changes, callers should check
- * areSchemasReady() or await prefetchAllSchemas() before calling this function.
+ * await prefetchAllSchemas() before calling this function.
  * @param {string} collection - The collection name
  * @return {string[]} Array of file extensions
  */

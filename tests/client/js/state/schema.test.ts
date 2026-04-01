@@ -15,11 +15,10 @@ vi.mock('virtual:collections', () => ({
 
 import {
   fetchSchema,
-  getSchema,
+  schemaState,
   clearSchema,
   prefetchAllSchemas,
   collectionHasDates,
-  areSchemasReady,
   getCollectionTitle,
   getCollectionDescription,
 } from '../../../../src/client/js/state/schema.svelte';
@@ -67,16 +66,16 @@ function makeFetchMock() {
 }
 
 //////////////////////////////
-// getSchema / clearSchema
+// schema / clearSchema
 //////////////////////////////
 
-describe('getSchema', () => {
+describe('schema', () => {
   beforeEach(() => {
     clearSchema();
   });
 
-  it('returns null before any schema is loaded', () => {
-    expect(getSchema()).toBeNull();
+  it('is null before any schema is loaded', () => {
+    expect(schemaState.schema).toBeNull();
   });
 });
 
@@ -87,9 +86,9 @@ describe('clearSchema', () => {
 
   it('resets the active schema to null', async () => {
     await fetchSchema('posts');
-    expect(getSchema()).not.toBeNull();
+    expect(schemaState.schema).not.toBeNull();
     clearSchema();
-    expect(getSchema()).toBeNull();
+    expect(schemaState.schema).toBeNull();
   });
 });
 
@@ -105,18 +104,18 @@ describe('fetchSchema', () => {
 
   it('sets the active schema after fetching', async () => {
     await fetchSchema('posts');
-    expect(getSchema()).toEqual(POSTS_SCHEMA);
+    expect(schemaState.schema).toEqual(POSTS_SCHEMA);
   });
 
   it('loads the correct schema for a different collection', async () => {
     await fetchSchema('products');
-    expect(getSchema()).toEqual(PRODUCTS_SCHEMA);
+    expect(schemaState.schema).toEqual(PRODUCTS_SCHEMA);
   });
 
   it('does nothing when the collection is not in virtual:collections', async () => {
     clearSchema();
     await fetchSchema('nonexistent');
-    expect(getSchema()).toBeNull();
+    expect(schemaState.schema).toBeNull();
   });
 
   it('returns the same schema object on repeated calls (cache consistency)', async () => {
@@ -125,35 +124,23 @@ describe('fetchSchema', () => {
     // fetchSchema twice for the same collection leaves it pointing at the
     // same cached object.
     await fetchSchema('posts');
-    const first = getSchema();
+    const first = schemaState.schema;
 
     await fetchSchema('posts');
-    const second = getSchema();
+    const second = schemaState.schema;
 
     expect(second).toEqual(first);
   });
 });
 
 //////////////////////////////
-// prefetchAllSchemas / areSchemasReady
+// prefetchAllSchemas
 //////////////////////////////
 
 describe('prefetchAllSchemas', () => {
   beforeEach(() => {
     clearSchema();
     vi.stubGlobal('fetch', makeFetchMock());
-  });
-
-  it('starts with areSchemasReady returning false', () => {
-    // This test relies on module-level state; areSchemasReady may be true
-    // from a previous test run if the cache persisted. We check both paths.
-    const ready = areSchemasReady();
-    expect(typeof ready).toBe('boolean');
-  });
-
-  it('sets areSchemasReady to true after prefetch completes', async () => {
-    await prefetchAllSchemas();
-    expect(areSchemasReady()).toBe(true);
   });
 
   it('populates the schema state for each known collection', async () => {
@@ -163,21 +150,21 @@ describe('prefetchAllSchemas', () => {
 
     clearSchema();
     await fetchSchema('posts');
-    expect(getSchema()).toEqual(POSTS_SCHEMA);
+    expect(schemaState.schema).toEqual(POSTS_SCHEMA);
 
     clearSchema();
     await fetchSchema('products');
-    expect(getSchema()).toEqual(PRODUCTS_SCHEMA);
+    expect(schemaState.schema).toEqual(PRODUCTS_SCHEMA);
   });
 
-  it('caches schemas such that getSchema reflects the last fetched collection', async () => {
+  it('caches schemas such that schema reflects the last fetched collection', async () => {
     await prefetchAllSchemas();
 
     await fetchSchema('posts');
-    expect(getSchema()).toEqual(POSTS_SCHEMA);
+    expect(schemaState.schema).toEqual(POSTS_SCHEMA);
 
     await fetchSchema('products');
-    expect(getSchema()).toEqual(PRODUCTS_SCHEMA);
+    expect(schemaState.schema).toEqual(PRODUCTS_SCHEMA);
   });
 });
 

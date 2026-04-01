@@ -11,25 +11,42 @@ import BackendPicker from '../../../src/client/components/BackendPicker.svelte';
 // vi.hoisted ensures these declarations are available when vi.mock factories run,
 // since vi.mock calls are hoisted to the top of the file by Vitest.
 const {
-  mockGetBackendType,
-  mockGetPermissionState,
-  mockGetError,
+  mockBackendType,
+  mockPermissionState,
+  mockError,
   mockPickDirectory,
   mockRequestPermission,
   mockConnectGitHub,
 } = vi.hoisted(() => ({
-  mockGetBackendType: vi.fn(() => null as string | null),
-  mockGetPermissionState: vi.fn(() => 'denied' as string),
-  mockGetError: vi.fn(() => null as string | null),
+  mockBackendType: vi.fn(() => null as string | null),
+  mockPermissionState: vi.fn(() => 'denied' as string),
+  mockError: vi.fn(() => null as string | null),
   mockPickDirectory: vi.fn(),
   mockRequestPermission: vi.fn(),
   mockConnectGitHub: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('../../../src/client/js/state/state.svelte', () => ({
-  getBackendType: mockGetBackendType,
-  getPermissionState: mockGetPermissionState,
-  getError: mockGetError,
+  app: {
+    get backendType() {
+      return mockBackendType();
+    },
+    get permissionState() {
+      return mockPermissionState();
+    },
+    get error() {
+      return mockError();
+    },
+    get backendReady() {
+      return false;
+    },
+    get contentList() {
+      return [];
+    },
+    get loading() {
+      return false;
+    },
+  },
   pickDirectory: mockPickDirectory,
   requestPermission: mockRequestPermission,
   connectGitHub: mockConnectGitHub,
@@ -44,8 +61,8 @@ describe('BackendPicker', () => {
   //////////////////////////////
 
   it('renders the picker title when not in reauth state', () => {
-    mockGetBackendType.mockReturnValue(null);
-    mockGetPermissionState.mockReturnValue('denied');
+    mockBackendType.mockReturnValue(null);
+    mockPermissionState.mockReturnValue('denied');
 
     const { container } = render(BackendPicker, { props: {} });
     expect(container.querySelector('.picker-title')?.textContent?.trim()).toBe(
@@ -54,8 +71,8 @@ describe('BackendPicker', () => {
   });
 
   it('renders the Local Folder and GitHub options', () => {
-    mockGetBackendType.mockReturnValue(null);
-    mockGetPermissionState.mockReturnValue('denied');
+    mockBackendType.mockReturnValue(null);
+    mockPermissionState.mockReturnValue('denied');
 
     const { container } = render(BackendPicker, { props: {} });
     const headings = Array.from(container.querySelectorAll('h3')).map((h) =>
@@ -71,8 +88,8 @@ describe('BackendPicker', () => {
   //////////////////////////////
 
   it('calls pickDirectory when the "Choose project folder" button is clicked', async () => {
-    mockGetBackendType.mockReturnValue(null);
-    mockGetPermissionState.mockReturnValue('denied');
+    mockBackendType.mockReturnValue(null);
+    mockPermissionState.mockReturnValue('denied');
     mockPickDirectory.mockClear();
 
     const { container } = render(BackendPicker, { props: {} });
@@ -91,8 +108,8 @@ describe('BackendPicker', () => {
   //////////////////////////////
 
   it('renders the GitHub form with token and repo inputs', () => {
-    mockGetBackendType.mockReturnValue(null);
-    mockGetPermissionState.mockReturnValue('denied');
+    mockBackendType.mockReturnValue(null);
+    mockPermissionState.mockReturnValue('denied');
 
     const { container } = render(BackendPicker, { props: {} });
 
@@ -101,8 +118,8 @@ describe('BackendPicker', () => {
   });
 
   it('disables the Connect button when token and repo are empty', () => {
-    mockGetBackendType.mockReturnValue(null);
-    mockGetPermissionState.mockReturnValue('denied');
+    mockBackendType.mockReturnValue(null);
+    mockPermissionState.mockReturnValue('denied');
 
     const { container } = render(BackendPicker, { props: {} });
 
@@ -117,8 +134,8 @@ describe('BackendPicker', () => {
   });
 
   it('calls connectGitHub when the form is submitted with token and repo', async () => {
-    mockGetBackendType.mockReturnValue(null);
-    mockGetPermissionState.mockReturnValue('denied');
+    mockBackendType.mockReturnValue(null);
+    mockPermissionState.mockReturnValue('denied');
     mockConnectGitHub.mockClear();
 
     const { container } = render(BackendPicker, { props: {} });
@@ -145,8 +162,8 @@ describe('BackendPicker', () => {
   //////////////////////////////
 
   it('renders the re-auth message when backend is fsa and permission is prompt', () => {
-    mockGetBackendType.mockReturnValue('fsa');
-    mockGetPermissionState.mockReturnValue('prompt');
+    mockBackendType.mockReturnValue('fsa');
+    mockPermissionState.mockReturnValue('prompt');
 
     const { container } = render(BackendPicker, { props: {} });
 
@@ -154,8 +171,8 @@ describe('BackendPicker', () => {
   });
 
   it('renders a Re-authorize button in the reauth state', () => {
-    mockGetBackendType.mockReturnValue('fsa');
-    mockGetPermissionState.mockReturnValue('prompt');
+    mockBackendType.mockReturnValue('fsa');
+    mockPermissionState.mockReturnValue('prompt');
 
     const { container } = render(BackendPicker, { props: {} });
 
@@ -167,8 +184,8 @@ describe('BackendPicker', () => {
   });
 
   it('calls requestPermission when the Re-authorize button is clicked', async () => {
-    mockGetBackendType.mockReturnValue('fsa');
-    mockGetPermissionState.mockReturnValue('prompt');
+    mockBackendType.mockReturnValue('fsa');
+    mockPermissionState.mockReturnValue('prompt');
     mockRequestPermission.mockClear();
 
     const { container } = render(BackendPicker, { props: {} });
@@ -186,10 +203,10 @@ describe('BackendPicker', () => {
   // Error display
   //////////////////////////////
 
-  it('renders the error message from getError when present', () => {
-    mockGetBackendType.mockReturnValue(null);
-    mockGetPermissionState.mockReturnValue('denied');
-    mockGetError.mockReturnValue('Something went wrong');
+  it('renders the error message when error state is present', () => {
+    mockBackendType.mockReturnValue(null);
+    mockPermissionState.mockReturnValue('denied');
+    mockError.mockReturnValue('Something went wrong');
 
     const { container } = render(BackendPicker, { props: {} });
 
@@ -198,10 +215,10 @@ describe('BackendPicker', () => {
     );
   });
 
-  it('does not render an error when getError returns null', () => {
-    mockGetBackendType.mockReturnValue(null);
-    mockGetPermissionState.mockReturnValue('denied');
-    mockGetError.mockReturnValue(null);
+  it('does not render an error when error state is null', () => {
+    mockBackendType.mockReturnValue(null);
+    mockPermissionState.mockReturnValue('denied');
+    mockError.mockReturnValue(null);
 
     const { container } = render(BackendPicker, { props: {} });
 

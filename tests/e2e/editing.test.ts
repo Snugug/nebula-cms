@@ -7,19 +7,19 @@ import { resetMocks, configureFileOpen } from './helpers/test-app';
 //////////////////////////////
 
 const mocks = vi.hoisted(() => ({
-  mockIsBackendReady: vi.fn(() => false),
-  mockGetRoute: vi.fn(() => ({ view: 'home' as const })),
-  mockGetCollections: vi.fn(() => [] as string[]),
-  mockGetContentList: vi.fn(
+  mockBackendReady: vi.fn(() => false),
+  mockRoute: vi.fn(() => ({ view: 'home' as const })),
+  mockCollections: vi.fn(() => [] as string[]),
+  mockContentList: vi.fn(
     () => [] as Array<{ filename: string; data: Record<string, unknown> }>,
   ),
-  mockIsLoading: vi.fn(() => false),
-  mockGetError: vi.fn(() => null as string | null),
-  mockGetDrafts: vi.fn(() => []),
-  mockGetOutdatedMap: vi.fn(() => ({}) as Record<string, boolean>),
-  mockGetActiveTab: vi.fn(() => 'metadata'),
+  mockLoading: vi.fn(() => false),
+  mockError: vi.fn(() => null as string | null),
+  mockDrafts: vi.fn(() => []),
+  mockOutdatedMap: vi.fn(() => ({}) as Record<string, boolean>),
+  mockActiveTab: vi.fn(() => 'metadata'),
   mockGetEditorFile: vi.fn(() => null),
-  mockGetSchema: vi.fn(() => null),
+  mockSchema: vi.fn(() => null),
   mockCollectionHasDates: vi.fn(() => false),
   mockComputePublishDisabled: vi.fn(() => false),
 }));
@@ -35,39 +35,68 @@ vi.mock('virtual:collections', () => ({
   },
 }));
 vi.mock('../../src/client/js/state/state.svelte', () => ({
-  isBackendReady: mocks.mockIsBackendReady,
-  getCollections: mocks.mockGetCollections,
-  getContentList: mocks.mockGetContentList,
-  isLoading: mocks.mockIsLoading,
-  getError: mocks.mockGetError,
-  getDrafts: mocks.mockGetDrafts,
-  getOutdatedMap: mocks.mockGetOutdatedMap,
+  app: {
+    get backendReady() {
+      return mocks.mockBackendReady();
+    },
+    get backendType() {
+      return null;
+    },
+    get permissionState() {
+      return 'denied';
+    },
+    get contentList() {
+      return mocks.mockContentList();
+    },
+    get error() {
+      return mocks.mockError();
+    },
+    get loading() {
+      return mocks.mockLoading();
+    },
+  },
+  get collections() {
+    return mocks.mockCollections();
+  },
+  storageClient: null,
+  draftState: {
+    get drafts() {
+      return mocks.mockDrafts();
+    },
+    get outdatedMap() {
+      return mocks.mockOutdatedMap();
+    },
+  },
   restoreBackend: vi.fn(async () => {}),
   loadCollection: vi.fn(),
   reloadCollection: vi.fn(),
   disconnect: vi.fn(),
   refreshDrafts: vi.fn(async () => {}),
   updateContentItem: vi.fn(),
-  getBackendType: vi.fn(() => null),
-  getPermissionState: vi.fn(() => 'denied'),
   pickDirectory: vi.fn(),
   requestPermission: vi.fn(),
   connectGitHub: vi.fn(async () => {}),
-  getStorageClient: vi.fn(() => null),
 }));
 vi.mock('../../src/client/js/state/router.svelte', () => ({
   initRouter: vi.fn(),
-  getRoute: mocks.mockGetRoute,
+  nav: {
+    get route() {
+      return mocks.mockRoute();
+    },
+  },
   navigate: vi.fn(),
   registerDirtyChecker: vi.fn(),
-  getBasePath: vi.fn(() => '/admin'),
   adminPath: vi.fn((...segments) =>
     segments.length === 0 ? '/admin' : '/admin/' + segments.join('/'),
   ),
 }));
 vi.mock('../../src/client/js/state/schema.svelte', () => ({
   fetchSchema: vi.fn(async () => {}),
-  getSchema: mocks.mockGetSchema,
+  schemaState: {
+    get schema() {
+      return mocks.mockSchema();
+    },
+  },
   clearSchema: vi.fn(),
   prefetchAllSchemas: vi.fn(async () => {}),
   collectionHasDates: mocks.mockCollectionHasDates,
@@ -78,14 +107,23 @@ vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   preloadFile: vi.fn(async () => {}),
   loadFileBody: vi.fn(async () => {}),
   clearEditor: vi.fn(),
-  getActiveTab: mocks.mockGetActiveTab,
+  editorState: {
+    get activeTab() {
+      return mocks.mockActiveTab();
+    },
+    get formData() {
+      return {};
+    },
+    get originalFilename() {
+      return '';
+    },
+  },
   setActiveTab: vi.fn(),
   getEditorFile: mocks.mockGetEditorFile,
   loadDraftById: vi.fn(async () => {}),
   setFilename: vi.fn(),
   updateBody: vi.fn(),
   updateFormField: vi.fn(),
-  getFormData: vi.fn(() => ({})),
   saveDraftToIDB: vi.fn(async () => {}),
   saveFile: vi.fn(async () => {}),
   publishFile: vi.fn(async () => {}),
@@ -95,7 +133,6 @@ vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   _setDraftState: vi.fn(),
   changeFileFormat: vi.fn(),
   setDefaultFormat: vi.fn(),
-  getOriginalFilename: vi.fn(() => ''),
 }));
 vi.mock('../../src/client/js/handlers/admin', async (importOriginal) => {
   const actual =
@@ -107,6 +144,14 @@ vi.mock('../../src/client/js/handlers/admin', async (importOriginal) => {
     handleDeleteDraft: vi.fn(async () => {}),
     handleFilenameConfirm: vi.fn(async () => {}),
     computePublishDisabled: mocks.mockComputePublishDisabled,
+    // Override buildCollectionItems to read from mockCollections — the
+    // module-level getter for `collections` is not a live binding in
+    // vitest's browser mode, so the real function would see an empty array.
+    buildCollectionItems: () =>
+      mocks.mockCollections().map((name: string) => ({
+        label: name.charAt(0).toUpperCase() + name.slice(1),
+        href: '/admin/' + name,
+      })),
   };
 });
 vi.mock('../../src/client/js/utils/sort', () => ({
@@ -137,8 +182,14 @@ vi.mock('../../src/client/js/utils/schema-utils', () => ({
   setByPath: vi.fn(),
 }));
 vi.mock('../../src/client/js/drafts/merge.svelte', () => ({
-  getDrafts: mocks.mockGetDrafts,
-  getOutdatedMap: mocks.mockGetOutdatedMap,
+  draftState: {
+    get drafts() {
+      return mocks.mockDrafts();
+    },
+    get outdatedMap() {
+      return mocks.mockOutdatedMap();
+    },
+  },
   mergeDrafts: vi.fn(async () => {}),
   refreshDrafts: vi.fn(async () => {}),
   resetDraftMerge: vi.fn(),
@@ -250,7 +301,7 @@ describe('Editing', () => {
       body: 'Content',
       formData: { title: 'Hello World' },
     });
-    mocks.mockGetActiveTab.mockReturnValue('body');
+    mocks.mockActiveTab.mockReturnValue('body');
 
     const { container } = render(Admin);
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { SchemaNode } from '../js/utils/schema-utils';
   import { getFieldsForTab } from '../js/utils/schema-utils';
-  import { getFormData, updateFormField } from '../js/editor/editor.svelte';
+  import { editorState, updateFormField } from '../js/editor/editor.svelte';
   import SchemaField from './fields/SchemaField.svelte';
 
   /**
@@ -28,9 +28,6 @@
   const requiredFields = $derived(
     Array.isArray(schema['required']) ? (schema['required'] as string[]) : [],
   );
-
-  // Current form data
-  const formData = $derived(getFormData());
 </script>
 
 <div class="metadata-form">
@@ -40,7 +37,7 @@
       <SchemaField
         name={fieldName}
         schema={fieldSchema}
-        value={formData[fieldName]}
+        value={editorState.formData[fieldName]}
         required={requiredFields.includes(fieldName)}
         onchange={(v) => updateFormField([fieldName], v)}
       />

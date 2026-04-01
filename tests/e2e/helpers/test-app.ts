@@ -6,24 +6,26 @@ import type { Mock } from 'vitest';
 // Each test file creates its own mocks via vi.hoisted(). This type
 // describes the shape so helper functions can manipulate mock return
 // values without being tightly coupled to any single test file.
+// Mock names match the getter properties on the exported state objects
+// (app, nav, schemaState, draftState, editorState).
 //////////////////////////////
 
 /**
  * Shape of the mocks object created by vi.hoisted() in each test file.
- * Each field is a Vitest Mock function controlling a reactive getter.
+ * Each field is a Vitest Mock function controlling a reactive export.
  */
 export type E2EMocks = {
-  mockIsBackendReady: Mock<() => boolean>;
-  mockGetRoute: Mock;
-  mockGetCollections: Mock<() => string[]>;
-  mockGetContentList: Mock;
-  mockIsLoading: Mock<() => boolean>;
-  mockGetError: Mock<() => string | null>;
-  mockGetDrafts: Mock;
-  mockGetOutdatedMap: Mock<() => Record<string, boolean>>;
-  mockGetActiveTab: Mock<() => string>;
+  mockBackendReady: Mock<() => boolean>;
+  mockRoute: Mock;
+  mockCollections: Mock<() => string[]>;
+  mockContentList: Mock;
+  mockLoading: Mock<() => boolean>;
+  mockError: Mock<() => string | null>;
+  mockDrafts: Mock;
+  mockOutdatedMap: Mock<() => Record<string, boolean>>;
+  mockActiveTab: Mock<() => string>;
   mockGetEditorFile: Mock;
-  mockGetSchema: Mock;
+  mockSchema: Mock;
   mockCollectionHasDates: Mock<() => boolean>;
   mockComputePublishDisabled: Mock<() => boolean>;
 };
@@ -35,17 +37,17 @@ export type E2EMocks = {
  * @return {void}
  */
 export function resetMocks(m: E2EMocks): void {
-  m.mockIsBackendReady.mockReturnValue(false);
-  m.mockGetRoute.mockReturnValue({ view: 'home' });
-  m.mockGetCollections.mockReturnValue([]);
-  m.mockGetContentList.mockReturnValue([]);
-  m.mockIsLoading.mockReturnValue(false);
-  m.mockGetError.mockReturnValue(null);
-  m.mockGetDrafts.mockReturnValue([]);
-  m.mockGetOutdatedMap.mockReturnValue({});
-  m.mockGetActiveTab.mockReturnValue('metadata');
+  m.mockBackendReady.mockReturnValue(false);
+  m.mockRoute.mockReturnValue({ view: 'home' });
+  m.mockCollections.mockReturnValue([]);
+  m.mockContentList.mockReturnValue([]);
+  m.mockLoading.mockReturnValue(false);
+  m.mockError.mockReturnValue(null);
+  m.mockDrafts.mockReturnValue([]);
+  m.mockOutdatedMap.mockReturnValue({});
+  m.mockActiveTab.mockReturnValue('metadata');
   m.mockGetEditorFile.mockReturnValue(null);
-  m.mockGetSchema.mockReturnValue(null);
+  m.mockSchema.mockReturnValue(null);
   m.mockCollectionHasDates.mockReturnValue(false);
   m.mockComputePublishDisabled.mockReturnValue(false);
 }
@@ -60,8 +62,8 @@ export function configureConnected(
   m: E2EMocks,
   collections: string[] = ['pages', 'posts'],
 ): void {
-  m.mockIsBackendReady.mockReturnValue(true);
-  m.mockGetCollections.mockReturnValue(collections);
+  m.mockBackendReady.mockReturnValue(true);
+  m.mockCollections.mockReturnValue(collections);
 }
 
 /**
@@ -77,8 +79,8 @@ export function configureCollection(
   items: Array<{ filename: string; data: Record<string, unknown> }> = [],
 ): void {
   configureConnected(m);
-  m.mockGetRoute.mockReturnValue({ view: 'collection', collection });
-  m.mockGetContentList.mockReturnValue(items);
+  m.mockRoute.mockReturnValue({ view: 'collection', collection });
+  m.mockContentList.mockReturnValue(items);
 }
 
 /**
@@ -103,8 +105,8 @@ export function configureFileOpen(
   },
 ): void {
   configureConnected(m);
-  m.mockGetRoute.mockReturnValue({ view: 'file', collection, slug });
-  m.mockGetContentList.mockReturnValue([
+  m.mockRoute.mockReturnValue({ view: 'file', collection, slug });
+  m.mockContentList.mockReturnValue([
     { filename: file.filename, data: file.formData },
   ]);
   m.mockGetEditorFile.mockReturnValue({
@@ -139,7 +141,7 @@ export function configureDraftOpen(
   },
 ): void {
   configureConnected(m);
-  m.mockGetRoute.mockReturnValue({ view: 'draft', collection, draftId });
+  m.mockRoute.mockReturnValue({ view: 'draft', collection, draftId });
   m.mockGetEditorFile.mockReturnValue({
     filename: draft.filename ?? '',
     body: draft.body,

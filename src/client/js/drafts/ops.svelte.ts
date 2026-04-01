@@ -10,7 +10,7 @@ import {
   _getDraftState,
   _setDraftState,
 } from '../editor/editor.svelte';
-import { getStorageClient } from '../state/state.svelte';
+import { storageClient } from '../state/state.svelte';
 import { getFileCategory, getDataFormat } from '../utils/file-types';
 
 /**
@@ -176,13 +176,12 @@ export async function publishFile(
   try {
     const content = await serializeContent(filename, s.formData, s.body);
 
-    const client = getStorageClient();
-    if (!client) throw new Error('No storage backend connected');
-    await client.writeFile(collection, filename, content);
+    if (!storageClient) throw new Error('No storage backend connected');
+    await storageClient.writeFile(collection, filename, content);
 
     // Remove the old file if the filename changed (file type conversion)
     if (originalFilename && originalFilename !== filename) {
-      await client.deleteFile(collection, originalFilename);
+      await storageClient.deleteFile(collection, originalFilename);
     }
 
     // Clean up the draft from IndexedDB after successful publish

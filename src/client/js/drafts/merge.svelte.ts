@@ -1,29 +1,23 @@
 import { loadDrafts, type Draft } from './storage';
 import { splitFrontmatter } from '../utils/frontmatter';
-import { getStorageClient } from '../state/state.svelte';
+import { storageClient } from '../state/state.svelte';
 
 // Drafts for the current collection
 let drafts = $state<Draft[]>([]);
 // Map of draftId → whether the live content has diverged from the draft's snapshot
 let outdatedMap = $state<Record<string, boolean>>({});
+
+// Reactive draft-merge state — Svelte 5 forbids exporting $state directly.
+export const draftState = {
+  get drafts(): Draft[] {
+    return drafts;
+  },
+  get outdatedMap(): Record<string, boolean> {
+    return outdatedMap;
+  },
+};
 // Worker for off-thread snapshot comparison
 let diffWorker: Worker | null = null;
-
-/**
- * Returns the current list of drafts for the active collection (reactive).
- * @return {Draft[]} The loaded drafts
- */
-export function getDrafts(): Draft[] {
-  return drafts;
-}
-
-/**
- * Returns the current outdated map indicating which drafts have diverged from live content (reactive).
- * @return {Record<string, boolean>} Map of draft ID to outdated status
- */
-export function getOutdatedMap(): Record<string, boolean> {
-  return outdatedMap;
-}
 
 /**
  * Initializes the diff worker singleton and wires up the result handler.
@@ -60,8 +54,7 @@ export async function mergeDrafts(collection: string): Promise<void> {
     return;
   }
 
-  const client = getStorageClient();
-  if (!client) {
+  if (!storageClient) {
     outdatedMap = {};
     return;
   }
@@ -72,7 +65,7 @@ export async function mergeDrafts(collection: string): Promise<void> {
   const settled = await Promise.all(
     candidates.map(async (d) => {
       try {
-        const text = await client.readFile(collection, d.filename!);
+        const text = await storageClient.readFile(collection, d.filename!);
         const { rawFrontmatter, body } = splitFrontmatter(text);
         const { load } = await import('js-yaml');
         const liveFormData = (load(rawFrontmatter) ?? {}) as Record<
