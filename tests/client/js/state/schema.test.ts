@@ -15,7 +15,7 @@ vi.mock('virtual:collections', () => ({
 
 import {
   fetchSchema,
-  schemaState,
+  schema,
   clearSchema,
   prefetchAllSchemas,
   collectionHasDates,
@@ -75,7 +75,7 @@ describe('schema', () => {
   });
 
   it('is null before any schema is loaded', () => {
-    expect(schemaState.schema).toBeNull();
+    expect(schema.active).toBeNull();
   });
 });
 
@@ -86,9 +86,9 @@ describe('clearSchema', () => {
 
   it('resets the active schema to null', async () => {
     await fetchSchema('posts');
-    expect(schemaState.schema).not.toBeNull();
+    expect(schema.active).not.toBeNull();
     clearSchema();
-    expect(schemaState.schema).toBeNull();
+    expect(schema.active).toBeNull();
   });
 });
 
@@ -104,18 +104,18 @@ describe('fetchSchema', () => {
 
   it('sets the active schema after fetching', async () => {
     await fetchSchema('posts');
-    expect(schemaState.schema).toEqual(POSTS_SCHEMA);
+    expect(schema.active).toEqual(POSTS_SCHEMA);
   });
 
   it('loads the correct schema for a different collection', async () => {
     await fetchSchema('products');
-    expect(schemaState.schema).toEqual(PRODUCTS_SCHEMA);
+    expect(schema.active).toEqual(PRODUCTS_SCHEMA);
   });
 
   it('does nothing when the collection is not in virtual:collections', async () => {
     clearSchema();
     await fetchSchema('nonexistent');
-    expect(schemaState.schema).toBeNull();
+    expect(schema.active).toBeNull();
   });
 
   it('returns the same schema object on repeated calls (cache consistency)', async () => {
@@ -124,10 +124,10 @@ describe('fetchSchema', () => {
     // fetchSchema twice for the same collection leaves it pointing at the
     // same cached object.
     await fetchSchema('posts');
-    const first = schemaState.schema;
+    const first = schema.active;
 
     await fetchSchema('posts');
-    const second = schemaState.schema;
+    const second = schema.active;
 
     expect(second).toEqual(first);
   });
@@ -150,21 +150,21 @@ describe('prefetchAllSchemas', () => {
 
     clearSchema();
     await fetchSchema('posts');
-    expect(schemaState.schema).toEqual(POSTS_SCHEMA);
+    expect(schema.active).toEqual(POSTS_SCHEMA);
 
     clearSchema();
     await fetchSchema('products');
-    expect(schemaState.schema).toEqual(PRODUCTS_SCHEMA);
+    expect(schema.active).toEqual(PRODUCTS_SCHEMA);
   });
 
   it('caches schemas such that schema reflects the last fetched collection', async () => {
     await prefetchAllSchemas();
 
     await fetchSchema('posts');
-    expect(schemaState.schema).toEqual(POSTS_SCHEMA);
+    expect(schema.active).toEqual(POSTS_SCHEMA);
 
     await fetchSchema('products');
-    expect(schemaState.schema).toEqual(PRODUCTS_SCHEMA);
+    expect(schema.active).toEqual(PRODUCTS_SCHEMA);
   });
 });
 

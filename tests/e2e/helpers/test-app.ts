@@ -7,7 +7,7 @@ import type { Mock } from 'vitest';
 // describes the shape so helper functions can manipulate mock return
 // values without being tightly coupled to any single test file.
 // Mock names match the getter properties on the exported state objects
-// (app, nav, schemaState, draftState, editorState).
+// (backend, content, nav, schema, drafts, editor).
 //////////////////////////////
 
 /**

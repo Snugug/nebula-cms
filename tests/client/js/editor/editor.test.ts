@@ -122,9 +122,9 @@ describe('formData — initial state', () => {
 
   it('returns an empty object before any file is loaded', async () => {
     vi.resetModules();
-    const { editorState } =
+    const { editor } =
       await import('../../../../src/client/js/editor/editor.svelte');
-    expect(editorState.formData).toEqual({});
+    expect(editor.data).toEqual({});
   });
 });
 
@@ -139,23 +139,23 @@ describe('activeTab / setActiveTab', () => {
 
   it('returns "metadata" as the default active tab', async () => {
     vi.resetModules();
-    const { editorState } =
+    const { editor } =
       await import('../../../../src/client/js/editor/editor.svelte');
-    expect(editorState.activeTab).toBe('metadata');
+    expect(editor.tab).toBe('metadata');
   });
 
   it('updates the active tab via setActiveTab', async () => {
     vi.resetModules();
     const mod = await import('../../../../src/client/js/editor/editor.svelte');
     mod.setActiveTab('content');
-    expect(mod.editorState.activeTab).toBe('content');
+    expect(mod.editor.tab).toBe('content');
   });
 
   it('can set any arbitrary tab string', async () => {
     vi.resetModules();
     const mod = await import('../../../../src/client/js/editor/editor.svelte');
     mod.setActiveTab('seo');
-    expect(mod.editorState.activeTab).toBe('seo');
+    expect(mod.editor.tab).toBe('seo');
   });
 });
 
@@ -211,7 +211,7 @@ describe('applyEditorState', () => {
       },
       true,
     );
-    expect(mod.editorState.activeTab).toBe('metadata');
+    expect(mod.editor.tab).toBe('metadata');
   });
 
   it('keeps getEditorFile null when open=false', async () => {
@@ -263,7 +263,7 @@ describe('updateFormField', () => {
       true,
     );
     mod.updateFormField(['title'], 'Updated');
-    expect(mod.editorState.formData['title']).toBe('Updated');
+    expect(mod.editor.data['title']).toBe('Updated');
   });
 
   it('marks the file dirty after a formData change', async () => {
@@ -415,7 +415,7 @@ describe('clearEditor', () => {
       true,
     );
     mod.clearEditor();
-    expect(mod.editorState.formData).toEqual({});
+    expect(mod.editor.data).toEqual({});
   });
 });
 

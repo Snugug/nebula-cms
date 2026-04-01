@@ -112,11 +112,11 @@ vi.mock('../../../../src/client/js/state/router.svelte', () => ({
 }));
 
 vi.mock('../../../../src/client/js/drafts/merge.svelte', () => ({
-  draftState: {
-    get drafts() {
+  drafts: {
+    get all() {
       return [];
     },
-    get outdatedMap() {
+    get outdated() {
       return {};
     },
   },
@@ -135,7 +135,8 @@ vi.mock('../../../../src/client/js/state/schema.svelte', () => ({
 
 import {
   collections,
-  app,
+  backend,
+  content,
   disconnect,
   updateContentItem,
   loadCollection,
@@ -166,28 +167,28 @@ describe('collections', () => {
 //////////////////////////////
 
 describe('initial state', () => {
-  it('backendReady is false before any backend is connected', () => {
-    expect(app.backendReady).toBe(false);
+  it('ready is false before any backend is connected', () => {
+    expect(backend.ready).toBe(false);
   });
 
-  it('backendType is null before any backend is connected', () => {
-    expect(app.backendType).toBeNull();
+  it('type is null before any backend is connected', () => {
+    expect(backend.type).toBeNull();
   });
 
-  it('permissionState is "denied" initially', () => {
-    expect(app.permissionState).toBe('denied');
+  it('permission is "denied" initially', () => {
+    expect(backend.permission).toBe('denied');
   });
 
-  it('contentList is an empty array initially', () => {
-    expect(app.contentList).toEqual([]);
+  it('list is an empty array initially', () => {
+    expect(content.list).toEqual([]);
   });
 
   it('error is null initially', () => {
-    expect(app.error).toBeNull();
+    expect(content.error).toBeNull();
   });
 
   it('loading is false initially', () => {
-    expect(app.loading).toBe(false);
+    expect(content.loading).toBe(false);
   });
 });
 
@@ -219,34 +220,34 @@ describe('disconnect', () => {
     expect(navigate).toHaveBeenCalledWith('/admin');
   });
 
-  it('resets backendReady to false', async () => {
+  it('resets ready to false', async () => {
     await disconnect();
-    expect(app.backendReady).toBe(false);
+    expect(backend.ready).toBe(false);
   });
 
-  it('resets backendType to null', async () => {
+  it('resets type to null', async () => {
     await disconnect();
-    expect(app.backendType).toBeNull();
+    expect(backend.type).toBeNull();
   });
 
-  it('resets permissionState to "denied"', async () => {
+  it('resets permission to "denied"', async () => {
     await disconnect();
-    expect(app.permissionState).toBe('denied');
+    expect(backend.permission).toBe('denied');
   });
 
-  it('resets contentList to an empty array', async () => {
+  it('resets list to an empty array', async () => {
     await disconnect();
-    expect(app.contentList).toEqual([]);
+    expect(content.list).toEqual([]);
   });
 
   it('resets error to null', async () => {
     await disconnect();
-    expect(app.error).toBeNull();
+    expect(content.error).toBeNull();
   });
 
   it('resets loading to false', async () => {
     await disconnect();
-    expect(app.loading).toBe(false);
+    expect(content.loading).toBe(false);
   });
 });
 
@@ -265,7 +266,7 @@ describe('updateContentItem', () => {
 
   it('does not change the content list when no matching filename exists', () => {
     updateContentItem('does-not-exist.md', { title: 'X' });
-    expect(app.contentList).toEqual([]);
+    expect(content.list).toEqual([]);
   });
 });
 

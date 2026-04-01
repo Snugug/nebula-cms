@@ -23,11 +23,11 @@ vi.mock('../../../../src/client/js/utils/schema-utils', () => ({
 }));
 
 vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
-  editorState: {
-    get activeTab() {
+  editor: {
+    get tab() {
       return mockActiveTab();
     },
-    get formData() {
+    get data() {
       return {};
     },
     get originalFilename() {

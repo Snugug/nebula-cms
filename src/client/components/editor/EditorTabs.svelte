@@ -3,7 +3,7 @@
   import { extractTabs } from '../../js/utils/schema-utils';
   import { toTitleCase } from '../../js/utils/format';
   import {
-    editorState,
+    editor,
     setActiveTab,
     getEditorFile,
   } from '../../js/editor/editor.svelte';
@@ -39,10 +39,10 @@
   {#each allTabs as tab}
     <button
       class="tabs__tab"
-      class:tabs__tab--active={editorState.activeTab === tab}
+      class:tabs__tab--active={editor.tab === tab}
       type="button"
       onclick={() => setActiveTab(tab)}
-      aria-selected={editorState.activeTab === tab}
+      aria-selected={editor.tab === tab}
       role="tab"
     >
       {toTitleCase(tab)}

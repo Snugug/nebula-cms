@@ -17,8 +17,8 @@ let basePath = $state('/admin');
 // Current route, reactive via Svelte 5 runes
 let route = $state<AdminRoute>(parsePathname(location.pathname));
 
-// Reactive navigation state — Svelte 5 forbids exporting $state directly.
 export const nav = {
+  // Current parsed admin route.
   get route(): AdminRoute {
     return route;
   },

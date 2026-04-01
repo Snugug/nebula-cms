@@ -8,12 +8,12 @@ type JsonSchema = Record<string, unknown>;
 const cache = new Map<string, JsonSchema>();
 
 // Currently active schema for the selected collection
-let schema = $state<JsonSchema | null>(null);
+let activeSchema = $state<JsonSchema | null>(null);
 
-// Reactive schema state — Svelte 5 forbids exporting $state directly.
-export const schemaState = {
-  get schema(): JsonSchema | null {
-    return schema;
+export const schema = {
+  // The loaded JSON Schema for the active collection, or null.
+  get active(): JsonSchema | null {
+    return activeSchema;
   },
 };
 
@@ -48,7 +48,7 @@ export async function prefetchAllSchemas(): Promise<void> {
 export async function fetchSchema(collection: string): Promise<void> {
   const cached = cache.get(collection);
   if (cached) {
-    schema = cached;
+    activeSchema = cached;
     return;
   }
 
@@ -58,7 +58,7 @@ export async function fetchSchema(collection: string): Promise<void> {
   const response = await fetch(url);
   const data = (await response.json()) as JsonSchema;
   cache.set(collection, data);
-  schema = data;
+  activeSchema = data;
 }
 
 /**
@@ -125,5 +125,5 @@ export function getSchemaExtensions(collection: string): string[] {
  * @return {void}
  */
 export function clearSchema(): void {
-  schema = null;
+  activeSchema = null;
 }

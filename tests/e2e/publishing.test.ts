@@ -44,35 +44,37 @@ vi.mock('virtual:collections', () => ({
   },
 }));
 vi.mock('../../src/client/js/state/state.svelte', () => ({
-  app: {
-    get backendReady() {
-      return mocks.mockBackendReady();
-    },
-    get backendType() {
+  backend: {
+    get type() {
       return null;
     },
-    get permissionState() {
+    get ready() {
+      return mocks.mockBackendReady();
+    },
+    get permission() {
       return 'denied';
     },
-    get contentList() {
+  },
+  content: {
+    get list() {
       return mocks.mockContentList();
-    },
-    get error() {
-      return mocks.mockError();
     },
     get loading() {
       return mocks.mockLoading();
+    },
+    get error() {
+      return mocks.mockError();
     },
   },
   get collections() {
     return mocks.mockCollections();
   },
   storageClient: null,
-  draftState: {
-    get drafts() {
+  drafts: {
+    get all() {
       return mocks.mockDrafts();
     },
-    get outdatedMap() {
+    get outdated() {
       return mocks.mockOutdatedMap();
     },
   },
@@ -101,8 +103,8 @@ vi.mock('../../src/client/js/state/router.svelte', () => ({
 }));
 vi.mock('../../src/client/js/state/schema.svelte', () => ({
   fetchSchema: vi.fn(async () => {}),
-  schemaState: {
-    get schema() {
+  schema: {
+    get active() {
       return mocks.mockSchema();
     },
   },
@@ -116,11 +118,11 @@ vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   preloadFile: vi.fn(async () => {}),
   loadFileBody: vi.fn(async () => {}),
   clearEditor: vi.fn(),
-  editorState: {
-    get activeTab() {
+  editor: {
+    get tab() {
       return mocks.mockActiveTab();
     },
-    get formData() {
+    get data() {
       return {};
     },
     get originalFilename() {
@@ -191,11 +193,11 @@ vi.mock('../../src/client/js/utils/schema-utils', () => ({
   setByPath: vi.fn(),
 }));
 vi.mock('../../src/client/js/drafts/merge.svelte', () => ({
-  draftState: {
-    get drafts() {
+  drafts: {
+    get all() {
       return mocks.mockDrafts();
     },
-    get outdatedMap() {
+    get outdated() {
       return mocks.mockOutdatedMap();
     },
   },

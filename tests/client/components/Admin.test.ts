@@ -63,34 +63,36 @@ const {
 //////////////////////////////
 
 vi.mock('../../../src/client/js/state/state.svelte', () => ({
-  app: {
-    get backendReady() {
-      return mockBackendReady();
-    },
-    get backendType() {
+  backend: {
+    get type() {
       return null;
     },
-    get permissionState() {
+    get ready() {
+      return mockBackendReady();
+    },
+    get permission() {
       return 'denied';
     },
-    get contentList() {
+  },
+  content: {
+    get list() {
       return mockContentList();
-    },
-    get error() {
-      return mockError();
     },
     get loading() {
       return mockLoading();
+    },
+    get error() {
+      return mockError();
     },
   },
   get collections() {
     return mockCollections();
   },
-  draftState: {
-    get drafts() {
+  drafts: {
+    get all() {
       return mockDrafts();
     },
-    get outdatedMap() {
+    get outdated() {
       return mockOutdatedMap();
     },
   },
@@ -122,8 +124,8 @@ vi.mock('../../../src/client/js/state/router.svelte', () => ({
 
 vi.mock('../../../src/client/js/state/schema.svelte', () => ({
   fetchSchema: vi.fn(() => Promise.resolve()),
-  schemaState: {
-    get schema() {
+  schema: {
+    get active() {
       return mockSchema();
     },
   },
@@ -138,11 +140,11 @@ vi.mock('../../../src/client/js/editor/editor.svelte', () => ({
   preloadFile: vi.fn(() => Promise.resolve()),
   loadFileBody: vi.fn(() => Promise.resolve()),
   clearEditor: vi.fn(),
-  editorState: {
-    get activeTab() {
+  editor: {
+    get tab() {
       return mockActiveTab();
     },
-    get formData() {
+    get data() {
       return {};
     },
     get originalFilename() {

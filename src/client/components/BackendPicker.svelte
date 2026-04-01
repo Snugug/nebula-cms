@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
-    app,
+    backend,
+    content,
     pickDirectory,
     requestPermission,
     connectGitHub,
@@ -8,7 +9,7 @@
 
   // Whether the stored FSA handle needs re-authorization
   const needsReauth = $derived(
-    app.backendType === 'fsa' && app.permissionState === 'prompt',
+    backend.type === 'fsa' && backend.permission === 'prompt',
   );
 
   // GitHub form state
@@ -119,8 +120,8 @@
       </div>
     </div>
 
-    {#if app.error}
-      <p class="error">{app.error}</p>
+    {#if content.error}
+      <p class="error">{content.error}</p>
     {/if}
   </div>
 {/if}

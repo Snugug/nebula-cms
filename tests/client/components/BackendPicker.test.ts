@@ -27,24 +27,26 @@ const {
 }));
 
 vi.mock('../../../src/client/js/state/state.svelte', () => ({
-  app: {
-    get backendType() {
+  backend: {
+    get type() {
       return mockBackendType();
     },
-    get permissionState() {
-      return mockPermissionState();
-    },
-    get error() {
-      return mockError();
-    },
-    get backendReady() {
+    get ready() {
       return false;
     },
-    get contentList() {
+    get permission() {
+      return mockPermissionState();
+    },
+  },
+  content: {
+    get list() {
       return [];
     },
     get loading() {
       return false;
+    },
+    get error() {
+      return mockError();
     },
   },
   pickDirectory: mockPickDirectory,

@@ -54,14 +54,16 @@ let currentCollection = $state('');
 let draftCreatedAt = $state<string | null>(null);
 registerDirtyChecker(() => dirty);
 
-// Reactive editor state — Svelte 5 forbids exporting $state directly.
-export const editorState = {
-  get formData(): Record<string, unknown> {
+export const editor = {
+  // Current structured form data for the open file.
+  get data(): Record<string, unknown> {
     return formData;
   },
-  get activeTab(): string {
+  // Currently active editor tab identifier.
+  get tab(): string {
     return activeTab;
   },
+  // Filename at load time — publish uses this to detect renames.
   get originalFilename(): string {
     return originalFilename;
   },

@@ -8,7 +8,7 @@ import {
   clearEditor,
   getEditorFile,
   setFilename,
-  editorState,
+  editor,
 } from '../editor/editor.svelte';
 import {
   collections,
@@ -146,7 +146,7 @@ export async function handlePublish(
   if (!activeCollection) return { status: 'no-file' };
 
   // Pass originalFilename so publishFile can delete the old file when format changes
-  const originalFn = editorState.originalFilename;
+  const originalFn = editor.originalFilename;
   await publishFile(
     activeCollection,
     file.filename,

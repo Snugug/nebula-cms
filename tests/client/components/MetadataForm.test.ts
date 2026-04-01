@@ -33,11 +33,11 @@ vi.mock('../../../src/client/js/utils/schema-utils', () => ({
 }));
 
 vi.mock('../../../src/client/js/editor/editor.svelte', () => ({
-  editorState: {
-    get formData() {
+  editor: {
+    get data() {
       return mockFormData();
     },
-    get activeTab() {
+    get tab() {
       return 'metadata';
     },
     get originalFilename() {

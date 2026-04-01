@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { SchemaNode } from '../js/utils/schema-utils';
   import { getFieldsForTab } from '../js/utils/schema-utils';
-  import { editorState, updateFormField } from '../js/editor/editor.svelte';
+  import { editor, updateFormField } from '../js/editor/editor.svelte';
   import SchemaField from './fields/SchemaField.svelte';
 
   /**
@@ -37,7 +37,7 @@
       <SchemaField
         name={fieldName}
         schema={fieldSchema}
-        value={editorState.formData[fieldName]}
+        value={editor.data[fieldName]}
         required={requiredFields.includes(fieldName)}
         onchange={(v) => updateFormField([fieldName], v)}
       />

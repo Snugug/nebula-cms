@@ -2,8 +2,9 @@
   import { onMount } from 'svelte';
   import { initRouter, nav, adminPath } from './js/state/router.svelte';
   import {
-    app,
-    draftState,
+    backend,
+    content,
+    drafts,
     restoreBackend,
     loadCollection,
   } from './js/state/state.svelte';
@@ -11,7 +12,7 @@
     preloadFile,
     loadFileBody,
     clearEditor,
-    editorState,
+    editor,
     getEditorFile,
     loadDraftById,
     changeFileFormat,
@@ -19,7 +20,7 @@
   } from './js/editor/editor.svelte';
   import {
     fetchSchema,
-    schemaState,
+    schema,
     clearSchema,
     prefetchAllSchemas,
     collectionHasDates,
@@ -81,9 +82,9 @@
   // Content items merged with draft data (DRAFT/OUTDATED chips) plus new draft items
   const contentItems = $derived(
     buildContentItems(
-      app.contentList,
-      draftState.drafts,
-      draftState.outdatedMap,
+      content.list,
+      drafts.all,
+      drafts.outdated,
       activeCollection,
     ),
   );
@@ -95,19 +96,19 @@
 
   // Whether the publish button should be disabled (missing required fields)
   const publishDisabled = $derived(
-    computePublishDisabled(schemaState.schema, getEditorFile()?.formData ?? {}),
+    computePublishDisabled(schema.active, getEditorFile()?.formData ?? {}),
   );
 
   // Existing filenames for uniqueness validation in the filename dialog — includes both live files and drafts with filenames
   const existingFilenames = $derived([
-    ...app.contentList.map((item) => item.filename),
-    ...draftState.drafts.filter((d) => d.filename).map((d) => d.filename!),
+    ...content.list.map((item) => item.filename),
+    ...drafts.all.filter((d) => d.filename).map((d) => d.filename!),
   ]);
 
   // Type identifiers from the schema's files array, used to show the format selector
   const schemaFileTypes = $derived(
-    Array.isArray(schemaState.schema?.['files'])
-      ? (schemaState.schema['files'] as string[])
+    Array.isArray(schema.active?.['files'])
+      ? (schema.active['files'] as string[])
       : [],
   );
 
@@ -131,20 +132,16 @@
 
   // Trigger collection loading when route changes to a collection, file, or draft view
   $effect(() => {
-    if (app.backendReady && nav.route.view !== 'home') {
+    if (backend.ready && nav.route.view !== 'home') {
       loadCollection(nav.route.collection);
     }
   });
 
-  // Loads content for the file or draft view. Both branches gate on `app.backendReady`
+  // Loads content for the file or draft view. Both branches gate on `backend.ready`
   // so they re-run when the directory handle is restored on page load.
   $effect(() => {
-    if (
-      app.backendReady &&
-      nav.route.view === 'file' &&
-      app.contentList.length > 0
-    ) {
-      const item = app.contentList.find(
+    if (backend.ready && nav.route.view === 'file' && content.list.length > 0) {
+      const item = content.list.find(
         (i) => stripExtension(i.filename) === nav.route.slug,
       );
       if (!item) return;
@@ -157,7 +154,7 @@
 
         loadFileBody(nav.route.collection, item.filename);
       });
-    } else if (app.backendReady && nav.route.view === 'draft') {
+    } else if (backend.ready && nav.route.view === 'draft') {
       loadDraftById(nav.route.draftId, nav.route.collection);
     } else if (nav.route.view !== 'file' && nav.route.view !== 'draft') {
       clearEditor();
@@ -176,7 +173,7 @@
 
   // Fetch the JSON Schema when the active collection changes
   $effect(() => {
-    if (app.backendReady && nav.route.view !== 'home') {
+    if (backend.ready && nav.route.view !== 'home') {
       fetchSchema(nav.route.collection);
     } else {
       clearSchema();
@@ -224,11 +221,11 @@
 
 <div
   class="admin"
-  class:admin--connected={app.backendReady}
-  class:admin--collection={app.backendReady && hasCollection}
-  class:admin--file-open={app.backendReady && fileOpen}
+  class:admin--connected={backend.ready}
+  class:admin--collection={backend.ready && hasCollection}
+  class:admin--file-open={backend.ready && fileOpen}
 >
-  {#if !app.backendReady}
+  {#if !backend.ready}
     <BackendPicker />
   {:else}
     <AdminSidebar
@@ -244,8 +241,8 @@
         items={contentItems}
         activeItem={activeFileHref}
         storageKey={activeCollection}
-        loading={app.loading}
-        error={app.error ?? undefined}
+        loading={content.loading}
+        error={content.error ?? undefined}
         hasDates={contentHasDates}
         collection={activeCollection}
         showAdd={true}
@@ -261,21 +258,19 @@
           }}
           {publishDisabled}
         />
-        <EditorTabs schema={schemaState.schema} />
+        <EditorTabs schema={schema.active} />
         <FormatSelector
           fileTypes={schemaFileTypes}
           activeType={activeFileType}
           onChange={changeFileFormat}
         />
         <div class="editor-content">
-          {#if editorState.activeTab === 'body'}
+          {#if editor.tab === 'body'}
             <EditorPane />
-          {:else if schemaState.schema}
+          {:else if schema.active}
             <MetadataForm
-              schema={schemaState.schema}
-              tab={editorState.activeTab === 'metadata'
-                ? null
-                : editorState.activeTab}
+              schema={schema.active}
+              tab={editor.tab === 'metadata' ? null : editor.tab}
             />
           {/if}
         </div>

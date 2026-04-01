@@ -3,16 +3,17 @@ import { splitFrontmatter } from '../utils/frontmatter';
 import { storageClient } from '../state/state.svelte';
 
 // Drafts for the current collection
-let drafts = $state<Draft[]>([]);
+let draftList = $state<Draft[]>([]);
 // Map of draftId → whether the live content has diverged from the draft's snapshot
 let outdatedMap = $state<Record<string, boolean>>({});
 
-// Reactive draft-merge state — Svelte 5 forbids exporting $state directly.
-export const draftState = {
-  get drafts(): Draft[] {
-    return drafts;
+export const drafts = {
+  // All drafts for the active collection.
+  get all(): Draft[] {
+    return draftList;
   },
-  get outdatedMap(): Record<string, boolean> {
+  // Map of draft ID to whether live content has diverged.
+  get outdated(): Record<string, boolean> {
     return outdatedMap;
   },
 };
@@ -44,11 +45,13 @@ function ensureDiffWorker(): Worker {
  * @return {Promise<void>}
  */
 export async function mergeDrafts(collection: string): Promise<void> {
-  drafts = await loadDrafts(collection);
+  draftList = await loadDrafts(collection);
 
   // Filter to drafts that need outdated checking:
   // must be linked to a live file (not new), have a snapshot, and have a filename
-  const candidates = drafts.filter((d) => !d.isNew && d.snapshot && d.filename);
+  const candidates = draftList.filter(
+    (d) => !d.isNew && d.snapshot && d.filename,
+  );
   if (candidates.length === 0) {
     outdatedMap = {};
     return;
@@ -104,7 +107,7 @@ export async function mergeDrafts(collection: string): Promise<void> {
  * @return {Promise<void>}
  */
 export async function refreshDrafts(collection: string): Promise<void> {
-  drafts = await loadDrafts(collection);
+  draftList = await loadDrafts(collection);
 }
 
 /**
@@ -114,6 +117,6 @@ export async function refreshDrafts(collection: string): Promise<void> {
 export function resetDraftMerge(): void {
   diffWorker?.terminate();
   diffWorker = null;
-  drafts = [];
+  draftList = [];
   outdatedMap = {};
 }

@@ -8,14 +8,14 @@ import {
 import { StorageClient } from '../storage/client';
 import { nav, navigate, adminPath } from './router.svelte';
 import {
-  draftState,
+  drafts,
   mergeDrafts,
   refreshDrafts,
   resetDraftMerge,
 } from '../drafts/merge.svelte';
 import { getSchemaExtensions } from './schema.svelte';
 
-export { draftState, refreshDrafts };
+export { drafts, refreshDrafts };
 
 // Content item with full frontmatter data returned by the worker.
 export type ContentItem = {
@@ -27,6 +27,7 @@ export type ContentItem = {
 type PermissionState = 'granted' | 'prompt' | 'denied';
 // Backend type discriminator.
 type BackendType = 'fsa' | 'github' | null;
+// Sorted collection names derived from virtual:collections.
 export const collections = Object.keys(schemas).sort();
 // Uses .js extension because svelte-package does not rewrite URL string literals;
 // the dist output must reference the compiled .js file, not the source .ts file.
@@ -34,6 +35,7 @@ const sharedWorker = new SharedWorker(
   new URL('../storage/workers/storage.js', import.meta.url),
   { type: 'module', name: 'cms-storage' },
 );
+// Main-thread StorageClient for editor and draft-merge I/O.
 export const storageClient = new StorageClient(sharedWorker.port);
 let backendType = $state<BackendType>(null);
 let backendReady = $state(false);
@@ -42,26 +44,33 @@ let contentList = $state<ContentItem[]>([]);
 let error = $state<string | null>(null);
 let loading = $state(false);
 
-// Reactive app state exposed via getters — Svelte 5 forbids exporting $state
-// directly, so this object provides reactive access through property reads.
-export const app = {
-  get backendType(): BackendType {
+export const backend = {
+  // Active backend type, or null if not connected.
+  get type(): BackendType {
     return backendType;
   },
-  get backendReady(): boolean {
+  // True if a backend is initialized and ready.
+  get ready(): boolean {
     return backendReady;
   },
-  get permissionState(): PermissionState {
+  // FSA permission state for the re-auth flow in BackendPicker.
+  get permission(): PermissionState {
     return permissionState;
   },
-  get contentList(): ContentItem[] {
+};
+
+export const content = {
+  // Parsed content items for the selected collection.
+  get list(): ContentItem[] {
     return contentList;
   },
-  get error(): string | null {
-    return error;
-  },
+  // True if the frontmatter worker is actively parsing.
   get loading(): boolean {
     return loading;
+  },
+  // Error message for display in the sidebar.
+  get error(): string | null {
+    return error;
   },
 };
 let worker: Worker | null = null;

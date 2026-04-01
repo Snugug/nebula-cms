@@ -95,16 +95,16 @@ describe('drafts / outdatedMap — reactive exports', () => {
 
   it('drafts is an empty array before mergeDrafts is called', async () => {
     vi.resetModules();
-    const { draftState } =
+    const { drafts } =
       await import('../../../../src/client/js/drafts/merge.svelte');
-    expect(draftState.drafts).toEqual([]);
+    expect(drafts.all).toEqual([]);
   });
 
   it('outdatedMap is an empty object before mergeDrafts is called', async () => {
     vi.resetModules();
-    const { draftState } =
+    const { drafts } =
       await import('../../../../src/client/js/drafts/merge.svelte');
-    expect(draftState.outdatedMap).toEqual({});
+    expect(drafts.outdated).toEqual({});
   });
 });
 
@@ -131,7 +131,7 @@ describe('mergeDrafts', () => {
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
 
-    expect(mod.draftState.drafts).toEqual(drafts);
+    expect(mod.drafts.all).toEqual(drafts);
   });
 
   it('sets outdatedMap to {} when there are no candidate drafts', async () => {
@@ -145,7 +145,7 @@ describe('mergeDrafts', () => {
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
 
-    expect(mod.draftState.outdatedMap).toEqual({});
+    expect(mod.drafts.outdated).toEqual({});
   });
 
   it('sets outdatedMap to {} when storage client is not available', async () => {
@@ -158,7 +158,7 @@ describe('mergeDrafts', () => {
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
 
-    expect(mod.draftState.outdatedMap).toEqual({});
+    expect(mod.drafts.outdated).toEqual({});
   });
 
   it('calls loadDrafts with the collection name', async () => {
@@ -191,7 +191,7 @@ describe('mergeDrafts', () => {
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
 
-    expect(mod.draftState.outdatedMap).toEqual({});
+    expect(mod.drafts.outdated).toEqual({});
   });
 });
 
@@ -218,11 +218,11 @@ describe('refreshDrafts', () => {
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
-    expect(mod.draftState.drafts).toHaveLength(1);
+    expect(mod.drafts.all).toHaveLength(1);
 
     vi.mocked(loadDrafts).mockResolvedValueOnce(refreshed);
     await mod.refreshDrafts('posts');
-    expect(mod.draftState.drafts).toHaveLength(2);
+    expect(mod.drafts.all).toHaveLength(2);
   });
 
   it('calls loadDrafts with the correct collection', async () => {
@@ -252,10 +252,10 @@ describe('resetDraftMerge', () => {
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
-    expect(mod.draftState.drafts).toHaveLength(1);
+    expect(mod.drafts.all).toHaveLength(1);
 
     mod.resetDraftMerge();
-    expect(mod.draftState.drafts).toEqual([]);
+    expect(mod.drafts.all).toEqual([]);
   });
 
   it('clears the outdatedMap', async () => {
@@ -267,7 +267,7 @@ describe('resetDraftMerge', () => {
     await mod.mergeDrafts('posts');
 
     mod.resetDraftMerge();
-    expect(mod.draftState.outdatedMap).toEqual({});
+    expect(mod.drafts.outdated).toEqual({});
   });
 
   it('is safe to call multiple times without throwing', async () => {

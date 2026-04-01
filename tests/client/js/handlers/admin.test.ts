@@ -55,7 +55,7 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
   clearEditor: mockClearEditor,
   getEditorFile: mockGetEditorFile,
   setFilename: mockSetFilename,
-  editorState: {
+  editor: {
     get originalFilename() {
       return mockOriginalFilename();
     },
