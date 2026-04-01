@@ -178,7 +178,7 @@ describe('Publishing', () => {
 
     const { container } = render(Admin);
 
-    const publishBtn = container.querySelector('.editor-area .btn--publish');
+    const publishBtn = container.querySelector('.editor-area .btn--primary');
     expect(publishBtn).not.toBeNull();
 
     if (publishBtn) await fireEvent.click(publishBtn);
@@ -194,7 +194,7 @@ describe('Publishing', () => {
 
     const { container } = render(Admin);
 
-    const publishBtn = container.querySelector('.editor-area .btn--publish');
+    const publishBtn = container.querySelector('.editor-area .btn--primary');
 
     if (publishBtn) await fireEvent.click(publishBtn);
 
@@ -214,7 +214,7 @@ describe('Publishing', () => {
     const { container } = render(Admin);
 
     const publishBtn = container.querySelector(
-      '.editor-area .btn--publish',
+      '.editor-area .btn--primary',
     ) as HTMLButtonElement;
     expect(publishBtn).not.toBeNull();
     expect(publishBtn?.disabled).toBe(true);
@@ -231,7 +231,7 @@ describe('Publishing', () => {
     const { container } = render(Admin);
 
     const publishBtn = container.querySelector(
-      '.editor-area .btn--publish',
+      '.editor-area .btn--primary',
     ) as HTMLButtonElement;
     expect(publishBtn?.disabled).toBe(false);
   });
@@ -246,7 +246,9 @@ describe('Publishing', () => {
 
     const { container } = render(Admin);
 
-    const deleteBtn = container.querySelector('.editor-area .btn--delete');
+    const deleteBtn = container.querySelector(
+      '.editor-area .btn--danger-outline',
+    );
     expect(deleteBtn).not.toBeNull();
     expect(deleteBtn?.textContent?.trim()).toContain('Delete Draft');
   });

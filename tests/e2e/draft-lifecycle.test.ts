@@ -218,7 +218,7 @@ describe('Draft Lifecycle', () => {
 
     const { container } = render(Admin);
 
-    const saveBtn = container.querySelector('.editor-area .btn--save');
+    const saveBtn = container.querySelector('.editor-area .btn--save-outline');
     expect(saveBtn).not.toBeNull();
 
     if (saveBtn) await fireEvent.click(saveBtn);
