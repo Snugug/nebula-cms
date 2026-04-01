@@ -78,7 +78,7 @@
       >Cancel</button
     >
     <button
-      class="btn btn--confirm"
+      class="btn btn--primary"
       type="button"
       disabled={!!error}
       onclick={handleConfirm}>Confirm</button
@@ -140,37 +140,5 @@
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
     margin-top: 1.25rem;
-  }
-
-  .btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-    cursor: pointer;
-    border: none;
-  }
-
-  .btn--cancel {
-    background: var(--cms-border);
-    color: var(--cms-fg);
-
-    &:hover {
-      background: var(--cms-muted);
-    }
-  }
-
-  .btn--confirm {
-    background: var(--button-bg, var(--plum));
-    color: var(--button-color, var(--cms-fg));
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-
-    &:hover:not(:disabled) {
-      background: var(--button-hover-bg, var(--light-plum));
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
   }
 </style>

@@ -155,7 +155,7 @@ describe('EditorToolbar', () => {
       },
     });
 
-    const saveBtn = container.querySelector('.btn--save');
+    const saveBtn = container.querySelector('.btn--save-outline');
     expect(saveBtn).not.toBeNull();
   });
 
@@ -171,7 +171,7 @@ describe('EditorToolbar', () => {
       },
     });
 
-    const saveBtn = container.querySelector('.btn--save') as HTMLButtonElement;
+    const saveBtn = container.querySelector('.btn--save-outline') as HTMLButtonElement;
     expect(saveBtn?.disabled).toBe(true);
   });
 
@@ -188,7 +188,7 @@ describe('EditorToolbar', () => {
       },
     });
 
-    await fireEvent.click(container.querySelector('.btn--save')!);
+    await fireEvent.click(container.querySelector('.btn--save-outline')!);
     expect(onSave).toHaveBeenCalledOnce();
   });
 
@@ -208,7 +208,7 @@ describe('EditorToolbar', () => {
       },
     });
 
-    expect(container.querySelector('.btn--publish')).not.toBeNull();
+    expect(container.querySelector('.btn--primary')).not.toBeNull();
   });
 
   it('disables the Publish button when publishDisabled prop is true', () => {
@@ -224,7 +224,7 @@ describe('EditorToolbar', () => {
     });
 
     const publishBtn = container.querySelector(
-      '.btn--publish',
+      '.btn--primary',
     ) as HTMLButtonElement;
     expect(publishBtn?.disabled).toBe(true);
   });
@@ -242,7 +242,7 @@ describe('EditorToolbar', () => {
     });
 
     const publishBtn = container.querySelector(
-      '.btn--publish',
+      '.btn--primary',
     ) as HTMLButtonElement;
     expect(publishBtn?.disabled).toBe(false);
   });
@@ -260,7 +260,7 @@ describe('EditorToolbar', () => {
       },
     });
 
-    await fireEvent.click(container.querySelector('.btn--publish')!);
+    await fireEvent.click(container.querySelector('.btn--primary')!);
     expect(onPublish).toHaveBeenCalledOnce();
   });
 
@@ -280,7 +280,7 @@ describe('EditorToolbar', () => {
       },
     });
 
-    expect(container.querySelector('.btn--delete')).not.toBeNull();
+    expect(container.querySelector('.btn--danger-outline')).not.toBeNull();
   });
 
   it('does not render the Delete Draft button when draftId is null', () => {
@@ -295,7 +295,7 @@ describe('EditorToolbar', () => {
       },
     });
 
-    expect(container.querySelector('.btn--delete')).toBeNull();
+    expect(container.querySelector('.btn--danger-outline')).toBeNull();
   });
 
   it('calls onDelete when the Delete Draft button is clicked', async () => {
@@ -311,7 +311,7 @@ describe('EditorToolbar', () => {
       },
     });
 
-    await fireEvent.click(container.querySelector('.btn--delete')!);
+    await fireEvent.click(container.querySelector('.btn--danger-outline')!);
     expect(onDelete).toHaveBeenCalledOnce();
   });
 });

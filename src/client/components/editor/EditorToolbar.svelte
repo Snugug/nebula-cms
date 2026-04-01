@@ -43,12 +43,16 @@
     </div>
     <div class="toolbar__actions">
       {#if file.draftId}
-        <button class="btn btn--delete" type="button" onclick={onDelete}>
+        <button
+          class="btn btn--danger-outline"
+          type="button"
+          onclick={onDelete}
+        >
           Delete Draft
         </button>
       {/if}
       <button
-        class="btn btn--save"
+        class="btn btn--save-outline"
         type="button"
         disabled={!file.dirty || file.saving}
         onclick={onSave}
@@ -56,7 +60,7 @@
         {file.saving ? 'Saving...' : 'Save'}
       </button>
       <button
-        class="btn btn--publish"
+        class="btn btn--primary"
         type="button"
         disabled={publishDisabled || file.saving}
         onclick={onPublish}
@@ -110,50 +114,8 @@
     gap: 0.5rem;
   }
 
-  /* All buttons share a 1px transparent border so they render at the same optical size */
-  .btn {
-    border: 1px solid transparent;
-    border-radius: 0.25rem;
-    color: var(--cms-fg);
-    cursor: pointer;
-    font-size: 0.875rem;
+  /* Toolbar buttons are compact — scoped parent + global child to override shared .btn padding */
+  .toolbar__actions :global(.btn) {
     padding: 0.25rem 0.75rem;
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-  }
-
-  .btn--save {
-    background: none;
-    border-color: var(--light-teal);
-    color: var(--light-teal);
-
-    &:hover:not(:disabled) {
-      background: var(--light-teal);
-      color: var(--cms-bg);
-    }
-  }
-
-  .btn--publish {
-    background: var(--button-bg, var(--light-green));
-    color: var(--button-color, var(--cms-fg));
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-
-    &:hover:not(:disabled) {
-      background: var(--button-hover-bg, var(--green));
-    }
-  }
-
-  .btn--delete {
-    background: none;
-    border-color: var(--light-red);
-    color: var(--light-red);
-
-    &:hover {
-      background: var(--light-red);
-      color: var(--cms-fg);
-    }
   }
 </style>

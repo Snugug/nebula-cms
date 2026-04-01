@@ -44,6 +44,7 @@
   import './css/reset.css';
   import './css/icons.css';
   import './css/theme.css';
+  import './css/btn.css';
   import BackendPicker from './components/BackendPicker.svelte';
   import AdminSidebar from './components/sidebar/AdminSidebar.svelte';
   import EditorToolbar from './components/editor/EditorToolbar.svelte';

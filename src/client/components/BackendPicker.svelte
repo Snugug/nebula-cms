@@ -40,7 +40,9 @@
 {#if needsReauth}
   <div class="picker">
     <p>This folder requires re-authorization to continue.</p>
-    <button onclick={requestPermission}>Re-authorize folder</button>
+    <button class="btn btn--primary btn--primary-lg" onclick={requestPermission}
+      >Re-authorize folder</button
+    >
   </div>
 {:else}
   <div class="picker">
@@ -50,7 +52,9 @@
       <div class="picker-option">
         <h3>Local Folder</h3>
         <p>Select your project folder on this device.</p>
-        <button onclick={pickDirectory}>Choose project folder</button>
+        <button class="btn btn--primary btn--primary-lg" onclick={pickDirectory}
+          >Choose project folder</button
+        >
       </div>
 
       <div class="picker-option">
@@ -103,7 +107,11 @@
             <span class="field-label">Repository</span>
             <input type="text" bind:value={repo} placeholder="owner/repo" />
           </label>
-          <button type="submit" disabled={!token || !repo || connecting}>
+          <button
+            class="btn btn--primary btn--primary-lg"
+            type="submit"
+            disabled={!token || !repo || connecting}
+          >
             {connecting ? 'Connecting...' : 'Connect'}
           </button>
         </form>
@@ -286,27 +294,6 @@
 
     &::placeholder {
       color: var(--cms-muted);
-    }
-  }
-
-  button {
-    background: var(--button-bg, var(--plum));
-    border: none;
-    border-radius: 0.5rem;
-    color: var(--button-color, var(--cms-fg));
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 0.75rem 1.5rem;
-    text-align: center;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-
-    &:hover {
-      background: var(--button-hover-bg, var(--light-plum));
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
     }
   }
 

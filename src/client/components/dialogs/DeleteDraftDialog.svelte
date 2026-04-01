@@ -27,7 +27,7 @@
     <button class="btn btn--cancel" type="button" onclick={onCancel}
       >Cancel</button
     >
-    <button class="btn btn--delete" type="button" onclick={onConfirm}
+    <button class="btn btn--danger" type="button" onclick={onConfirm}
       >Delete</button
     >
   </div>
@@ -64,32 +64,5 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
-  }
-
-  .btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-    cursor: pointer;
-    border: none;
-    text-align: center;
-  }
-
-  .btn--cancel {
-    background: var(--cms-border);
-    color: var(--cms-fg);
-
-    &:hover {
-      background: var(--cms-muted);
-    }
-  }
-
-  .btn--delete {
-    background: var(--light-red);
-    color: var(--cms-fg);
-
-    &:hover {
-      background: var(--red);
-    }
   }
 </style>
