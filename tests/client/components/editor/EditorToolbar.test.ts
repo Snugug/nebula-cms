@@ -171,7 +171,9 @@ describe('EditorToolbar', () => {
       },
     });
 
-    const saveBtn = container.querySelector('.btn--save-outline') as HTMLButtonElement;
+    const saveBtn = container.querySelector(
+      '.btn--save-outline',
+    ) as HTMLButtonElement;
     expect(saveBtn?.disabled).toBe(true);
   });
 
