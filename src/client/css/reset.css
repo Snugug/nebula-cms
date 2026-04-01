@@ -13,35 +13,47 @@ body {
 
 /* Prevent padding/border from inflating element sizes */
 
-.admin *,
-.admin *::before,
-.admin *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 /* Form elements don't inherit font by default */
 
-.admin input,
-.admin select,
-.admin textarea,
-.admin button {
+input,
+select,
+textarea,
+button {
   font-family: inherit;
 }
 
 /* Reset browser defaults that leak through without a host-page reset */
 
-.admin h1,
-.admin h2,
-.admin h3,
-.admin p,
-.admin ul,
-.admin ol,
-.admin dl {
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl {
   margin: 0;
 }
 
-.admin ul,
-.admin ol {
+ul,
+ol {
   list-style: none;
   padding: 0;
+}
+
+/* Fluid images and videos */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Dialog doesn't inherit font family */
+dialog {
+  font-family: var(--font-family);
 }

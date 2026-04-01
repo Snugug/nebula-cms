@@ -1,7 +1,5 @@
 /*
- * Shared button styles for the admin UI.
- * Classes are unscoped so components can apply them directly.
- * Import after theme.css so token variables are available.
+ * Buttons
  */
 
 /* Base button reset and shared properties */
@@ -56,7 +54,7 @@
 
 .btn--danger {
   background: var(--light-red);
-  color: var(--cms-fg);
+  color: var(--cms-bg);
 
   &:hover {
     background: var(--red);

@@ -9,14 +9,15 @@
 /* Shared tokens that don't change between themes */
 
 :root {
-  --plum: #e03a80;
+  --plum: #dd2270;
   --light-plum: #e8508f;
-  --button-bg: linear-gradient(135deg, #d83333, #f041ff);
+  --button-bg: linear-gradient(135deg, #d83333, var(--plum));
   --button-hover-bg: linear-gradient(135deg, #e04848, #f565ff);
   /* Always light text on the gradient — intentionally not --cms-fg,
      which inverts in light mode and would produce dark-on-gradient */
   --button-color: #e8eaf0;
   --spacing: 2rem;
+  --font-family: system-ui, -apple-system, sans-serif;
 }
 
 /* Dark mode — deep background with rose accent */
@@ -66,10 +67,7 @@
 /* Base styles for the admin shell */
 
 .admin {
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-family);
   background: var(--cms-bg);
   color: var(--cms-fg);
 }
