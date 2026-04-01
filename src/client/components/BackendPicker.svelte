@@ -40,7 +40,9 @@
 {#if needsReauth}
   <div class="picker">
     <p>This folder requires re-authorization to continue.</p>
-    <button onclick={requestPermission}>Re-authorize folder</button>
+    <button class="btn btn--primary btn--primary-lg" onclick={requestPermission}
+      >Re-authorize folder</button
+    >
   </div>
 {:else}
   <div class="picker">
@@ -50,7 +52,9 @@
       <div class="picker-option">
         <h3>Local Folder</h3>
         <p>Select your project folder on this device.</p>
-        <button onclick={pickDirectory}>Choose project folder</button>
+        <button class="btn btn--primary btn--primary-lg" onclick={pickDirectory}
+          >Choose project folder</button
+        >
       </div>
 
       <div class="picker-option">
@@ -103,7 +107,11 @@
             <span class="field-label">Repository</span>
             <input type="text" bind:value={repo} placeholder="owner/repo" />
           </label>
-          <button type="submit" disabled={!token || !repo || connecting}>
+          <button
+            class="btn btn--primary btn--primary-lg"
+            type="submit"
+            disabled={!token || !repo || connecting}
+          >
             {connecting ? 'Connecting...' : 'Connect'}
           </button>
         </form>
@@ -149,7 +157,7 @@
     align-items: start;
     gap: 0.75rem;
     padding: 1.5rem;
-    border: 1px solid var(--dark-grey);
+    border: 1px solid var(--cms-border);
     border-radius: 0.5rem;
     text-align: left;
 
@@ -160,7 +168,7 @@
 
     p {
       font-size: 0.875rem;
-      color: var(--grey);
+      color: var(--cms-muted);
       margin: 0;
     }
 
@@ -186,7 +194,7 @@
     align-items: center;
     gap: 0.25rem;
     font-size: 0.875rem;
-    color: var(--grey);
+    color: var(--cms-muted);
   }
 
   /* Override generic button styles for the inline info icon */
@@ -196,7 +204,7 @@
     background: none;
     border: none;
     border-radius: 0;
-    color: var(--grey);
+    color: var(--cms-muted);
     padding: 0;
     cursor: pointer;
     display: grid;
@@ -208,7 +216,7 @@
 
     &:hover {
       background: none;
-      color: var(--white);
+      color: var(--cms-fg);
     }
   }
 
@@ -219,8 +227,8 @@
     top: anchor(bottom);
     right: anchor(right);
     margin-top: 0.25rem;
-    background: var(--black);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-bg);
+    border: 1px solid var(--cms-border);
     border-radius: 0.25rem;
     padding: 0.5rem 0.75rem;
     max-width: 16rem;
@@ -238,14 +246,14 @@
     }
   }
 
-  /* Higher specificity to override .picker-option p { color: var(--grey) } */
+  /* Higher specificity to override .picker-option p { color: var(--cms-muted) } */
   .pat-tooltip .pat-tooltip-heading {
-    color: var(--white);
+    color: var(--cms-fg);
     margin: 0 0 0.25rem;
     font-size: 0.75rem;
 
     a {
-      color: var(--white);
+      color: var(--cms-fg);
       text-decoration: underline;
     }
   }
@@ -261,51 +269,31 @@
     font-size: 0.75rem;
 
     dt {
-      color: var(--white);
+      color: var(--cms-fg);
       font-weight: 600;
     }
 
     dd {
       margin: 0;
-      color: var(--white);
+      color: var(--cms-fg);
     }
   }
 
   .pat-note {
-    color: var(--grey);
+    color: var(--cms-muted);
   }
 
   input {
     width: 100%;
     padding: 0.5rem 0.75rem;
-    background: var(--black);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-bg);
+    border: 1px solid var(--cms-border);
     border-radius: 0.25rem;
-    color: var(--white);
+    color: var(--cms-fg);
     font-size: 0.875rem;
 
     &::placeholder {
-      color: var(--grey);
-    }
-  }
-
-  button {
-    background: var(--plum);
-    border: none;
-    border-radius: 0.5rem;
-    color: var(--white);
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 0.75rem 1.5rem;
-    text-align: center;
-
-    &:hover {
-      background: var(--light-plum);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+      color: var(--cms-muted);
     }
   }
 

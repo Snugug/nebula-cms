@@ -40,7 +40,11 @@
     buildActiveFileHref,
   } from './js/handlers/admin';
   import { stripExtension, getTypeForFilename } from './js/utils/file-types';
+  import { initTheme, theme } from './js/state/theme.svelte';
+  import './css/reset.css';
   import './css/icons.css';
+  import './css/theme.css';
+  import './css/btn.css';
   import BackendPicker from './components/BackendPicker.svelte';
   import AdminSidebar from './components/sidebar/AdminSidebar.svelte';
   import EditorToolbar from './components/editor/EditorToolbar.svelte';
@@ -138,6 +142,11 @@
   let showFilenameDialog = $state(false);
   let showDeleteDialog = $state(false);
 
+  // Sync the resolved theme to :root so top-layer elements (dialogs) inherit the tokens
+  $effect(() => {
+    document.documentElement.dataset.theme = theme.resolved;
+  });
+
   // Trigger collection loading when route changes to a collection, file, or draft view
   $effect(() => {
     if (ready && currentRoute.view !== 'home') {
@@ -222,9 +231,11 @@
   }
 
   onMount(() => {
+    const cleanupTheme = initTheme();
     initRouter(config?.basePath);
     restoreBackend();
     prefetchAllSchemas();
+    return cleanupTheme;
   });
 </script>
 
@@ -333,7 +344,7 @@
     /* FormatSelector is conditionally rendered between tabs and content; grid-template-rows uses auto for all header rows and 1fr for the scrollable content area */
     grid-template-rows: auto auto auto 1fr;
     overflow: hidden;
-    border-left: 1px solid var(--dark-grey);
+    border-left: 1px solid var(--cms-border);
   }
 
   /* Scrollable content area; min-height: 0 allows the 1fr grid row to shrink */

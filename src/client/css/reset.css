@@ -1,0 +1,59 @@
+/*
+ * Global CSS reset scoped to the .admin root element.
+ * Normalizes browser defaults that leak through when the CMS is embedded
+ * in a host page without its own reset. Imported before icons and theme
+ * so that resets are in place before any styled content renders.
+ */
+
+/* Remove default body margin so the admin fills its container edge-to-edge */
+
+body {
+  margin: 0;
+}
+
+/* Prevent padding/border from inflating element sizes */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Form elements don't inherit font by default */
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+/* Reset browser defaults that leak through without a host-page reset */
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl {
+  margin: 0;
+}
+
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+}
+
+/* Fluid images and videos */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Dialog doesn't inherit font family */
+dialog {
+  font-family: var(--font-family);
+}

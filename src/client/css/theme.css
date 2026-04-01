@@ -1,0 +1,73 @@
+/*
+ * Theme definitions for nebula-cms.
+ * Provides CSS custom properties for both light and dark modes.
+ * Variables are defined on :root so that top-layer elements (dialogs
+ * opened with showModal()) inherit them. The resolved theme is applied
+ * via a data-theme attribute on document.documentElement.
+ */
+
+/* Shared tokens that don't change between themes */
+
+:root {
+  --plum: #dd2270;
+  --light-plum: #e8508f;
+  --button-bg: linear-gradient(135deg, #d83333, var(--plum));
+  --button-hover-bg: linear-gradient(135deg, #e04848, #f565ff);
+  /* Always light text on the gradient — intentionally not --cms-fg,
+     which inverts in light mode and would produce dark-on-gradient */
+  --button-color: #e8eaf0;
+  --spacing: 2rem;
+  --font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Dark mode — deep background with rose accent */
+
+:root[data-theme='dark'] {
+  --cms-bg: rgb(13, 15, 20);
+  --cms-surface: #151720;
+  --cms-border: #252830;
+  --cms-muted: #8b90a0;
+  --cms-fg: #e8eaf0;
+  --gold: #fbbf24;
+  --light-red: #f87171;
+  --red: #dc2626;
+  --light-green: #34d399;
+  --green: #059669;
+  --light-orange: #fb923c;
+  --light-teal: #5eead4;
+  --light-purple: #e879f9;
+  --editor-caret: #e8eaf0;
+  --editor-active-line: rgba(224, 58, 128, 0.1);
+  color-scheme: dark;
+}
+
+/* Light mode — white background, same accent.
+   Variable names are functional roles (--cms-bg = page background,
+   --cms-fg = body text), not literal colors. */
+
+:root[data-theme='light'] {
+  --cms-bg: #ffffff;
+  --cms-surface: #f8f5f7;
+  --cms-border: #ddd5da;
+  --cms-muted: #6e6870;
+  --cms-fg: #1e1a1c;
+  --gold: #b45309;
+  --light-red: #dc2626;
+  --red: #b91c1c;
+  --light-green: #059669;
+  --green: #047857;
+  --light-orange: #c2410c;
+  --light-teal: #0f766e;
+  --light-purple: #a21caf;
+  --editor-caret: #1e1a1c;
+  --editor-active-line: rgba(224, 58, 128, 0.06);
+  color-scheme: light;
+}
+
+/* Base styles for the admin shell */
+
+.admin {
+  font-family: var(--font-family);
+  background: var(--cms-bg);
+  color: var(--cms-fg);
+}

@@ -284,7 +284,7 @@
 
   .array-field__label {
     font-size: 0.875rem;
-    color: var(--white);
+    color: var(--cms-fg);
     padding: 0;
     margin-bottom: 0.25rem;
   }
@@ -296,7 +296,7 @@
 
   .array-field__empty {
     font-size: 0.75rem;
-    color: var(--grey);
+    color: var(--cms-muted);
     margin: 0;
   }
 
@@ -306,10 +306,10 @@
   }
 
   .array-field__add {
-    border: 1px dashed var(--dark-grey);
+    border: 1px dashed var(--cms-border);
     border-radius: 4px;
     background: none;
-    color: var(--grey);
+    color: var(--cms-muted);
     cursor: pointer;
     font-size: 0.875rem;
     padding: 0.5rem;
@@ -317,8 +317,8 @@
     width: 100%;
 
     &:hover:not(:disabled) {
-      border-color: var(--white);
-      color: var(--white);
+      border-color: var(--cms-fg);
+      color: var(--cms-fg);
     }
 
     &:disabled {

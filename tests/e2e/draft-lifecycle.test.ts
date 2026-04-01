@@ -155,6 +155,12 @@ vi.mock('../../src/client/js/drafts/merge.svelte', () => ({
   resetDraftMerge: vi.fn(),
 }));
 
+vi.mock('../../src/client/js/state/theme.svelte', () => ({
+  initTheme: vi.fn(() => () => {}),
+  cycleTheme: vi.fn(),
+  theme: { resolved: 'dark', icon: 'brightness_auto', label: 'Auto' },
+}));
+
 import Admin from '../../src/client/Admin.svelte';
 
 afterEach(() => cleanup());
@@ -212,7 +218,7 @@ describe('Draft Lifecycle', () => {
 
     const { container } = render(Admin);
 
-    const saveBtn = container.querySelector('.editor-area .btn--save');
+    const saveBtn = container.querySelector('.editor-area .btn--save-outline');
     expect(saveBtn).not.toBeNull();
 
     if (saveBtn) await fireEvent.click(saveBtn);

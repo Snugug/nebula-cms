@@ -34,11 +34,11 @@
 
   .chip--draft {
     background: var(--gold);
-    color: var(--black);
+    color: var(--cms-bg);
   }
 
   .chip--outdated {
     background: var(--light-red);
-    color: var(--white);
+    color: var(--cms-fg);
   }
 </style>

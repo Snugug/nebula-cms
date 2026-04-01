@@ -10,6 +10,7 @@
   import { navigate, adminPath } from '../../js/state/router.svelte';
   import { saveDraft } from '../../js/drafts/storage';
   import { refreshDrafts, disconnect } from '../../js/state/state.svelte';
+  import ThemeToggle from '../ThemeToggle.svelte';
 
   export type { SidebarItem };
 
@@ -178,6 +179,7 @@
         <span class="material-symbols-outlined">logout</span>
         <span>Log out</span>
       </button>
+      <ThemeToggle />
     </div>
   {/if}
 </nav>
@@ -187,7 +189,7 @@
     display: grid;
     grid-template-rows: auto 1fr auto;
     height: 100dvh;
-    border-right: 1px solid var(--dark-grey);
+    border-right: 1px solid var(--cms-border);
     position: sticky;
     top: 0;
   }
@@ -200,7 +202,7 @@
     font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--grey);
+    color: var(--cms-muted);
     margin-bottom: 0;
   }
 
@@ -218,14 +220,14 @@
   .search-input {
     width: 100%;
     padding: 0.25rem 0.5rem;
-    background: var(--black);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-bg);
+    border: 1px solid var(--cms-border);
     border-radius: 0.25rem;
-    color: var(--white);
+    color: var(--cms-fg);
     font-size: 0.875rem;
 
     &::placeholder {
-      color: var(--grey);
+      color: var(--cms-muted);
     }
   }
 
@@ -235,7 +237,7 @@
   }
 
   .status {
-    color: var(--grey);
+    color: var(--cms-muted);
     font-size: 0.875rem;
     padding: 0.5rem 0.75rem;
   }
@@ -251,26 +253,34 @@
   .sidebar-link {
     display: block;
     padding: 0.5rem 1rem;
-    color: var(--white);
+    color: var(--cms-fg);
     text-decoration: none;
     font-size: 1rem;
     /* Override global link box-shadow underline — sidebar items use background highlight instead */
     box-shadow: none;
 
     &:hover {
-      background: var(--dark-grey);
+      background: var(--cms-border);
     }
 
-    /* Active highlight extends to sidebar edges with no border-radius */
+    /* Active highlight extends to sidebar edges with no border-radius.
+       Text is always white — --plum lacks sufficient contrast with
+       both --cms-fg values (light-on-pink and dark-on-pink both fail WCAG AA). */
     &[aria-current='page'] {
       background: var(--plum);
+      color: #fff;
+
+      .item-subtitle {
+        color: #fff;
+        opacity: 0.75;
+      }
     }
   }
 
   .item-subtitle {
     display: block;
     font-size: 0.75rem;
-    color: var(--grey);
+    color: var(--cms-muted);
     margin-top: 0.25rem;
   }
 
@@ -284,14 +294,18 @@
   .add-btn {
     background: none;
     border: none;
-    color: var(--grey);
+    color: var(--cms-muted);
     padding: 0;
     cursor: pointer;
     display: grid;
     place-items: center;
 
     &:hover {
-      color: var(--white);
+      color: var(--cms-fg);
+    }
+
+    .material-symbols-outlined {
+      font-size: 1rem;
     }
   }
 
@@ -309,7 +323,10 @@
   }
 
   .sidebar-footer {
-    border-top: 1px solid var(--dark-grey);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    border-top: 1px solid var(--cms-border);
     padding: 0.75rem 1rem;
   }
 
@@ -317,17 +334,16 @@
   .logout-btn {
     background: none;
     border: none;
-    color: var(--grey);
+    color: var(--cms-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
     padding: 0.25rem 0;
-    width: 100%;
 
     &:hover {
-      color: var(--white);
+      color: var(--cms-fg);
     }
   }
 </style>

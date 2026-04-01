@@ -40,21 +40,21 @@
     gap: 0.5rem;
     align-items: center;
     padding: 0.25rem 1rem;
-    border-bottom: 1px solid var(--dark-grey);
+    border-bottom: 1px solid var(--cms-border);
   }
 
   .format-selector__label {
     font-size: 0.875rem;
-    color: var(--grey);
+    color: var(--cms-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .format-selector__select {
-    background: var(--black);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-bg);
+    border: 1px solid var(--cms-border);
     border-radius: 0.25rem;
-    color: var(--white);
+    color: var(--cms-fg);
     font-size: 0.875rem;
     padding: 0.25rem 0.5rem;
     max-width: 10rem;

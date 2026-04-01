@@ -39,6 +39,14 @@ vi.mock('../../../../src/client/js/drafts/storage', () => ({
 vi.mock('../../../../src/client/js/state/state.svelte', () => ({
   reloadCollection: vi.fn(),
   disconnect: vi.fn(),
+  refreshDrafts: vi.fn(() => Promise.resolve()),
+}));
+
+// Theme state mock — prevents localStorage/matchMedia access in jsdom
+vi.mock('../../../../src/client/js/state/theme.svelte', () => ({
+  initTheme: vi.fn(() => () => {}),
+  cycleTheme: vi.fn(),
+  theme: { resolved: 'dark', icon: 'brightness_auto', label: 'Auto' },
 }));
 
 // Prevent accumulated renders from bleeding between tests

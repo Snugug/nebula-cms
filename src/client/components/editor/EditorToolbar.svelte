@@ -43,12 +43,16 @@
     </div>
     <div class="toolbar__actions">
       {#if file.draftId}
-        <button class="btn btn--delete" type="button" onclick={onDelete}>
+        <button
+          class="btn btn--danger-outline"
+          type="button"
+          onclick={onDelete}
+        >
           Delete Draft
         </button>
       {/if}
       <button
-        class="btn btn--save"
+        class="btn btn--save-outline"
         type="button"
         disabled={!file.dirty || file.saving}
         onclick={onSave}
@@ -56,7 +60,7 @@
         {file.saving ? 'Saving...' : 'Save'}
       </button>
       <button
-        class="btn btn--publish"
+        class="btn btn--primary"
         type="button"
         disabled={publishDisabled || file.saving}
         onclick={onPublish}
@@ -73,7 +77,7 @@
     grid-template-columns: 1fr auto;
     align-items: center;
     padding: 0.5rem 1rem;
-    border-bottom: 1px solid var(--dark-grey);
+    border-bottom: 1px solid var(--cms-border);
   }
 
   .toolbar__info {
@@ -83,12 +87,12 @@
   .toolbar__title {
     font-size: 1rem;
     font-weight: normal;
-    color: var(--white);
+    color: var(--cms-fg);
   }
 
   .toolbar__filename {
     font-size: 0.75rem;
-    color: var(--grey);
+    color: var(--cms-muted);
   }
 
   /* Always rendered to reserve space and prevent layout shift when toggling */
@@ -110,45 +114,8 @@
     gap: 0.5rem;
   }
 
-  .btn {
-    border: none;
-    border-radius: 0.25rem;
-    color: var(--white);
-    cursor: pointer;
-    font-size: 0.875rem;
+  /* Toolbar buttons are compact — scoped parent + global child to override shared .btn padding */
+  .toolbar__actions :global(.btn) {
     padding: 0.25rem 0.75rem;
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-  }
-
-  .btn--save {
-    background: var(--plum);
-
-    &:hover:not(:disabled) {
-      background: var(--light-plum);
-    }
-  }
-
-  .btn--publish {
-    background: var(--light-green);
-    color: var(--black);
-
-    &:hover:not(:disabled) {
-      background: var(--green);
-    }
-  }
-
-  .btn--delete {
-    background: none;
-    border: 1px solid var(--light-red);
-    color: var(--light-red);
-
-    &:hover {
-      background: var(--light-red);
-      color: var(--white);
-    }
   }
 </style>

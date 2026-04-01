@@ -154,6 +154,12 @@ vi.mock('../../src/client/js/drafts/merge.svelte', () => ({
   resetDraftMerge: vi.fn(),
 }));
 
+vi.mock('../../src/client/js/state/theme.svelte', () => ({
+  initTheme: vi.fn(() => () => {}),
+  cycleTheme: vi.fn(),
+  theme: { resolved: 'dark', icon: 'brightness_auto', label: 'Auto' },
+}));
+
 import Admin from '../../src/client/Admin.svelte';
 
 afterEach(() => cleanup());

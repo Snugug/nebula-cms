@@ -45,7 +45,6 @@
 <button
   class="sort-btn"
   title={SORT_MODES[sortMode].label}
-  interestfor={popoverId}
   commandfor={popoverId}
   command="toggle-popover"
 >
@@ -79,17 +78,16 @@
 
   .sort-btn {
     anchor-name: --sort-btn;
-    interest-delay: 0s;
     background: none;
     border: none;
-    color: var(--grey);
+    color: var(--cms-muted);
     padding: 0;
     cursor: pointer;
     display: grid;
     place-items: center;
 
     &:hover {
-      color: var(--white);
+      color: var(--cms-fg);
     }
   }
 
@@ -101,22 +99,12 @@
     top: anchor(bottom);
     right: anchor(right);
     margin-top: 0.25rem;
-    background: var(--dark-grey);
-    border: 1px solid var(--grey);
+    background: var(--cms-border);
+    border: 1px solid var(--cms-muted);
     border-radius: 0.25rem;
     padding: 0.25rem;
     /* Prevent width from changing when popover content changes */
     min-width: 10rem;
-
-    /* Invisible bridge between the sort button and popover so hover interest isn't broken by the gap */
-    &::before {
-      content: '';
-      position: absolute;
-      bottom: 100%;
-      left: 0;
-      right: 0;
-      height: 0.25rem;
-    }
 
     &:popover-open {
       display: grid;
@@ -133,13 +121,14 @@
     border-radius: 0.25rem;
     cursor: pointer;
     font-size: 0.875rem;
-    color: var(--white);
+    color: var(--cms-fg);
     background: none;
     border: none;
     white-space: nowrap;
 
     &:hover {
-      background: var(--grey);
+      background: var(--cms-muted);
+      color: var(--cms-bg);
     }
   }
 </style>

@@ -78,7 +78,7 @@
       >Cancel</button
     >
     <button
-      class="btn btn--confirm"
+      class="btn btn--primary"
       type="button"
       disabled={!!error}
       onclick={handleConfirm}>Confirm</button
@@ -88,9 +88,9 @@
 
 <style>
   .filename-dialog {
-    background: var(--near-black);
-    color: var(--white);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-surface);
+    color: var(--cms-fg);
+    border: 1px solid var(--cms-border);
     border-radius: 0.5rem;
     padding: 1.5rem;
     min-width: 20rem;
@@ -117,15 +117,15 @@
   .slug-input {
     width: 100%;
     padding: 0.5rem;
-    background: var(--black);
-    border: 1px solid var(--dark-grey);
+    background: var(--cms-bg);
+    border: 1px solid var(--cms-border);
     border-radius: 0.25rem;
-    color: var(--white);
+    color: var(--cms-fg);
     font-size: 1rem;
   }
 
   .extension {
-    color: var(--grey);
+    color: var(--cms-muted);
     font-size: 1rem;
   }
 
@@ -140,36 +140,5 @@
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
     margin-top: 1.25rem;
-  }
-
-  .btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-    cursor: pointer;
-    border: none;
-  }
-
-  .btn--cancel {
-    background: var(--dark-grey);
-    color: var(--white);
-
-    &:hover {
-      background: var(--grey);
-    }
-  }
-
-  .btn--confirm {
-    background: var(--plum);
-    color: var(--white);
-
-    &:hover:not(:disabled) {
-      background: var(--light-plum);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
   }
 </style>

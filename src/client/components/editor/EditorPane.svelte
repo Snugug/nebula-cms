@@ -25,37 +25,37 @@
       tag: t.heading1,
       fontSize: '1.5rem',
       fontWeight: 'bold',
-      color: 'var(--white)',
+      color: 'var(--cms-fg)',
     },
     {
       tag: t.heading2,
       fontSize: '1.25rem',
       fontWeight: 'bold',
-      color: 'var(--white)',
+      color: 'var(--cms-fg)',
     },
     {
       tag: t.heading3,
       fontSize: '1rem',
       fontWeight: 'bold',
-      color: 'var(--white)',
+      color: 'var(--cms-fg)',
     },
     // Emphasis
-    { tag: t.strong, fontWeight: 'bold', color: 'var(--white)' },
-    { tag: t.emphasis, fontStyle: 'italic', color: 'var(--white)' },
+    { tag: t.strong, fontWeight: 'bold', color: 'var(--cms-fg)' },
+    { tag: t.emphasis, fontStyle: 'italic', color: 'var(--cms-fg)' },
     // Inline code
     { tag: t.monospace, color: 'var(--light-orange)' },
     // Links
     { tag: t.link, color: 'var(--light-teal)', textDecoration: 'underline' },
     { tag: t.url, color: 'var(--light-green)' },
     // Syntax markers — dimmed
-    { tag: t.processingInstruction, color: 'var(--grey)' },
+    { tag: t.processingInstruction, color: 'var(--cms-muted)' },
     { tag: t.labelName, color: 'var(--light-teal)' },
     // Code block language tag
     { tag: t.tagName, color: 'var(--light-purple)' },
     // Lists
     { tag: t.list, color: 'var(--light-teal)' },
     // Blockquotes
-    { tag: t.quote, color: 'var(--grey)', fontStyle: 'italic' },
+    { tag: t.quote, color: 'var(--cms-muted)', fontStyle: 'italic' },
     // Code block contents — language-specific highlighting
     { tag: t.keyword, color: 'var(--light-plum)' },
     { tag: t.string, color: 'var(--light-orange)' },
@@ -64,10 +64,10 @@
     { tag: t.typeName, color: 'var(--light-green)' },
     { tag: t.number, color: 'var(--light-purple)' },
     { tag: t.bool, color: 'var(--light-purple)' },
-    { tag: t.comment, color: 'var(--grey)', fontStyle: 'italic' },
+    { tag: t.comment, color: 'var(--cms-muted)', fontStyle: 'italic' },
     { tag: t.operator, color: 'var(--light-red)' },
-    { tag: t.punctuation, color: 'var(--grey)' },
-    { tag: t.meta, color: 'var(--grey)' },
+    { tag: t.punctuation, color: 'var(--cms-muted)' },
+    { tag: t.meta, color: 'var(--cms-muted)' },
   ]);
 
   // Base editor theme matching the admin color scheme
@@ -197,7 +197,7 @@
   }
 
   .editor-box {
-    border: 1px solid var(--dark-grey);
+    border: 1px solid var(--cms-border);
     border-radius: 4px;
     overflow: hidden;
     /* Subtract the toolbar, tabs, and wrapper padding from viewport height. */
