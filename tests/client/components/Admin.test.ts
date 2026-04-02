@@ -13,9 +13,11 @@ import Admin from '../../../src/client/Admin.svelte';
  * inside a factory must itself be declared via vi.hoisted to avoid TDZ errors.
  */
 
+/*
 //////////////////////////////
 // Hoisted mock functions
 //////////////////////////////
+*/
 
 const {
   mockBackendReady,
@@ -58,9 +60,11 @@ const {
   mockComputePublishDisabled: vi.fn(() => false),
 }));
 
+/*
 //////////////////////////////
 // Module mocks
 //////////////////////////////
+*/
 
 vi.mock('../../../src/client/js/state/state.svelte', () => ({
   backend: {
@@ -221,9 +225,11 @@ beforeEach(() => {
 });
 
 describe('Admin', () => {
+  /*
   //////////////////////////////
   // Not ready — BackendPicker
   //////////////////////////////
+  */
 
   it('renders BackendPicker when backend is not ready', () => {
     mockBackendReady.mockReturnValue(false);
@@ -244,9 +250,11 @@ describe('Admin', () => {
     expect(container.querySelector('.sidebar')).toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Ready, home view — collections sidebar only
   //////////////////////////////
+  */
 
   it('renders the collections sidebar when ready at home view', () => {
     mockBackendReady.mockReturnValue(true);
@@ -280,9 +288,11 @@ describe('Admin', () => {
     expect(container.querySelector('.editor-area')).toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Ready, collection view — both sidebars
   //////////////////////////////
+  */
 
   it('renders both sidebars when a collection is selected', () => {
     mockBackendReady.mockReturnValue(true);
@@ -313,9 +323,11 @@ describe('Admin', () => {
     expect(container.querySelector('.editor-area')).toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Ready, file view — editor area rendered
   //////////////////////////////
+  */
 
   it('renders the editor area when a file is open', () => {
     mockBackendReady.mockReturnValue(true);
@@ -369,9 +381,11 @@ describe('Admin', () => {
     expect(container.querySelector('.editor-area')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Ready, draft view — editor area rendered
   //////////////////////////////
+  */
 
   it('renders the editor area when a draft is open', () => {
     mockBackendReady.mockReturnValue(true);
@@ -398,9 +412,11 @@ describe('Admin', () => {
     expect(container.querySelector('.editor-area')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // admin CSS class states
   //////////////////////////////
+  */
 
   it('adds admin--connected class when backend is ready', () => {
     mockBackendReady.mockReturnValue(true);

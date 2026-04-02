@@ -14,9 +14,11 @@ afterEach(() => cleanup());
 describe('EnumField', () => {
   const options = ['draft', 'published', 'archived'];
 
+  /*
   //////////////////////////////
   // Label rendering
   //////////////////////////////
+  */
 
   it('renders a label derived from the name', () => {
     const { container } = render(EnumField, {
@@ -61,9 +63,11 @@ describe('EnumField', () => {
     expect(container.querySelector('.field-required')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Options rendering
   //////////////////////////////
+  */
 
   it('renders all provided options', () => {
     const { container } = render(EnumField, {
@@ -142,9 +146,11 @@ describe('EnumField', () => {
     expect(optionEls.some((o) => o.value === '')).toBe(false);
   });
 
+  /*
   //////////////////////////////
   // onChange behavior
   //////////////////////////////
+  */
 
   it('calls onchange with the selected string value', async () => {
     const onchange = vi.fn();
@@ -203,9 +209,11 @@ describe('EnumField', () => {
     expect(onchange).toHaveBeenCalledWith('');
   });
 
+  /*
   //////////////////////////////
   // Deprecated / read-only
   //////////////////////////////
+  */
 
   it('applies the deprecated class when schema.deprecated is true', () => {
     const { container } = render(EnumField, {

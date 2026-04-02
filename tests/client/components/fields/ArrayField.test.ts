@@ -14,9 +14,11 @@ afterEach(() => cleanup());
 describe('ArrayField', () => {
   const stringItemSchema = { type: 'string' };
 
+  /*
   //////////////////////////////
   // Label rendering
   //////////////////////////////
+  */
 
   it('renders a legend derived from the name', () => {
     const { container } = render(ArrayField, {
@@ -62,9 +64,11 @@ describe('ArrayField', () => {
     expect(container.querySelector('.array-field__required')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Empty state
   //////////////////////////////
+  */
 
   it('renders "No items" when the array is empty', () => {
     const { container } = render(ArrayField, {
@@ -92,9 +96,11 @@ describe('ArrayField', () => {
     expect(within(container).queryByText('No items')).toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Add item
   //////////////////////////////
+  */
 
   it('renders an "Add item" button', () => {
     const { container } = render(ArrayField, {
@@ -147,9 +153,11 @@ describe('ArrayField', () => {
     expect(addBtn.disabled).toBe(true);
   });
 
+  /*
   //////////////////////////////
   // Remove item
   //////////////////////////////
+  */
 
   it('calls onchange without the removed item when Remove is clicked', async () => {
     const onchange = vi.fn();

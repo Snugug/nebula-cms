@@ -38,9 +38,11 @@ interface StringifyMessage {
 // Union of all inbound message types.
 type InboundMessage = ParseMessage | ParseBatchMessage | StringifyMessage;
 
+/*
 //////////////////////////////
 // Message handler
 //////////////////////////////
+*/
 
 /**
  * Handles a single YAML parse request. Parses the provided content string

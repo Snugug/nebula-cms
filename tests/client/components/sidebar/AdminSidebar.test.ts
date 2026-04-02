@@ -49,9 +49,11 @@ const sampleItems = [
 ];
 
 describe('AdminSidebar', () => {
+  /*
   //////////////////////////////
   // Item list rendering
   //////////////////////////////
+  */
 
   it('renders all provided items as links', () => {
     const { container } = render(AdminSidebar, {
@@ -109,9 +111,11 @@ describe('AdminSidebar', () => {
     );
   });
 
+  /*
   //////////////////////////////
   // Active item
   //////////////////////////////
+  */
 
   it('sets aria-current="page" on the active item link', () => {
     const { container } = render(AdminSidebar, {
@@ -148,9 +152,11 @@ describe('AdminSidebar', () => {
     }
   });
 
+  /*
   //////////////////////////////
   // Search filtering
   //////////////////////////////
+  */
 
   it('filters items when the search input has a value', async () => {
     const { container } = render(AdminSidebar, {
@@ -191,9 +197,11 @@ describe('AdminSidebar', () => {
     );
   });
 
+  /*
   //////////////////////////////
   // showAdd prop
   //////////////////////////////
+  */
 
   it('renders the add button when showAdd is true', () => {
     const { container } = render(AdminSidebar, {
@@ -216,9 +224,11 @@ describe('AdminSidebar', () => {
     expect(container.querySelector('.add-btn')).toBeNull();
   });
 
+  /*
   //////////////////////////////
   // showFooter prop
   //////////////////////////////
+  */
 
   it('renders the footer when showFooter is true', () => {
     const { container } = render(AdminSidebar, {
@@ -245,9 +255,11 @@ describe('AdminSidebar', () => {
     expect(footer?.querySelector('.logout-btn')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Sort controls
   //////////////////////////////
+  */
 
   it('renders the sort control when hasDates is true', () => {
     const { container } = render(AdminSidebar, {

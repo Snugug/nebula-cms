@@ -63,9 +63,11 @@ export interface StorageAdapter {
   writeFiles(files: FileWrite[]): Promise<void>;
 }
 
+/*
 //////////////////////////////
 // Message types for SharedWorker communication
 //////////////////////////////
+*/
 
 // Union of all request messages that can be sent to the storage SharedWorker.
 export type StorageRequest =

@@ -3,9 +3,11 @@ import { EditorSelection, type EditorState } from '@codemirror/state';
 import { EditorView, type KeyBinding } from '@codemirror/view';
 import { isURL } from '../utils/url-utils';
 
+/*
 //////////////////////////////
 // Bracket/Quote Pair Map
 //////////////////////////////
+*/
 
 // Maps opening characters to their closing counterparts for selection wrapping
 const wrapPairs: Record<string, string> = {
@@ -16,9 +18,11 @@ const wrapPairs: Record<string, string> = {
   '"': '"',
 };
 
+/*
 //////////////////////////////
 // Formatting Toggle Helpers
 //////////////////////////////
+*/
 
 /**
  * Finds the innermost syntax tree node of the given type that contains the
@@ -117,9 +121,11 @@ function toggleMarker(
   };
 }
 
+/*
 //////////////////////////////
 // Link Insertion Command
 //////////////////////////////
+*/
 
 /**
  * Inserts a markdown link. With a selection, wraps as [text]() and places the
@@ -157,9 +163,11 @@ function insertLink(view: EditorView): boolean {
   return true;
 }
 
+/*
 //////////////////////////////
 // Keymap Export
 //////////////////////////////
+*/
 
 // Keymap bindings for markdown formatting shortcuts (bold, italic, link)
 export const markdownShortcutsKeymap: KeyBinding[] = [
@@ -168,9 +176,11 @@ export const markdownShortcutsKeymap: KeyBinding[] = [
   { key: 'Mod-k', run: insertLink },
 ];
 
+/*
 //////////////////////////////
 // Smart Paste Handler
 //////////////////////////////
+*/
 
 // Intercepts paste events to wrap selected text as a markdown link when
 // the clipboard contains a URL. Only activates when text is selected.
@@ -196,9 +206,11 @@ const smartPasteHandler = EditorView.domEventHandlers({
   },
 });
 
+/*
 //////////////////////////////
 // Bracket/Quote Wrap Handler
 //////////////////////////////
+*/
 
 // Intercepts single-character input to wrap selected text in matching
 // bracket or quote pairs. Only activates when text is selected and
@@ -228,9 +240,11 @@ const bracketWrapHandler = EditorView.inputHandler.of(
   },
 );
 
+/*
 //////////////////////////////
 // Extensions Export
 //////////////////////////////
+*/
 
 // Non-keymap extensions: smart paste URL handler and bracket/quote wrapping
 export const markdownShortcutsExtensions = [

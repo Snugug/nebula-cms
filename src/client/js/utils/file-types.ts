@@ -54,10 +54,12 @@ export const FILE_TYPES: Record<string, FileTypeConfig> = {
   },
 };
 
+/*
 //////////////////////////////
 // Extension reverse-lookup map
 // Built once at module load for O(1) extension-to-config lookups.
 //////////////////////////////
+*/
 
 // Maps each known extension to its FileTypeConfig.
 const extensionMap = new Map<string, FileTypeConfig>();
@@ -72,9 +74,11 @@ for (const [typeId, config] of Object.entries(FILE_TYPES)) {
   }
 }
 
+/*
 //////////////////////////////
 // Helper: extract extension
 //////////////////////////////
+*/
 
 /**
  * Extracts the last dot-prefixed extension from a filename, or an empty string if none.
@@ -87,9 +91,11 @@ function getExtension(filename: string): string {
   return filename.slice(idx);
 }
 
+/*
 //////////////////////////////
 // Exported helpers
 //////////////////////////////
+*/
 
 /**
  * Resolves a schema's `files` array of type identifiers to a flat list of file extensions.

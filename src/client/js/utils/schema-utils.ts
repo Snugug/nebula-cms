@@ -27,9 +27,11 @@ export type FieldType =
  */
 export type PathSegment = string | number;
 
+/*
 //////////////////////////////
 // resolveFieldType
 //////////////////////////////
+*/
 
 /**
  * Resolves a JSON Schema node to a `FieldType` discriminated union.
@@ -71,9 +73,11 @@ export function resolveFieldType(schema: SchemaNode): FieldType {
   return { kind: 'unknown' };
 }
 
+/*
 //////////////////////////////
 // extractTabs
 //////////////////////////////
+*/
 
 /**
  * Scans an object schema's properties for `tab` arrays and returns a sorted, deduplicated list of all tab names found.
@@ -98,9 +102,11 @@ export function extractTabs(schema: SchemaNode): string[] {
   return Array.from(tabs).sort();
 }
 
+/*
 //////////////////////////////
 // createDefaultValue
 //////////////////////////////
+*/
 
 /**
  * Returns a type-appropriate default value for a given JSON Schema node.
@@ -141,9 +147,11 @@ export function createDefaultValue(schema: SchemaNode): unknown {
   return null;
 }
 
+/*
 //////////////////////////////
 // getByPath
 //////////////////////////////
+*/
 
 /**
  * Reads a deeply nested value from an object by following path segments.
@@ -161,9 +169,11 @@ export function getByPath(obj: unknown, path: PathSegment[]): unknown {
   return current;
 }
 
+/*
 //////////////////////////////
 // setByPath
 //////////////////////////////
+*/
 
 /**
  * Sets a deeply nested value in an object by following path segments, creating intermediate objects as needed.
@@ -193,9 +203,11 @@ export function setByPath(
   current[path[path.length - 1]] = value;
 }
 
+/*
 //////////////////////////////
 // getFieldsForTab
 //////////////////////////////
+*/
 
 /**
  * Returns property names from a schema that belong to the given tab.
@@ -226,9 +238,11 @@ export function getFieldsForTab(
   });
 }
 
+/*
 //////////////////////////////
 // Schema property accessors
 //////////////////////////////
+*/
 
 /**
  * Extracts the `properties` map from a schema node, with a safe cast.

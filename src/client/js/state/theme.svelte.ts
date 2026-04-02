@@ -19,9 +19,11 @@ type ThemeLabel = 'Light' | 'Dark' | 'Auto';
 // localStorage key for persisting the user's preference
 const STORAGE_KEY = 'nebula-theme';
 
+/*
 //////////////////////////////
 // Preference → UI mapping
 //////////////////////////////
+*/
 
 // Single source of truth for all preference-derived UI values.
 // Adding a new preference requires a new entry here — TypeScript
@@ -35,9 +37,11 @@ const THEME_MAP: Record<
   auto: { icon: 'brightness_auto', label: 'Auto' },
 };
 
+/*
 //////////////////////////////
 // Module initialization
 //////////////////////////////
+*/
 
 // Read preference from localStorage at module init to avoid a flash of wrong theme.
 // Safe because this module is only loaded client-side (client:only="svelte").
@@ -67,9 +71,11 @@ let preference = $state<ThemePreference>(
 // Whether the OS prefers dark mode — updated via matchMedia listener
 let systemPrefersDark = $state(mq?.matches ?? false);
 
+/*
 //////////////////////////////
 // Derived state
 //////////////////////////////
+*/
 
 // $derived can only be a variable declaration initializer, not an object
 // property — Svelte compiler restriction. These private derivations feed
@@ -93,9 +99,11 @@ export const theme = {
   },
 };
 
+/*
 //////////////////////////////
 // System preference tracking
 //////////////////////////////
+*/
 
 // Guard against duplicate listener registration (e.g. HMR remount)
 let initialized = false;
@@ -128,9 +136,11 @@ export function initTheme(): () => void {
   };
 }
 
+/*
 //////////////////////////////
 // Actions
 //////////////////////////////
+*/
 
 /**
  * Cycles the preference through auto -> light -> dark -> auto.

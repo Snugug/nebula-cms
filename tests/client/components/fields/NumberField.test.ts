@@ -12,9 +12,11 @@ import NumberField from '../../../../src/client/components/fields/NumberField.sv
 afterEach(() => cleanup());
 
 describe('NumberField', () => {
+  /*
   //////////////////////////////
   // Label rendering
   //////////////////////////////
+  */
 
   it('renders a label derived from the name', () => {
     const { container } = render(NumberField, {
@@ -56,9 +58,11 @@ describe('NumberField', () => {
     expect(container.querySelector('.field-required')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Input rendering and value
   //////////////////////////////
+  */
 
   it('renders a number input with the provided value', () => {
     const { container } = render(NumberField, {
@@ -139,9 +143,11 @@ describe('NumberField', () => {
     expect(within(container).getByText('min 0, max 100')).toBeTruthy();
   });
 
+  /*
   //////////////////////////////
   // onChange behavior
   //////////////////////////////
+  */
 
   it('calls onchange with a parsed float on input', async () => {
     const onchange = vi.fn();
@@ -197,9 +203,11 @@ describe('NumberField', () => {
     expect(onchange).toHaveBeenCalledWith(null);
   });
 
+  /*
   //////////////////////////////
   // Deprecated / read-only
   //////////////////////////////
+  */
 
   it('applies the deprecated class when schema.deprecated is true', () => {
     const { container } = render(NumberField, {

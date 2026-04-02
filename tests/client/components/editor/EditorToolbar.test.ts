@@ -59,9 +59,11 @@ vi.mock('../../../../src/client/js/state/dialogs.svelte', () => ({
 afterEach(() => cleanup());
 
 describe('EditorToolbar', () => {
+  /*
   //////////////////////////////
   // Renders when file is open
   //////////////////////////////
+  */
 
   it('renders the toolbar header when a file is open', () => {
     mockGetEditorFile.mockReturnValue(makeEditorFile());
@@ -79,9 +81,11 @@ describe('EditorToolbar', () => {
     expect(container.querySelector('.toolbar')).toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Title display
   //////////////////////////////
+  */
 
   it('shows the title from formData when present', () => {
     mockGetEditorFile.mockReturnValue(
@@ -117,9 +121,11 @@ describe('EditorToolbar', () => {
     );
   });
 
+  /*
   //////////////////////////////
   // Save button
   //////////////////////////////
+  */
 
   it('renders the Save button', () => {
     mockGetEditorFile.mockReturnValue(makeEditorFile());
@@ -150,9 +156,11 @@ describe('EditorToolbar', () => {
     expect(mockHandleSave).toHaveBeenCalledOnce();
   });
 
+  /*
   //////////////////////////////
   // Publish button
   //////////////////////////////
+  */
 
   it('renders the Publish button', () => {
     mockGetEditorFile.mockReturnValue(makeEditorFile());
@@ -207,9 +215,11 @@ describe('EditorToolbar', () => {
     expect(mockOpenDialog).toHaveBeenCalledWith('filename');
   });
 
+  /*
   //////////////////////////////
   // Delete Draft button
   //////////////////////////////
+  */
 
   it('renders the Delete Draft button when draftId is set', () => {
     mockGetEditorFile.mockReturnValue(

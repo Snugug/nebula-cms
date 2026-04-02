@@ -30,9 +30,11 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
 afterEach(() => cleanup());
 
 describe('EditorPane', () => {
+  /*
   //////////////////////////////
   // DOM structure
   //////////////////////////////
+  */
 
   it('renders the outer wrapper element', () => {
     mockGetEditorFile.mockReturnValue(null);
@@ -55,9 +57,11 @@ describe('EditorPane', () => {
     expect(container.querySelector('.editor-pane')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Mount/unmount without error
   //////////////////////////////
+  */
 
   it('mounts without error when no file is open', () => {
     mockGetEditorFile.mockReturnValue(null);

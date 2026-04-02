@@ -12,9 +12,11 @@ import DateField from '../../../../src/client/components/fields/DateField.svelte
 afterEach(() => cleanup());
 
 describe('DateField', () => {
+  /*
   //////////////////////////////
   // Label rendering
   //////////////////////////////
+  */
 
   it('renders a label derived from the name', () => {
     const { container } = render(DateField, {
@@ -56,9 +58,11 @@ describe('DateField', () => {
     expect(container.querySelector('.field-required')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Input value coercion
   //////////////////////////////
+  */
 
   it('renders an empty input when value is empty string', () => {
     const { container } = render(DateField, {
@@ -112,9 +116,11 @@ describe('DateField', () => {
     expect(input.value).toBe('2024-06-01');
   });
 
+  /*
   //////////////////////////////
   // onChange behavior
   //////////////////////////////
+  */
 
   it('calls onchange with the raw date string on input', async () => {
     const onchange = vi.fn();
@@ -167,9 +173,11 @@ describe('DateField', () => {
     expect(onchange).toHaveBeenCalledWith('');
   });
 
+  /*
   //////////////////////////////
   // Deprecated / read-only
   //////////////////////////////
+  */
 
   it('applies the deprecated class when schema.deprecated is true', () => {
     const { container } = render(DateField, {

@@ -23,9 +23,11 @@ beforeEach(() => {
 });
 
 describe('AdminSidebarSort', () => {
+  /*
   //////////////////////////////
   // Initial render
   //////////////////////////////
+  */
 
   it('renders the sort button with the active mode icon', () => {
     const { container } = render(AdminSidebarSort, {
@@ -64,9 +66,11 @@ describe('AdminSidebarSort', () => {
     expect(hasDateAsc).toBe(false);
   });
 
+  /*
   //////////////////////////////
   // Sort option click
   //////////////////////////////
+  */
 
   it('calls writeSortMode with the selected mode and storageKey when a popover option is clicked', async () => {
     const { writeSortMode } =
@@ -105,9 +109,11 @@ describe('AdminSidebarSort', () => {
     expect(writeMock).not.toHaveBeenCalled();
   });
 
+  /*
   //////////////////////////////
   // Popover ID
   //////////////////////////////
+  */
 
   it('uses the storageKey in the popover element ID', () => {
     const { container } = render(AdminSidebarSort, {
