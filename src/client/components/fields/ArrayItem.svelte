@@ -95,7 +95,7 @@
     aria-label="Move item up"
     disabled={isFirst}
     onclick={() => onmoveup(index)}
-    ><span class="material-symbols-outlined">arrow_upward</span></button
+    ><span class="icon">arrow_upward</span></button
   >
   <button
     class="array-item__btn"
@@ -103,15 +103,14 @@
     aria-label="Move item down"
     disabled={isLast}
     onclick={() => onmovedown(index)}
-    ><span class="material-symbols-outlined">arrow_downward</span></button
+    ><span class="icon">arrow_downward</span></button
   >
   <button
     class="array-item__btn array-item__btn--remove"
     type="button"
     aria-label="Remove item"
     disabled={!canRemove}
-    onclick={() => onremove(index)}
-    ><span class="material-symbols-outlined">close</span></button
+    onclick={() => onremove(index)}><span class="icon">close</span></button
   >
 {/snippet}
 
@@ -132,8 +131,7 @@
       <span
         class="array-item__drag-handle"
         aria-hidden="true"
-        title="Drag to reorder"
-        ><span class="material-symbols-outlined">drag_indicator</span></span
+        title="Drag to reorder"><span class="icon">drag_indicator</span></span
       >
       <button
         class="array-item__btn"
@@ -142,7 +140,7 @@
         onclick={() => ontogglecollapse(index)}
       >
         <span
-          class="material-symbols-outlined array-item__collapse-icon"
+          class="icon array-item__collapse-icon"
           class:array-item__collapse-icon--collapsed={collapsed}
           >chevron_right</span
         >
@@ -183,8 +181,7 @@
       <span
         class="array-item__drag-handle"
         aria-hidden="true"
-        title="Drag to reorder"
-        ><span class="material-symbols-outlined">drag_indicator</span></span
+        title="Drag to reorder"><span class="icon">drag_indicator</span></span
       >
       <!-- Inline input with aria-label only, no visible label -->
       <div class="array-item__inline-field">
@@ -253,7 +250,7 @@
   }
 
   /* Consistent icon size for all Material Symbols in array items */
-  .material-symbols-outlined {
+  .icon {
     font-size: 1.25rem;
     /* Ensure vertical centering in flex row */
     display: grid;
@@ -261,7 +258,7 @@
   }
 
   /* Smaller icons for action buttons (arrows + close) */
-  .array-item__btn .material-symbols-outlined {
+  .array-item__btn .icon {
     font-size: 1rem;
   }
 

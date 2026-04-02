@@ -48,7 +48,7 @@
   commandfor={popoverId}
   command="toggle-popover"
 >
-  <span class="material-symbols-outlined">
+  <span class="icon">
     {SORT_MODES[sortMode].icon}
   </span>
 </button>
@@ -62,7 +62,7 @@
         popoverEl?.hidePopover();
       }}
     >
-      <span class="material-symbols-outlined">
+      <span class="icon">
         {SORT_MODES[mode].icon}
       </span>
       {SORT_MODES[mode].label}
@@ -72,7 +72,7 @@
 
 <style>
   /* Shared icon size for sort button and popover options */
-  .material-symbols-outlined {
+  .icon {
     font-size: 1.25rem;
   }
 

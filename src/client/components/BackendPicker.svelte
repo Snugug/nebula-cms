@@ -76,7 +76,7 @@
                 commandfor="pat-info"
                 command="toggle-popover"
               >
-                <span class="material-symbols-outlined">info</span>
+                <span class="icon">info</span>
               </button>
             </span>
             <input type="password" bind:value={token} placeholder="ghp_..." />
@@ -202,7 +202,7 @@
     interest-delay: 0s;
     border-radius: 0;
 
-    .material-symbols-outlined {
+    .icon {
       font-size: 1rem;
     }
   }
