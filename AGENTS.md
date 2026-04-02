@@ -74,7 +74,7 @@ Prefer CSS Grid to Flexbox unless you need the specific characteristics of flexb
 
 ### `:global` Usage Policy
 
-`:global` escapes Svelte's scoped CSS. Most uses indicate styles that should be in a global SCSS partial instead. Only use `:global` when scoped CSS physically cannot reach the target element.
+`:global` escapes Svelte's scoped CSS. Most uses indicate styles that should be in a global CSS file instead. Only use `:global` when scoped CSS physically cannot reach the target element.
 
 - **Top-layer rendering** — Elements using the Popover API or `<dialog>` render in the browser's top layer, outside the component DOM where scoped CSS cannot reach
 - **Scoped parent + global child** — Combining a scoped parent selector with a `:global` child when the child is library-generated (e.g. `.lexical-editor--readonly :global([contenteditable='false'])`)
@@ -82,8 +82,8 @@ Prefer CSS Grid to Flexbox unless you need the specific characteristics of flexb
 **Not allowed:**
 
 - **Convenience** — If a style could be a global partial or scoped class, don't use `:global`
-- **Shared/reusable styles** — Move to `src/css` (e.g. `input.css`, `utilities.css`)
-- **Utility classes** — Add to `src/css/utilities.css`
+- **Shared/reusable styles** — Move to `src/client/css` (e.g. `input.css`, `utilities.css`)
+- **Utility classes** — Add to `src/client/css/utilities.css`
 - **Portal-rendered content** — Refactor to Svelte-rendered markup with scoped styles instead of imperative DOM + `:global`
 
 ### Code Comments
@@ -95,10 +95,6 @@ For JavaScript and TypeScript:
 - Single line comments MUST ALWAYS use `//`, even when describing types, interfaces, or classes. NEVER use single-line JSDoc (`/** foo */`).
 - Functions MUST have multi-line JSDoc comments (`/** ... */` with newlines). They MUST include a description of why they've been written, plus `@param` and `@return` with proper TypeScript typing, EVEN IF ITS ALREADY DOCUMENTED WITH TYPESCRIPT TYPES AT THE METHOD LEVEL
 - File-level description comments MUST come BEFORE any imports and MUST use standard JavaScript multi-line comment syntax (`/* ... */`). They describe what the file is for and why it exists.
-
-For SCSS/Sass:
-
-- You MUST use inline comments `//` instead of CSS comments `/*`
 
 Comment Blocks that are meant to draw the eye and describe a section of code must be written as follows (allowing for multiple lines, each starting with `//`):
 
@@ -120,8 +116,8 @@ When writing CamelCase variable, function, type, or class names, abbreviations (
 
 Before creating ANY new UI component, pattern, or styling, you MUST search the existing codebase for similar functionality. If a component, pattern, or style already exists, you MUST reuse or extend it — even if it requires refactoring to accept props for configurability. Creating duplicates of existing functionality is FORBIDDEN. Specifically:
 
-- **Search `src/components/`** for existing components that do what you need. If one exists but is hardcoded to one page's state, refactor it to accept optional props (controlled mode) while preserving the original behavior (uncontrolled mode).
-- **Search `src/sass/`** for existing styles, mixins, and variables before writing new CSS.
+- **Search `src/client/components/`** for existing components that do what you need. If one exists but is hardcoded to one page's state, refactor it to accept optional props (controlled mode) while preserving the original behavior (uncontrolled mode).
+- **Search `src/client/css/`** for existing styles before writing new CSS.
 - **Match existing layout patterns** — reuse the same components and follow the same structure, not recreate it from scratch.
 
 ### DOM Manipulation Rules
