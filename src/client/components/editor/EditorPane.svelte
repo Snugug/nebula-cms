@@ -105,6 +105,8 @@
 
   // Track the last loaded file identity to detect file changes
   let lastFileKey = '';
+  // Track the last configured language type to avoid redundant compartment reconfigures
+  let lastLangType = '';
 
   $effect(() => {
     const file = getEditorFile();
@@ -134,10 +136,12 @@
     if (!view && container) {
       // First mount — create the editor
       lastFileKey = fileKey;
+      lastLangType = fileType;
       view = new EditorView({ state: newState, parent: container });
     } else if (view && fileKey !== lastFileKey) {
       // Different file selected — replace document
       lastFileKey = fileKey;
+      lastLangType = fileType;
       view.setState(newState);
     }
   });
@@ -148,6 +152,9 @@
     const file = getEditorFile();
     if (!file?.filename) return;
     const fileType = getTypeForFilename(file.filename) ?? 'md';
+    // Skip if the language is already configured (avoids redundant reconfigure on initial mount)
+    if (fileType === lastLangType) return;
+    lastLangType = fileType;
     view.dispatch({
       effects: langCompartment.reconfigure(getLanguageExtension(fileType)),
     });
