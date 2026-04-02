@@ -152,6 +152,8 @@ export function _setDraftState(
     lastSavedFormData = updates.lastSavedFormData!;
   if ('lastSavedBody' in updates) lastSavedBody = updates.lastSavedBody!;
   if ('dirty' in updates) dirty = updates.dirty!;
+  if ('originalFilename' in updates)
+    originalFilename = updates.originalFilename!;
 }
 /**
  * Returns the current editor file state, or null if no file is open.
