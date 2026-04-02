@@ -121,7 +121,7 @@
           title="New {title.toLowerCase()}"
           onclick={handleAdd}
         >
-          <span class="material-symbols-outlined">add</span>
+          <span class="icon">add</span>
         </button>
       {/if}
     </div>
@@ -178,7 +178,7 @@
   {#if showFooter}
     <div class="sidebar-footer">
       <button class="logout-btn" onclick={onLogout}>
-        <span class="material-symbols-outlined">logout</span>
+        <span class="icon">logout</span>
         <span>Log out</span>
       </button>
       <ThemeToggle />
@@ -295,7 +295,7 @@
     margin-bottom: 0.75rem;
   }
 
-  .add-btn .material-symbols-outlined {
+  .add-btn .icon {
     font-size: 1rem;
   }
 

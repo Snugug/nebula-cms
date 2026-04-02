@@ -136,7 +136,7 @@ function generateCSS(base64Font) {
   src: url('data:font/woff2;base64,${base64Font}') format('woff2');
 }
 
-.material-symbols-outlined {
+.icon {
   font-family: 'Material Symbols Outlined';
   font-weight: normal;
   font-style: normal;

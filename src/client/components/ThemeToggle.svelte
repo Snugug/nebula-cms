@@ -8,11 +8,11 @@
   aria-label="Theme: {theme.label}"
   onclick={cycleTheme}
 >
-  <span class="material-symbols-outlined">{theme.icon}</span>
+  <span class="icon">{theme.icon}</span>
 </button>
 
 <style>
-  .theme-toggle .material-symbols-outlined {
+  .theme-toggle .icon {
     font-size: 1.25rem;
   }
 </style>
