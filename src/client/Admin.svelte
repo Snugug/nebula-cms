@@ -128,8 +128,10 @@
     }
   });
 
-  // Loads content for the file or draft view. Both branches gate on `backend.ready`
-  // so they re-run when the directory handle is restored on page load.
+  /*
+   * Loads content for the file or draft view. Both branches gate on `backend.ready`
+   * so they re-run when the directory handle is restored on page load.
+   */
   $effect(() => {
     if (backend.ready && nav.route.view === 'file' && content.list.length > 0) {
       const item = content.list.find(
@@ -152,9 +154,11 @@
     }
   });
 
-  // Set the default format for new drafts once the schema is available.
-  // New drafts start with an empty filename, so setDefaultFormat assigns
-  // the collection's first file type extension (e.g. '.mdx' for guides).
+  /*
+   * Set the default format for new drafts once the schema is available.
+   * New drafts start with an empty filename, so setDefaultFormat assigns
+   * the collection's first file type extension (e.g. '.mdx' for guides).
+   */
   $effect(() => {
     const file = getEditorFile();
     if (file?.isNewDraft && !file.filename && schemaFileTypes.length > 0) {

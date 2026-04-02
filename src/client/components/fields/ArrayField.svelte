@@ -25,9 +25,11 @@
 
   let { name, schema, value, required = false, onchange }: Props = $props();
 
+  /*
   //////////////////////////////
   // Derived schema metadata
   //////////////////////////////
+  */
 
   // Schema for each item in the array
   const itemSchema = $derived(
@@ -51,9 +53,11 @@
   // Current items array, falling back to empty array if value is not an array
   const items = $derived(Array.isArray(value) ? (value as unknown[]) : []);
 
+  /*
   //////////////////////////////
   // Collapse state
   //////////////////////////////
+  */
 
   // Collapsed state per item slot; grows/shrinks reactively with the items array.
   let collapsed = $state<boolean[]>([]);
@@ -69,9 +73,11 @@
     }
   });
 
+  /*
   //////////////////////////////
   // Drag-and-drop state
   //////////////////////////////
+  */
 
   // Index of the item currently being dragged, or -1 when idle
   let dragIndex = $state(-1);
@@ -79,9 +85,11 @@
   // Index of the item currently hovered over as a drop target, or -1 when none
   let dropTarget = $state(-1);
 
+  /*
   //////////////////////////////
   // Array mutation helpers
   //////////////////////////////
+  */
 
   /**
    * Appends a new default item to the array, using the item schema to create a default value.
@@ -144,9 +152,11 @@
     collapsed = collapsed.map((c, i) => (i === index ? !c : c));
   }
 
+  /*
   //////////////////////////////
   // Drag-and-drop handlers
   //////////////////////////////
+  */
 
   /**
    * Marks an item as the drag source and sets the drag effect.
@@ -206,9 +216,11 @@
     dropTarget = -1;
   }
 
+  /*
   //////////////////////////////
   // Derived constraint checks
   //////////////////////////////
+  */
 
   // Whether the add button should be disabled
   const atMax = $derived(maxItems != null && items.length >= maxItems);

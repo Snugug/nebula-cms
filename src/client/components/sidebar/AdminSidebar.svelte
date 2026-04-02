@@ -85,8 +85,10 @@
       snapshot: null,
       createdAt: new Date().toISOString(),
     });
-    // Only refresh drafts — the live file list hasn't changed, so a full
-    // collection reload (which re-reads all files from disk/GitHub) is wasteful
+    /*
+     * Only refresh drafts — the live file list hasn't changed, so a full
+     * collection reload (which re-reads all files from disk/GitHub) is wasteful.
+     */
     await refreshDrafts(collection);
     navigate(adminPath(collection, `draft-${id}`));
   }

@@ -70,15 +70,19 @@ function toggleMarker(
       const node = findWrappingNode(state, range.from, nodeType);
 
       if (node) {
-        // Unwrap — remove markers from both ends of the node.
-        // Post-change coordinates: removing the opening marker shifts everything
-        // left by len, and removing the closing marker doesn't affect earlier positions.
-        // So the inner text spans from node.from to node.to - len * 2.
+        /*
+         * Unwrap — remove markers from both ends of the node.
+         * Post-change coordinates: removing the opening marker shifts everything
+         * left by len, and removing the closing marker doesn't affect earlier positions.
+         * So the inner text spans from node.from to node.to - len * 2.
+         */
         const len = marker.length;
-        // Preserve cursor vs selection: if the user had a cursor (no selection),
-        // keep it as a cursor inside the unwrapped text rather than selecting all of it.
-        // Clamp the post-change cursor: if the cursor was at or before the opening marker,
-        // it lands at the start of the unwrapped text (node.from).
+        /*
+         * Preserve cursor vs selection: if the user had a cursor (no selection),
+         * keep it as a cursor inside the unwrapped text rather than selecting all of it.
+         * Clamp the post-change cursor: if the cursor was at or before the opening marker,
+         * it lands at the start of the unwrapped text (node.from).
+         */
         const innerEnd = node.to - len * 2;
         const postRange = range.empty
           ? EditorSelection.cursor(
@@ -182,8 +186,10 @@ export const markdownShortcutsKeymap: KeyBinding[] = [
 //////////////////////////////
 */
 
-// Intercepts paste events to wrap selected text as a markdown link when
-// the clipboard contains a URL. Only activates when text is selected.
+/*
+ * Intercepts paste events to wrap selected text as a markdown link when
+ * the clipboard contains a URL. Only activates when text is selected.
+ */
 const smartPasteHandler = EditorView.domEventHandlers({
   paste(event: ClipboardEvent, view: EditorView) {
     const { from, to, empty } = view.state.selection.main;
@@ -212,9 +218,11 @@ const smartPasteHandler = EditorView.domEventHandlers({
 //////////////////////////////
 */
 
-// Intercepts single-character input to wrap selected text in matching
-// bracket or quote pairs. Only activates when text is selected and
-// the typed character is a recognized opening bracket or quote.
+/*
+ * Intercepts single-character input to wrap selected text in matching
+ * bracket or quote pairs. Only activates when text is selected and
+ * the typed character is a recognized opening bracket or quote.
+ */
 const bracketWrapHandler = EditorView.inputHandler.of(
   (view: EditorView, from: number, to: number, text: string) => {
     const closing = wrapPairs[text];

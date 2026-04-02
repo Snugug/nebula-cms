@@ -34,8 +34,10 @@ type PermissionState = 'granted' | 'prompt' | 'denied';
 type BackendType = 'fsa' | 'github' | null;
 // Sorted collection names derived from virtual:collections.
 export const collections = Object.keys(schemas).sort();
-// Uses .js extension because svelte-package does not rewrite URL string literals;
-// the dist output must reference the compiled .js file, not the source .ts file.
+/*
+ * Uses .js extension because svelte-package does not rewrite URL string literals;
+ * the dist output must reference the compiled .js file, not the source .ts file.
+ */
 const sharedWorker = new SharedWorker(
   new URL('../storage/workers/storage.js', import.meta.url),
   { type: 'module', name: 'cms-storage' },

@@ -25,9 +25,11 @@ const STORAGE_KEY = 'nebula-theme';
 //////////////////////////////
 */
 
-// Single source of truth for all preference-derived UI values.
-// Adding a new preference requires a new entry here — TypeScript
-// enforces exhaustiveness via the Record<ThemePreference, ...> type.
+/*
+ * Single source of truth for all preference-derived UI values.
+ * Adding a new preference requires a new entry here — TypeScript
+ * enforces exhaustiveness via the Record<ThemePreference, ...> type.
+ */
 const THEME_MAP: Record<
   ThemePreference,
   { icon: ThemeIcon; label: ThemeLabel }
@@ -43,8 +45,10 @@ const THEME_MAP: Record<
 //////////////////////////////
 */
 
-// Read preference from localStorage at module init to avoid a flash of wrong theme.
-// Safe because this module is only loaded client-side (client:only="svelte").
+/*
+ * Read preference from localStorage at module init to avoid a flash of wrong theme.
+ * Safe because this module is only loaded client-side (client:only="svelte").
+ */
 let stored: string | null = null;
 try {
   if (typeof localStorage !== 'undefined') {
@@ -54,8 +58,10 @@ try {
   // Storage access blocked (SecurityError, private browsing, etc.)
 }
 
-// Read system preference at module init so the first render has the correct
-// resolved theme — deferring this to onMount would cause a flash for auto+dark users.
+/*
+ * Read system preference at module init so the first render has the correct
+ * resolved theme — deferring this to onMount would cause a flash for auto+dark users.
+ */
 const mq =
   typeof window !== 'undefined'
     ? window.matchMedia('(prefers-color-scheme: dark)')
@@ -77,16 +83,20 @@ let systemPrefersDark = $state(mq?.matches ?? false);
 //////////////////////////////
 */
 
-// $derived can only be a variable declaration initializer, not an object
-// property — Svelte compiler restriction. These private derivations feed
-// the exported theme object via getters.
+/*
+ * $derived can only be a variable declaration initializer, not an object
+ * property — Svelte compiler restriction. These private derivations feed
+ * the exported theme object via getters.
+ */
 const resolved: ResolvedTheme = $derived(
   preference === 'auto' ? (systemPrefersDark ? 'dark' : 'light') : preference,
 );
 const ui = $derived(THEME_MAP[preference]);
 
-// Reactive theme state. Consumers read properties directly: theme.resolved,
-// theme.icon, theme.label. The getters forward Svelte's reactive tracking.
+/*
+ * Reactive theme state. Consumers read properties directly: theme.resolved,
+ * theme.icon, theme.label. The getters forward Svelte's reactive tracking.
+ */
 export const theme = {
   get resolved(): ResolvedTheme {
     return resolved;
@@ -154,8 +164,10 @@ export function cycleTheme(): void {
   try {
     localStorage.setItem(STORAGE_KEY, next);
   } catch {
-    // Persistence failed (quota exceeded, storage disabled, etc.).
-    // The in-memory preference is already updated, so the current
-    // session works correctly — it just won't survive a page reload.
+    /*
+     * Persistence failed (quota exceeded, storage disabled, etc.).
+     * The in-memory preference is already updated, so the current
+     * session works correctly — it just won't survive a page reload.
+     */
   }
 }

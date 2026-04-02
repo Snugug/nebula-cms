@@ -160,8 +160,10 @@ export async function handlePublish(
     // New file or renamed file — not in contentList under this name, need a full refresh
     reloadCollection(activeCollection);
   } else {
-    // Existing file, same name — optimistically update sidebar with current formData
-    // so the title reflects edits instantly without re-fetching all files
+    /*
+     * Existing file, same name — optimistically update sidebar with current formData
+     * so the title reflects edits instantly without re-fetching all files.
+     */
     updateContentItem(file.filename, file.formData);
   }
   await refreshDrafts(activeCollection);
@@ -186,12 +188,16 @@ export async function handleDeleteDraft(
   // Capture narrowed value before awaits (TS can't narrow across async boundaries)
   const collection = activeCollection;
 
-  // Refresh drafts list only — live content hasn't changed, so no need to
-  // reload the full collection (which re-reads all files and causes a flash)
+  /*
+   * Refresh drafts list only — live content hasn't changed, so no need to
+   * reload the full collection (which re-reads all files and causes a flash).
+   */
   await refreshDrafts(collection);
 
-  // Clear editor so the route change triggers a fresh load (preloadFile has
-  // an early return if the same filename is already open)
+  /*
+   * Clear editor so the route change triggers a fresh load (preloadFile has
+   * an early return if the same filename is already open).
+   */
   clearEditor();
 
   if (!wasNewDraft && liveFilename) {

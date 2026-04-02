@@ -14,8 +14,10 @@ type DiffEntry = {
   liveBody: string;
 };
 
-// Listens for diff requests, compares each draft's snapshot against current live content,
-// and returns a map of draftId → isOutdated.
+/*
+ * Listens for diff requests, compares each draft's snapshot against current
+ * live content, and returns a map of draftId to isOutdated.
+ */
 self.addEventListener('message', (event: MessageEvent) => {
   const { type, entries } = event.data as {
     type: string;
