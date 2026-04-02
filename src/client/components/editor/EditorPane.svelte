@@ -1,74 +1,42 @@
 <script lang="ts">
+  /*
+   * CodeMirror editor pane with language compartment and toolbar.
+   * Renders the EditorBodyToolbar above the CodeMirror mount point and
+   * uses a Compartment to swap the language extension at runtime when
+   * the file type changes (e.g. switching from .md to .mdx).
+   */
   import { EditorView, keymap } from '@codemirror/view';
-  import { EditorState } from '@codemirror/state';
+  import { Compartment, EditorState } from '@codemirror/state';
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-  import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
-  import { languages } from '@codemirror/language-data';
-  import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
-  import { tags as t } from '@lezer/highlight';
   import { getEditorFile, updateBody } from '../../js/editor/editor.svelte';
+  import {
+    getTypeForFilename,
+    stripExtension,
+  } from '../../js/utils/file-types';
+  import { getLanguageExtension } from '../../js/editor/languages';
   import { linkWrapPlugin } from '../../js/editor/link-wrap';
   import {
     markdownShortcutsKeymap,
     markdownShortcutsExtensions,
   } from '../../js/editor/markdown-shortcuts';
+  import EditorBodyToolbar from './EditorBodyToolbar.svelte';
+
+  // Props passed from Admin.svelte for the format selector toolbar
+  interface Props {
+    // Type identifiers from the schema's files array (e.g. ['md', 'mdx'])
+    fileTypes: string[];
+    // Currently selected type identifier
+    activeType: string;
+  }
+
+  let { fileTypes, activeType }: Props = $props();
 
   // Container element for CodeMirror
   let container: HTMLDivElement;
   // The CodeMirror EditorView instance
   let view: EditorView | undefined;
-
-  // Highlight style for the markdown editor — headings are sized, syntax markers are dimmed.
-  const markdownHighlight = HighlightStyle.define([
-    // Headings — larger, bold
-    {
-      tag: t.heading1,
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      color: 'var(--cms-fg)',
-    },
-    {
-      tag: t.heading2,
-      fontSize: '1.25rem',
-      fontWeight: 'bold',
-      color: 'var(--cms-fg)',
-    },
-    {
-      tag: t.heading3,
-      fontSize: '1rem',
-      fontWeight: 'bold',
-      color: 'var(--cms-fg)',
-    },
-    // Emphasis
-    { tag: t.strong, fontWeight: 'bold', color: 'var(--cms-fg)' },
-    { tag: t.emphasis, fontStyle: 'italic', color: 'var(--cms-fg)' },
-    // Inline code
-    { tag: t.monospace, color: 'var(--light-orange)' },
-    // Links
-    { tag: t.link, color: 'var(--light-teal)', textDecoration: 'underline' },
-    { tag: t.url, color: 'var(--light-green)' },
-    // Syntax markers — dimmed
-    { tag: t.processingInstruction, color: 'var(--cms-muted)' },
-    { tag: t.labelName, color: 'var(--light-teal)' },
-    // Code block language tag
-    { tag: t.tagName, color: 'var(--light-purple)' },
-    // Lists
-    { tag: t.list, color: 'var(--light-teal)' },
-    // Blockquotes
-    { tag: t.quote, color: 'var(--cms-muted)', fontStyle: 'italic' },
-    // Code block contents — language-specific highlighting
-    { tag: t.keyword, color: 'var(--light-plum)' },
-    { tag: t.string, color: 'var(--light-orange)' },
-    { tag: t.variableName, color: 'var(--light-teal)' },
-    { tag: t.function(t.variableName), color: 'var(--gold)' },
-    { tag: t.typeName, color: 'var(--light-green)' },
-    { tag: t.number, color: 'var(--light-purple)' },
-    { tag: t.bool, color: 'var(--light-purple)' },
-    { tag: t.comment, color: 'var(--cms-muted)', fontStyle: 'italic' },
-    { tag: t.operator, color: 'var(--light-red)' },
-    { tag: t.punctuation, color: 'var(--cms-muted)' },
-    { tag: t.meta, color: 'var(--cms-muted)' },
-  ]);
+  // Compartment isolating the language extension for runtime reconfiguration
+  const langCompartment = new Compartment();
 
   // Base editor theme matching the admin color scheme
   const editorTheme = EditorView.theme({
@@ -107,11 +75,13 @@
   });
 
   /**
-   * Creates the full set of CodeMirror extensions for the markdown editor.
-   * @param {string} doc - Initial document content used to configure the update listener
-   * @return {Extension[]} The array of CodeMirror extensions to apply
+   * Creates the full set of CodeMirror extensions. The language extension
+   * is wrapped in a Compartment so it can be swapped at runtime without
+   * rebuilding the entire editor state.
+   * @param {string} fileType - The file type identifier for language selection
+   * @return {import('@codemirror/state').Extension[]} The array of CodeMirror extensions
    */
-  function createExtensions(doc: string) {
+  function createExtensions(fileType: string) {
     return [
       editorTheme,
       history(),
@@ -120,11 +90,7 @@
         ...defaultKeymap,
         ...historyKeymap,
       ]),
-      markdown({
-        base: markdownLanguage,
-        codeLanguages: languages,
-      }),
-      syntaxHighlighting(markdownHighlight),
+      langCompartment.of(getLanguageExtension(fileType)),
       EditorView.lineWrapping,
       linkWrapPlugin,
       ...markdownShortcutsExtensions,
@@ -133,11 +99,11 @@
           updateBody(update.state.doc.toString());
         }
       }),
-      EditorView.contentAttributes.of({ 'aria-label': 'Markdown editor' }),
+      EditorView.contentAttributes.of({ 'aria-label': 'Content editor' }),
     ];
   }
 
-  // Track the last loaded file identity (filename + draftId) to detect file changes
+  // Track the last loaded file identity to detect file changes
   let lastFileKey = '';
 
   $effect(() => {
@@ -156,11 +122,13 @@
     // Wait for body to load before creating/updating CodeMirror
     if (!file.bodyLoaded) return;
 
-    const fileKey = file.draftId ?? file.filename;
+    // Use slug (without extension) so format changes don't trigger a rebuild
+    const fileKey = file.draftId ?? stripExtension(file.filename);
+    const fileType = getTypeForFilename(file.filename) ?? 'md';
 
     const newState = EditorState.create({
       doc: file.body,
-      extensions: createExtensions(file.body),
+      extensions: createExtensions(fileType),
     });
 
     if (!view && container) {
@@ -174,6 +142,17 @@
     }
   });
 
+  // Reconfigure the language compartment when the file type changes
+  $effect(() => {
+    if (!view) return;
+    const file = getEditorFile();
+    if (!file?.filename) return;
+    const fileType = getTypeForFilename(file.filename) ?? 'md';
+    view.dispatch({
+      effects: langCompartment.reconfigure(getLanguageExtension(fileType)),
+    });
+  });
+
   // Cleanup on component destroy
   $effect(() => {
     return () => {
@@ -185,6 +164,7 @@
 
 <div class="editor-wrapper">
   <div class="editor-box">
+    <EditorBodyToolbar {fileTypes} {activeType} />
     <div class="editor-pane" bind:this={container}></div>
   </div>
 </div>
@@ -197,10 +177,12 @@
   }
 
   .editor-box {
+    display: grid;
+    grid-template-rows: auto 1fr;
     border: 1px solid var(--cms-border);
     border-radius: 4px;
     overflow: hidden;
-    /* Subtract the toolbar, tabs, and wrapper padding from viewport height. */
+    /* Subtract the toolbar, tabs, and wrapper padding from viewport height */
     height: calc(100dvh - 9rem);
   }
 
