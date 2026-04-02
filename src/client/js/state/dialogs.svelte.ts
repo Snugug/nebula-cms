@@ -4,51 +4,32 @@
  * callback drilling through intermediate components.
  */
 
-// Whether the filename dialog should be shown
-let filenameDialogOpen = $state(false);
+// Which dialog is currently open, or null if none
+let active = $state<'filename' | 'delete' | null>(null);
 
-// Whether the delete-draft confirmation dialog should be shown
-let deleteDialogOpen = $state(false);
+// The dialog type union, exported for type-safe consumers
+export type DialogType = 'filename' | 'delete';
 
 export const dialogs = {
-  // Whether the filename dialog is open.
-  get filenameOpen(): boolean {
-    return filenameDialogOpen;
-  },
-  // Whether the delete confirmation dialog is open.
-  get deleteOpen(): boolean {
-    return deleteDialogOpen;
+  // The currently open dialog, or null if none.
+  get active(): DialogType | null {
+    return active;
   },
 };
 
 /**
- * Shows the filename dialog.
+ * Opens a dialog by type. Only one dialog can be open at a time.
+ * @param {DialogType} type - The dialog to open
  * @return {void}
  */
-export function showFilenameDialog(): void {
-  filenameDialogOpen = true;
+export function openDialog(type: DialogType): void {
+  active = type;
 }
 
 /**
- * Hides the filename dialog.
+ * Closes whichever dialog is currently open.
  * @return {void}
  */
-export function hideFilenameDialog(): void {
-  filenameDialogOpen = false;
-}
-
-/**
- * Shows the delete-draft confirmation dialog.
- * @return {void}
- */
-export function showDeleteDialog(): void {
-  deleteDialogOpen = true;
-}
-
-/**
- * Hides the delete-draft confirmation dialog.
- * @return {void}
- */
-export function hideDeleteDialog(): void {
-  deleteDialogOpen = false;
+export function closeDialog(): void {
+  active = null;
 }
