@@ -1,3 +1,8 @@
+/*
+ * Typed client for communicating with the storage SharedWorker over a MessagePort.
+ * Wraps postMessage/onmessage into async request/response calls.
+ */
+
 import type {
   StorageRequest,
   StorageResponse,
@@ -5,7 +10,6 @@ import type {
   FileWrite,
 } from './adapter';
 
-// Typed client for communicating with the storage SharedWorker over a MessagePort. Wraps postMessage/onmessage into async request/response calls.
 export class StorageClient {
   private port: MessagePort;
   private pending = new Map<

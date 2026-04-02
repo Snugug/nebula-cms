@@ -1,22 +1,29 @@
 <script lang="ts">
   import { getEditorFile } from '../../js/editor/editor.svelte';
-
-  // Props for the editor toolbar.
-  interface Props {
-    // Handler for saving a draft to IndexedDB
-    onSave: () => void;
-    // Handler for publishing to the filesystem
-    onPublish: () => void;
-    // Handler for deleting the current draft
-    onDelete: () => void;
-    // Whether the publish button should be disabled (missing required fields or filename)
-    publishDisabled: boolean;
-  }
-
-  let { onSave, onPublish, onDelete, publishDisabled }: Props = $props();
+  import { nav } from '../../js/state/router.svelte';
+  import { schema } from '../../js/state/schema.svelte';
+  import {
+    handleSave,
+    handlePublish,
+    computePublishDisabled,
+  } from '../../js/handlers/admin';
+  import {
+    showFilenameDialog,
+    showDeleteDialog,
+  } from '../../js/state/dialogs.svelte';
 
   // Current editor file state
   const file = $derived(getEditorFile());
+
+  // Active collection derived from route, needed by save/publish handlers
+  const activeCollection = $derived(
+    nav.route.view !== 'home' ? nav.route.collection : null,
+  );
+
+  // Whether publish is disabled due to missing required fields
+  const publishDisabled = $derived(
+    computePublishDisabled(schema.active, file?.formData ?? {}),
+  );
 
   // Display title from formData, falling back to filename or "Untitled Draft"
   const title = $derived(
@@ -24,6 +31,17 @@
       ? file.formData.title
       : file?.filename || 'Untitled Draft',
   );
+
+  /**
+   * Publishes the current file, showing the filename dialog if a filename is needed first.
+   * @return {Promise<void>}
+   */
+  async function onPublish(): Promise<void> {
+    const result = await handlePublish(activeCollection);
+    if (result.status === 'needs-filename') {
+      showFilenameDialog();
+    }
+  }
 </script>
 
 {#if file}
@@ -44,23 +62,23 @@
     <div class="toolbar__actions">
       {#if file.draftId}
         <button
-          class="btn btn--danger-outline"
+          class="btn btn--danger-outline btn--compact"
           type="button"
-          onclick={onDelete}
+          onclick={showDeleteDialog}
         >
           Delete Draft
         </button>
       {/if}
       <button
-        class="btn btn--save-outline"
+        class="btn btn--save-outline btn--compact"
         type="button"
         disabled={!file.dirty || file.saving}
-        onclick={onSave}
+        onclick={() => handleSave(activeCollection)}
       >
         {file.saving ? 'Saving...' : 'Save'}
       </button>
       <button
-        class="btn btn--primary"
+        class="btn btn--primary btn--compact"
         type="button"
         disabled={publishDisabled || file.saving}
         onclick={onPublish}
@@ -112,10 +130,5 @@
     grid-auto-flow: column;
     align-items: center;
     gap: 0.5rem;
-  }
-
-  /* Toolbar buttons are compact — scoped parent + global child to override shared .btn padding */
-  .toolbar__actions :global(.btn) {
-    padding: 0.25rem 0.75rem;
   }
 </style>

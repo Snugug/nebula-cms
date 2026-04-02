@@ -1,4 +1,4 @@
-/**
+/*
  * Parsed route state for the admin SPA.
  * Host applications configure the base path via initRouter() so the CMS
  * can live under any URL prefix, not just /admin.

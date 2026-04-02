@@ -1,3 +1,8 @@
+/*
+ * Backend configuration persistence using IndexedDB.
+ * Stores and retrieves the active storage backend (FSA or GitHub).
+ */
+
 import { openDB } from './db';
 
 // Fixed key for the backend config

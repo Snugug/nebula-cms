@@ -1,3 +1,8 @@
+/*
+ * Global application state for the admin SPA.
+ * Manages backend connection, schema loading, collections, and navigation state.
+ */
+
 import schemas from 'virtual:collections';
 import {
   loadBackend,

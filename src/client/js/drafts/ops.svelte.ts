@@ -175,8 +175,6 @@ export async function publishFile(
 
   try {
     const content = await serializeContent(filename, s.formData, s.body);
-
-    if (!storageClient) throw new Error('No storage backend connected');
     await storageClient.writeFile(collection, filename, content);
 
     // Remove the old file if the filename changed (file type conversion)

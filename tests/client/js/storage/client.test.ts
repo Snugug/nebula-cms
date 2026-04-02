@@ -11,38 +11,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { StorageClient } from '../../../../src/client/js/storage/client';
 import type { StorageResponse } from '../../../../src/client/js/storage/adapter';
-
-// ── Mock port factory ────────────────────────────────────────────────────────
-
-/**
- * Creates a fake MessagePort that captures outgoing messages and exposes a
- * helper to simulate an incoming response from the "worker" side.
- * @return {{ port: MessagePort; postSpy: ReturnType<typeof vi.fn>; respond: (data: StorageResponse & { _id?: string }) => void }}
- */
-function makeMockPort() {
-  const target = new EventTarget();
-  const postSpy = vi.fn();
-
-  const port = {
-    addEventListener: target.addEventListener.bind(target),
-    removeEventListener: target.removeEventListener.bind(target),
-    dispatchEvent: target.dispatchEvent.bind(target),
-    postMessage: postSpy,
-    start: vi.fn(),
-  } as unknown as MessagePort;
-
-  /**
-   * Fires a message event on the port, simulating a response from the worker.
-   * @param {StorageResponse & { _id?: string }} data - The response payload
-   * @return {void}
-   */
-  function respond(data: StorageResponse & { _id?: string }): void {
-    const event = new MessageEvent('message', { data });
-    target.dispatchEvent(event);
-  }
-
-  return { port, postSpy, respond };
-}
+import { makeClientMockPort as makeMockPort } from './mock-port';
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 

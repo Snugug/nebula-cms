@@ -1,4 +1,4 @@
-/**
+/*
  * Configuration options for the nebula-cms Astro integration.
  */
 export interface NebulaCMSConfig {

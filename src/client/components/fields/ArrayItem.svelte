@@ -284,23 +284,12 @@
     flex: 1;
   }
 
-  /* Primitive items: input fills space between drag handle and buttons */
+  /* Primitive items: input fills space between drag handle and buttons.
+     Label/help hiding is handled by FieldWrapper's compact prop via SchemaField inline={true}. */
   .array-item__inline-field {
     flex: 1;
     min-width: 0;
     margin: 0 0.5rem;
-
-    /* Visually hide label/description — the parent ArrayField provides the visible label */
-    :global(.field-label),
-    :global(.field-help) {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
   }
 
   .array-item__btn {

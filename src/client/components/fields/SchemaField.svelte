@@ -23,7 +23,7 @@
     required?: boolean;
     // Callback fired when the value changes
     onchange: (value: unknown) => void;
-    // When true, object fields render without a fieldset wrapper (used inside ArrayItem).
+    // When true, object fields render without a fieldset wrapper and leaf fields hide FieldWrapper chrome (used inside ArrayItem).
     inline?: boolean;
   }
 
@@ -61,6 +61,7 @@
     schema={effectiveSchema}
     {value}
     {required}
+    {inline}
     onchange={(v) => onchange(v)}
   />
 {:else if fieldType.kind === 'number'}
@@ -69,6 +70,7 @@
     schema={effectiveSchema}
     {value}
     {required}
+    {inline}
     onchange={(v) => onchange(v)}
   />
 {:else if fieldType.kind === 'boolean'}
@@ -76,6 +78,7 @@
     {name}
     schema={effectiveSchema}
     {value}
+    {inline}
     onchange={(v) => onchange(v)}
   />
 {:else if fieldType.kind === 'enum'}
@@ -84,6 +87,7 @@
     schema={effectiveSchema}
     {value}
     {required}
+    {inline}
     options={fieldType.options}
     onchange={(v) => onchange(v)}
   />
@@ -93,6 +97,7 @@
     schema={effectiveSchema}
     {value}
     {required}
+    {inline}
     onchange={(v) => onchange(v)}
   />
 {:else if fieldType.kind === 'array'}

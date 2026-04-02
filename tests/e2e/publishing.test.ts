@@ -33,6 +33,12 @@ const handlers = vi.hoisted(() => ({
   mockHandlePublish: vi.fn(async () => ({ status: 'ok' as const })),
 }));
 
+// Tracks whether showFilenameDialog was called so dialogs.filenameOpen reflects it
+const dialogState = vi.hoisted(() => ({
+  filenameOpen: false,
+  deleteOpen: false,
+}));
+
 //////////////////////////////
 // Module mocks
 //////////////////////////////
@@ -191,6 +197,17 @@ vi.mock('../../src/client/js/utils/schema-utils', () => ({
   createDefaultValue: vi.fn(() => ''),
   getByPath: vi.fn(),
   setByPath: vi.fn(),
+  isReadOnly: vi.fn(() => false),
+  isNullable: vi.fn(() => false),
+  getProperties: vi.fn(
+    (schema: Record<string, unknown>) => schema['properties'],
+  ),
+  getRequiredFields: vi.fn((schema: Record<string, unknown>) =>
+    Array.isArray(schema['required']) ? schema['required'] : [],
+  ),
+  getLabel: vi.fn((schema: Record<string, unknown>, name: string) =>
+    typeof schema['title'] === 'string' ? schema['title'] : name,
+  ),
 }));
 vi.mock('../../src/client/js/drafts/merge.svelte', () => ({
   drafts: {
@@ -211,14 +228,39 @@ vi.mock('../../src/client/js/state/theme.svelte', () => ({
   cycleTheme: vi.fn(),
   theme: { resolved: 'dark', icon: 'brightness_auto', label: 'Auto' },
 }));
+vi.mock('../../src/client/js/state/dialogs.svelte', () => ({
+  dialogs: {
+    get filenameOpen() {
+      return dialogState.filenameOpen;
+    },
+    get deleteOpen() {
+      return dialogState.deleteOpen;
+    },
+  },
+  showFilenameDialog: vi.fn(() => {
+    dialogState.filenameOpen = true;
+  }),
+  hideFilenameDialog: vi.fn(() => {
+    dialogState.filenameOpen = false;
+  }),
+  showDeleteDialog: vi.fn(() => {
+    dialogState.deleteOpen = true;
+  }),
+  hideDeleteDialog: vi.fn(() => {
+    dialogState.deleteOpen = false;
+  }),
+}));
 
 import Admin from '../../src/client/Admin.svelte';
+import { showFilenameDialog } from '../../src/client/js/state/dialogs.svelte';
 
 afterEach(() => cleanup());
 beforeEach(() => {
   resetMocks(mocks);
   handlers.mockHandlePublish.mockClear();
   handlers.mockHandlePublish.mockResolvedValue({ status: 'ok' });
+  dialogState.filenameOpen = false;
+  dialogState.deleteOpen = false;
 });
 
 describe('Publishing', () => {
@@ -251,9 +293,8 @@ describe('Publishing', () => {
 
     if (publishBtn) await fireEvent.click(publishBtn);
 
-    // FilenameDialog renders a <dialog> element
-    const dialog = container.querySelector('dialog');
-    expect(dialog).not.toBeNull();
+    // EditorToolbar calls showFilenameDialog when handlePublish returns 'needs-filename'
+    expect(showFilenameDialog).toHaveBeenCalled();
   });
 
   it('disables publish button when computePublishDisabled returns true', () => {

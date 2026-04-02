@@ -1,3 +1,7 @@
+/*
+ * URL validation utilities for the editor's smart paste handler.
+ */
+
 /**
  * Checks whether a string is a valid URL (absolute with scheme, or absolute path).
  * Used by the smart paste handler to determine whether clipboard content should

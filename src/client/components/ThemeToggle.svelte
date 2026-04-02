@@ -4,7 +4,7 @@
 </script>
 
 <button
-  class="theme-toggle"
+  class="icon-btn theme-toggle"
   aria-label="Theme: {theme.label}"
   onclick={cycleTheme}
 >
@@ -12,21 +12,7 @@
 </button>
 
 <style>
-  .theme-toggle {
-    background: none;
-    border: none;
-    color: var(--cms-muted);
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-    padding: 0;
-
-    &:hover {
-      color: var(--cms-fg);
-    }
-
-    .material-symbols-outlined {
-      font-size: 1.25rem;
-    }
+  .theme-toggle .material-symbols-outlined {
+    font-size: 1.25rem;
   }
 </style>

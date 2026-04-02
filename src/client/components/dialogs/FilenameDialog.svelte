@@ -57,8 +57,12 @@
   }
 </script>
 
-<dialog class="filename-dialog" bind:this={dialogEl} onclose={handleCancel}>
-  <h2 class="dialog-title">Set Filename</h2>
+<dialog
+  class="dialog filename-dialog"
+  bind:this={dialogEl}
+  onclose={handleCancel}
+>
+  <h2 class="dialog__title">Set Filename</h2>
   <div class="input-row">
     <input
       class="slug-input"
@@ -73,7 +77,7 @@
   {#if error}
     <p class="error">{error}</p>
   {/if}
-  <div class="dialog-actions">
+  <div class="dialog__actions">
     <button class="btn btn--cancel" type="button" onclick={handleCancel}
       >Cancel</button
     >
@@ -88,23 +92,7 @@
 
 <style>
   .filename-dialog {
-    background: var(--cms-surface);
-    color: var(--cms-fg);
-    border: 1px solid var(--cms-border);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
     min-width: 20rem;
-  }
-
-  /* Backdrop for the modal overlay */
-  .filename-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.6);
-  }
-
-  .dialog-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
   }
 
   .input-row {
@@ -135,10 +123,7 @@
     margin-top: 0.5rem;
   }
 
-  .dialog-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+  .dialog__actions {
     margin-top: 1.25rem;
   }
 </style>

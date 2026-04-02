@@ -1,3 +1,8 @@
+/*
+ * CodeMirror extension that decorates markdown link nodes with a CSS class.
+ * Enables visual styling of link syntax in the editor.
+ */
+
 import { ViewPlugin, Decoration, type DecorationSet } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { RangeSetBuilder, type EditorState } from '@codemirror/state';

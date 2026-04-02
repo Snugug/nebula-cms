@@ -1,3 +1,8 @@
+/*
+ * Storage adapter interface and shared types.
+ * Defines the contract that FSA and GitHub storage backends implement.
+ */
+
 // A single file's name and content as returned by listFiles.
 export type FileEntry = {
   filename: string;

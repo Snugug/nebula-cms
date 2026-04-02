@@ -161,7 +161,7 @@ function insertLink(view: EditorView): boolean {
 // Keymap Export
 //////////////////////////////
 
-/** Keymap bindings for markdown formatting shortcuts (bold, italic, link) */
+// Keymap bindings for markdown formatting shortcuts (bold, italic, link)
 export const markdownShortcutsKeymap: KeyBinding[] = [
   { key: 'Mod-b', run: toggleMarker('**', 'StrongEmphasis') },
   { key: 'Mod-i', run: toggleMarker('_', 'Emphasis') },
@@ -232,7 +232,7 @@ const bracketWrapHandler = EditorView.inputHandler.of(
 // Extensions Export
 //////////////////////////////
 
-/** Non-keymap extensions: smart paste URL handler and bracket/quote wrapping */
+// Non-keymap extensions: smart paste URL handler and bracket/quote wrapping
 export const markdownShortcutsExtensions = [
   smartPasteHandler,
   bracketWrapHandler,

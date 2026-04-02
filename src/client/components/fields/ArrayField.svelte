@@ -3,8 +3,8 @@
   import {
     createDefaultValue,
     resolveFieldType,
+    getLabel,
   } from '../../js/utils/schema-utils';
-  import { toTitleCase } from '../../js/utils/format';
   import ArrayItem from './ArrayItem.svelte';
 
   /**
@@ -46,9 +46,7 @@
   const maxItems = $derived(schema['maxItems'] as number | undefined);
 
   // Display label — schema.title if present, otherwise title-cased name
-  const label = $derived(
-    (schema['title'] as string | undefined) ?? toTitleCase(name),
-  );
+  const label = $derived(getLabel(schema, name));
 
   // Current items array, falling back to empty array if value is not an array
   const items = $derived(Array.isArray(value) ? (value as unknown[]) : []);
@@ -290,7 +288,7 @@
   }
 
   .array-field__required {
-    color: var(--light-plum);
+    color: var(--light-red);
     margin-left: 0.25rem;
   }
 

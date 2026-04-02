@@ -1,7 +1,11 @@
+/*
+ * URL-friendly slug generation without external dependencies.
+ * Replicates the behavior of the `slugify` package with `lower: true, strict: true`.
+ */
+
 /**
  * Converts a string to a URL-friendly slug.
- * Replicates the behavior of the `slugify` package with `lower: true, strict: true`:
- * lowercases, replaces non-alphanumeric characters with hyphens, collapses consecutive hyphens, and trims edge hyphens.
+ * Lowercases, replaces non-alphanumeric characters with hyphens, collapses consecutive hyphens, and trims edge hyphens.
  * @param {string} input - The string to slugify
  * @return {string} A URL-safe slug
  */

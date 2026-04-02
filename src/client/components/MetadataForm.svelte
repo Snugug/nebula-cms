@@ -1,6 +1,10 @@
 <script lang="ts">
   import type { SchemaNode } from '../js/utils/schema-utils';
-  import { getFieldsForTab } from '../js/utils/schema-utils';
+  import {
+    getFieldsForTab,
+    getProperties,
+    getRequiredFields,
+  } from '../js/utils/schema-utils';
   import { editor, updateFormField } from '../js/editor/editor.svelte';
   import SchemaField from './fields/SchemaField.svelte';
 
@@ -20,14 +24,10 @@
   const fieldNames = $derived(getFieldsForTab(schema, tab));
 
   // Schema properties map
-  const properties = $derived(
-    (schema['properties'] as Record<string, SchemaNode>) ?? {},
-  );
+  const properties = $derived(getProperties(schema) ?? {});
 
   // Required field names
-  const requiredFields = $derived(
-    Array.isArray(schema['required']) ? (schema['required'] as string[]) : [],
-  );
+  const requiredFields = $derived(getRequiredFields(schema));
 </script>
 
 <div class="metadata-form">

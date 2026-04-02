@@ -1,6 +1,10 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
-  import { toTitleCase } from '../../js/utils/format';
+  import {
+    isReadOnly,
+    isNullable,
+    getLabel,
+  } from '../../js/utils/schema-utils';
   import FieldWrapper from './FieldWrapper.svelte';
 
   /**
@@ -17,23 +21,30 @@
     required?: boolean;
     // Callback fired when the value changes
     onchange: (value: boolean | null) => void;
+    // When true, visually hides FieldWrapper chrome (label/help) for inline array contexts
+    inline?: boolean;
   }
 
-  let { name, schema, value, required = false, onchange }: Props = $props();
+  let {
+    name,
+    schema,
+    value,
+    required = false,
+    onchange,
+    inline = false,
+  }: Props = $props();
 
   // Display label — schema.title if present, otherwise title-cased name
-  const label = $derived(
-    (schema['title'] as string | undefined) ?? toTitleCase(name),
-  );
+  const label = $derived(getLabel(schema, name));
 
   // Checked state for the checkbox
   const checked = $derived(typeof value === 'boolean' ? value : false);
 
   // Whether field is read-only
-  const readOnly = $derived(!!(schema['readOnly'] as boolean | undefined));
+  const readOnly = $derived(isReadOnly(schema));
 
   // Whether empty input should emit null (nullable anyOf-unwrapped types)
-  const nullable = $derived(!!(schema['_nullable'] as boolean | undefined));
+  const nullable = $derived(isNullable(schema));
 
   /**
    * Handles checkbox change. Preserves null for nullable fields only while the value is already null and unchecked.
@@ -46,7 +57,7 @@
   }
 </script>
 
-<FieldWrapper {name} {schema} {required} hideLabel={true}>
+<FieldWrapper {name} {schema} {required} hideLabel={true} compact={inline}>
   <label class="field-label-wrap" for={name}>
     <input
       type="checkbox"

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import FilenameDialog from '../../../../src/client/components/dialogs/FilenameDialog.svelte';
+import { stubDialogMethods } from './dialog-stubs';
 
 /**
  * Tests for the FilenameDialog component.
@@ -18,7 +19,12 @@ vi.mock('../../../../src/client/js/utils/slug', () => ({
 // Prevent accumulated renders from bleeding between tests
 afterEach(() => cleanup());
 
-/** @return {HTMLButtonElement | null} The first button with the given label text. */
+/**
+ * Finds the first button in a container whose trimmed text matches the given label.
+ * @param {HTMLElement} container - The DOM container to search within
+ * @param {string} label - The button text to match
+ * @return {HTMLButtonElement | null} The matching button, or null if not found
+ */
 function getButton(
   container: HTMLElement,
   label: string,
@@ -32,9 +38,7 @@ function getButton(
 
 describe('FilenameDialog', () => {
   beforeEach(() => {
-    // jsdom does not implement showModal/close on HTMLDialogElement — stub them.
-    HTMLDialogElement.prototype.showModal = vi.fn();
-    HTMLDialogElement.prototype.close = vi.fn();
+    stubDialogMethods();
   });
 
   it('renders with the slug pre-filled from the title prop', () => {

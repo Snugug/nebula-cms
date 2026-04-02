@@ -1,20 +1,16 @@
 <script lang="ts">
   import { getDefaultExtension } from '../../js/utils/file-types';
+  import { changeFileFormat } from '../../js/editor/editor.svelte';
 
-  // Props for the FormatSelector component, which renders a format switcher
-  // when a collection supports multiple file types. onChange is passed per-instance
-  // because the action to take when switching types is caller-specific (e.g. renaming
-  // a file, creating a new draft with a different extension).
+  // Props for the FormatSelector component, which renders a format switcher when a collection supports multiple file types.
   interface Props {
     // Type identifiers from the schema's files array (e.g. ['md', 'mdx'])
     fileTypes: string[];
     // Currently selected type identifier
     activeType: string;
-    // Called when the user selects a different type
-    onChange: (type: string) => void;
   }
 
-  let { fileTypes, activeType, onChange }: Props = $props();
+  let { fileTypes, activeType }: Props = $props();
 </script>
 
 {#if fileTypes.length > 1}
@@ -23,7 +19,7 @@
     <select
       class="format-selector__select"
       value={activeType}
-      onchange={(e) => onChange((e.target as HTMLSelectElement).value)}
+      onchange={(e) => changeFileFormat((e.target as HTMLSelectElement).value)}
     >
       {#each fileTypes as type}
         <option value={type}>{getDefaultExtension(type) ?? type}</option>

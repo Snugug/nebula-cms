@@ -1,3 +1,8 @@
+/*
+ * Reactive editor state for the file editing view.
+ * Manages loading, saving, and dirty-checking of content files and drafts.
+ */
+
 import { registerDirtyChecker } from '../state/router.svelte';
 import { splitFrontmatter } from '../utils/frontmatter';
 import { setByPath, type PathSegment } from '../utils/schema-utils';

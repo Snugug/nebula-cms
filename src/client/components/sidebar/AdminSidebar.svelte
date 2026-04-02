@@ -115,7 +115,7 @@
       <h2 class="sidebar-heading">{title}</h2>
       {#if showAdd}
         <button
-          class="add-btn"
+          class="icon-btn add-btn"
           title="New {title.toLowerCase()}"
           onclick={handleAdd}
         >
@@ -291,22 +291,8 @@
     margin-bottom: 0.75rem;
   }
 
-  .add-btn {
-    background: none;
-    border: none;
-    color: var(--cms-muted);
-    padding: 0;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-
-    &:hover {
-      color: var(--cms-fg);
-    }
-
-    .material-symbols-outlined {
-      font-size: 1rem;
-    }
+  .add-btn .material-symbols-outlined {
+    font-size: 1rem;
   }
 
   /* Flex is appropriate here because chips need inline flow with wrapping */

@@ -83,25 +83,25 @@ import {
 import { dump } from 'js-yaml';
 import { stringify as tomlStringify } from 'smol-toml';
 
+import { makeDraft as _makeDraft } from './fixtures';
 import type { Draft } from '../../../../src/client/js/drafts/storage';
 
+// Ops tests use different defaults than the shared fixture. This wrapper
+// applies ops-specific overrides so callers don't repeat them everywhere.
+const opsDefaults: Partial<Draft> = {
+  filename: 'post.md',
+  formData: { title: 'Hello' },
+  body: 'Draft body',
+  snapshot: '{"body":"orig","formData":{"title":"Orig"}}',
+};
+
 /**
- * Builds a minimal Draft fixture for ops tests.
- * @param {Partial<Draft>} overrides - Optional field overrides
+ * Creates a Draft fixture with ops-test-specific defaults layered on top of the shared fixture.
+ * @param {Partial<Draft>} overrides - Per-test field overrides
  * @return {Draft} A complete Draft object
  */
 function makeDraft(overrides: Partial<Draft> = {}): Draft {
-  return {
-    id: 'draft-001',
-    collection: 'posts',
-    filename: 'post.md',
-    isNew: false,
-    formData: { title: 'Hello' },
-    body: 'Draft body',
-    snapshot: '{"body":"orig","formData":{"title":"Orig"}}',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    ...overrides,
-  };
+  return _makeDraft({ ...opsDefaults, ...overrides });
 }
 
 /**
@@ -332,22 +332,6 @@ describe('saveFile', () => {
 describe('publishFile', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it('throws when no storage client is connected', async () => {
-    mockStorageClientRef.current = null;
-    vi.mocked(_getDraftState).mockReturnValue(
-      makeEditorState({
-        draftId: 'pf-01',
-        draftCreatedAt: '2026-01-01T00:00:00.000Z',
-      }),
-    );
-
-    const { publishFile } =
-      await import('../../../../src/client/js/drafts/ops.svelte');
-    await expect(publishFile('posts', 'post.md')).rejects.toThrow(
-      'No storage backend connected',
-    );
   });
 
   it('writes the file via the storage client', async () => {

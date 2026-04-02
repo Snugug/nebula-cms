@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import DeleteDraftDialog from '../../../../src/client/components/dialogs/DeleteDraftDialog.svelte';
+import { stubDialogMethods } from './dialog-stubs';
 
 /**
  * Tests for the DeleteDraftDialog component.
@@ -17,10 +18,7 @@ afterEach(() => cleanup());
 
 describe('DeleteDraftDialog', () => {
   beforeEach(() => {
-    // jsdom does not implement showModal/close on HTMLDialogElement — stub them
-    // so the $effect that calls dialogEl?.showModal() does not throw.
-    HTMLDialogElement.prototype.showModal = vi.fn();
-    HTMLDialogElement.prototype.close = vi.fn();
+    stubDialogMethods();
   });
 
   it('renders the dialog with title and message', () => {
@@ -28,11 +26,11 @@ describe('DeleteDraftDialog', () => {
       props: { onConfirm: vi.fn(), onCancel: vi.fn() },
     });
 
-    expect(container.querySelector('.dialog-title')?.textContent?.trim()).toBe(
+    expect(container.querySelector('.dialog__title')?.textContent?.trim()).toBe(
       'Delete Draft?',
     );
     expect(
-      container.querySelector('.dialog-message')?.textContent?.trim(),
+      container.querySelector('.dialog__message')?.textContent?.trim(),
     ).toBe('This cannot be undone.');
   });
 

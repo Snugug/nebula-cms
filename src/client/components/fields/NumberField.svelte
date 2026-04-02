@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
+  import { isReadOnly, isNullable } from '../../js/utils/schema-utils';
   import FieldWrapper from './FieldWrapper.svelte';
 
   /**
@@ -16,9 +17,18 @@
     required?: boolean;
     // Callback fired when the value changes
     onchange: (value: number | null) => void;
+    // When true, visually hides FieldWrapper chrome (label/help) for inline array contexts
+    inline?: boolean;
   }
 
-  let { name, schema, value, required = false, onchange }: Props = $props();
+  let {
+    name,
+    schema,
+    value,
+    required = false,
+    onchange,
+    inline = false,
+  }: Props = $props();
 
   // Numeric value for the input, coerced from the value prop
   const inputValue = $derived(typeof value === 'number' ? value : '');
@@ -45,10 +55,10 @@
   const step = $derived(schema['multipleOf'] as number | undefined);
 
   // Whether field is read-only
-  const readOnly = $derived(!!(schema['readOnly'] as boolean | undefined));
+  const readOnly = $derived(isReadOnly(schema));
 
   // Whether empty input should emit null (nullable anyOf-unwrapped types)
-  const nullable = $derived(!!(schema['_nullable'] as boolean | undefined));
+  const nullable = $derived(isNullable(schema));
 
   // Human-readable constraint summary (e.g. "min 0, max 100, step 5")
   const constraintText = $derived.by(() => {
@@ -74,7 +84,7 @@
   }
 </script>
 
-<FieldWrapper {name} {schema} {required} {constraintText}>
+<FieldWrapper {name} {schema} {required} {constraintText} compact={inline}>
   <input
     type="number"
     id={name}
@@ -91,21 +101,5 @@
 <style>
   .field-input {
     width: auto;
-    background: var(--cms-surface, #2a2a2e);
-    border: 1px solid var(--cms-border);
-    border-radius: 4px;
-    padding: 0.5rem;
-    font-size: 1rem;
-    color: var(--cms-fg);
-
-    &:focus {
-      outline: 2px solid var(--plum);
-      outline-offset: -1px;
-    }
-
-    &[readonly] {
-      opacity: 0.6;
-      cursor: default;
-    }
   }
 </style>

@@ -57,20 +57,14 @@ export async function mergeDrafts(collection: string): Promise<void> {
     return;
   }
 
-  if (!storageClient) {
-    outdatedMap = {};
-    return;
-  }
-
   // Read all candidate files in parallel instead of sequentially.
-  // js-yaml is dynamically imported because it's a transitive dep, not a direct devDependency.
-  // The import is cached after the first resolution so only the first candidate pays the cost.
+  // js-yaml is dynamically imported because it's a transitive dep — hoist before the loop so the import is evaluated once, not per-candidate.
+  const { load } = await import('js-yaml');
   const settled = await Promise.all(
     candidates.map(async (d) => {
       try {
         const text = await storageClient.readFile(collection, d.filename!);
         const { rawFrontmatter, body } = splitFrontmatter(text);
-        const { load } = await import('js-yaml');
         const liveFormData = (load(rawFrontmatter) ?? {}) as Record<
           string,
           unknown

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
+  import { getLabel } from '../../js/utils/schema-utils';
   import type { Snippet } from 'svelte';
-  import { toTitleCase } from '../../js/utils/format';
 
   /**
    * Shared wrapper for all form field components. Provides the label, required marker, deprecated dimming, description, and constraint text so individual field components only supply the input element via a Svelte snippet.
@@ -19,6 +19,8 @@
     constraintText?: string;
     // When true, hides the default label — used by BooleanField which renders its own inline checkbox+label
     hideLabel?: boolean;
+    // When true, visually hides label and help text using sr-only for inline array contexts where the parent provides visible labels
+    compact?: boolean;
   }
 
   let {
@@ -28,12 +30,11 @@
     children,
     constraintText,
     hideLabel = false,
+    compact = false,
   }: Props = $props();
 
   // Display label — schema.title if present, otherwise title-cased name
-  const label = $derived(
-    (schema['title'] as string | undefined) ?? toTitleCase(name),
-  );
+  const label = $derived(getLabel(schema, name));
 
   // Description from schema
   const description = $derived(schema['description'] as string | undefined);
@@ -42,7 +43,11 @@
   const deprecated = $derived(!!(schema['deprecated'] as boolean | undefined));
 </script>
 
-<div class="field" class:field--deprecated={deprecated}>
+<div
+  class="field"
+  class:field--deprecated={deprecated}
+  class:field--compact={compact}
+>
   {#if !hideLabel}
     <label class="field-label" for={name}>
       {label}{#if required}<span class="field-required" aria-hidden="true"
@@ -72,6 +77,18 @@
   /* Dimmed appearance for deprecated fields */
   .field--deprecated {
     opacity: 0.5;
+  }
+
+  /* Compact mode: visually hide label and help text while keeping them in the DOM for screen readers */
+  .field--compact .field-label,
+  .field--compact .field-help {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .field-label {

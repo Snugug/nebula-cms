@@ -1,7 +1,11 @@
+/*
+ * Deterministic JSON serialization with sorted keys.
+ * Prevents false-positive outdated detection when comparing snapshots.
+ */
+
 /**
  * Recursively sorts object keys and serializes to JSON.
- * Produces deterministic output regardless of key insertion order,
- * preventing false-positive outdated detection when comparing snapshots.
+ * Produces deterministic output regardless of key insertion order.
  * @param {unknown} value - The value to serialize
  * @return {string} A JSON string with sorted keys at every nesting level
  */

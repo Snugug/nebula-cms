@@ -43,7 +43,7 @@
 </script>
 
 <button
-  class="sort-btn"
+  class="icon-btn sort-btn"
   title={SORT_MODES[sortMode].label}
   commandfor={popoverId}
   command="toggle-popover"
@@ -78,17 +78,6 @@
 
   .sort-btn {
     anchor-name: --sort-btn;
-    background: none;
-    border: none;
-    color: var(--cms-muted);
-    padding: 0;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-
-    &:hover {
-      color: var(--cms-fg);
-    }
   }
 
   /* display: grid is in :popover-open to avoid overriding the UA's display: none on hidden popovers */

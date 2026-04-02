@@ -1,51 +1,65 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import EditorToolbar from '../../../../src/client/components/editor/EditorToolbar.svelte';
+import { makeEditorFile } from './fixtures';
 
 /**
  * Tests for the EditorToolbar component.
- * Mocks editor.svelte to control the file state and verify that the toolbar
- * renders save/publish/delete buttons correctly and fires click handlers.
+ * The component imports state modules directly rather than receiving props,
+ * so we mock each module to control rendering and verify interactions.
  */
 
 // vi.hoisted ensures these declarations are available when vi.mock factories run,
 // since vi.mock calls are hoisted to the top of the file by Vitest.
-const { mockGetEditorFile } = vi.hoisted(() => ({
+const {
+  mockGetEditorFile,
+  mockHandleSave,
+  mockHandlePublish,
+  mockShowFilenameDialog,
+  mockShowDeleteDialog,
+  mockComputePublishDisabled,
+} = vi.hoisted(() => ({
   mockGetEditorFile: vi.fn(),
+  mockHandleSave: vi.fn(),
+  mockHandlePublish: vi.fn(() => Promise.resolve({ status: 'ok' as const })),
+  mockShowFilenameDialog: vi.fn(),
+  mockShowDeleteDialog: vi.fn(),
+  mockComputePublishDisabled: vi.fn(() => false),
 }));
 
 vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
   getEditorFile: mockGetEditorFile,
 }));
 
+vi.mock('../../../../src/client/js/state/router.svelte', () => ({
+  nav: {
+    get route() {
+      return { view: 'file', collection: 'posts', slug: 'hello' };
+    },
+  },
+}));
+
+vi.mock('../../../../src/client/js/state/schema.svelte', () => ({
+  schema: {
+    get active() {
+      return null;
+    },
+  },
+}));
+
+vi.mock('../../../../src/client/js/handlers/admin', () => ({
+  handleSave: mockHandleSave,
+  handlePublish: mockHandlePublish,
+  computePublishDisabled: mockComputePublishDisabled,
+}));
+
+vi.mock('../../../../src/client/js/state/dialogs.svelte', () => ({
+  showFilenameDialog: mockShowFilenameDialog,
+  showDeleteDialog: mockShowDeleteDialog,
+}));
+
 // Prevent accumulated renders from bleeding between tests
 afterEach(() => cleanup());
-
-/** Builds a minimal EditorFile fixture with sensible defaults. */
-function makeFile(
-  overrides: Partial<{
-    filename: string;
-    dirty: boolean;
-    saving: boolean;
-    draftId: string | null;
-    formData: Record<string, unknown>;
-    body: string;
-    bodyLoaded: boolean;
-    isNewDraft: boolean;
-  }> = {},
-) {
-  return {
-    filename: 'my-post.md',
-    dirty: false,
-    saving: false,
-    draftId: null,
-    formData: {},
-    body: '',
-    bodyLoaded: true,
-    isNewDraft: false,
-    ...overrides,
-  };
-}
 
 describe('EditorToolbar', () => {
   //////////////////////////////
@@ -53,16 +67,9 @@ describe('EditorToolbar', () => {
   //////////////////////////////
 
   it('renders the toolbar header when a file is open', () => {
-    mockGetEditorFile.mockReturnValue(makeFile());
+    mockGetEditorFile.mockReturnValue(makeEditorFile());
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     expect(container.querySelector('.toolbar')).not.toBeNull();
   });
@@ -70,14 +77,7 @@ describe('EditorToolbar', () => {
   it('renders nothing when no file is open', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     expect(container.querySelector('.toolbar')).toBeNull();
   });
@@ -88,17 +88,10 @@ describe('EditorToolbar', () => {
 
   it('shows the title from formData when present', () => {
     mockGetEditorFile.mockReturnValue(
-      makeFile({ formData: { title: 'My Great Post' } }),
+      makeEditorFile({ formData: { title: 'My Great Post' } }),
     );
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     expect(container.querySelector('.toolbar__title')?.textContent).toContain(
       'My Great Post',
@@ -106,16 +99,11 @@ describe('EditorToolbar', () => {
   });
 
   it('falls back to the filename when formData has no title', () => {
-    mockGetEditorFile.mockReturnValue(makeFile({ filename: 'my-post.md' }));
+    mockGetEditorFile.mockReturnValue(
+      makeEditorFile({ filename: 'my-post.md' }),
+    );
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     expect(container.querySelector('.toolbar__title')?.textContent).toContain(
       'my-post.md',
@@ -123,16 +111,9 @@ describe('EditorToolbar', () => {
   });
 
   it('shows "Untitled Draft" when there is no title and no filename', () => {
-    mockGetEditorFile.mockReturnValue(makeFile({ filename: '' }));
+    mockGetEditorFile.mockReturnValue(makeEditorFile({ filename: '' }));
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     expect(container.querySelector('.toolbar__title')?.textContent).toContain(
       'Untitled Draft',
@@ -144,32 +125,18 @@ describe('EditorToolbar', () => {
   //////////////////////////////
 
   it('renders the Save button', () => {
-    mockGetEditorFile.mockReturnValue(makeFile());
+    mockGetEditorFile.mockReturnValue(makeEditorFile());
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     const saveBtn = container.querySelector('.btn--save-outline');
     expect(saveBtn).not.toBeNull();
   });
 
   it('disables Save when file is not dirty', () => {
-    mockGetEditorFile.mockReturnValue(makeFile({ dirty: false }));
+    mockGetEditorFile.mockReturnValue(makeEditorFile({ dirty: false }));
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     const saveBtn = container.querySelector(
       '.btn--save-outline',
@@ -177,21 +144,13 @@ describe('EditorToolbar', () => {
     expect(saveBtn?.disabled).toBe(true);
   });
 
-  it('calls onSave when the Save button is clicked', async () => {
-    mockGetEditorFile.mockReturnValue(makeFile({ dirty: true }));
-    const onSave = vi.fn();
+  it('calls handleSave when the Save button is clicked', async () => {
+    mockGetEditorFile.mockReturnValue(makeEditorFile({ dirty: true }));
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave,
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     await fireEvent.click(container.querySelector('.btn--save-outline')!);
-    expect(onSave).toHaveBeenCalledOnce();
+    expect(mockHandleSave).toHaveBeenCalledOnce();
   });
 
   //////////////////////////////
@@ -199,49 +158,32 @@ describe('EditorToolbar', () => {
   //////////////////////////////
 
   it('renders the Publish button', () => {
-    mockGetEditorFile.mockReturnValue(makeFile());
+    mockGetEditorFile.mockReturnValue(makeEditorFile());
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     expect(container.querySelector('.btn--primary')).not.toBeNull();
   });
 
-  it('disables the Publish button when publishDisabled prop is true', () => {
-    mockGetEditorFile.mockReturnValue(makeFile());
+  it('disables the Publish button when computePublishDisabled returns true', () => {
+    mockGetEditorFile.mockReturnValue(makeEditorFile());
+    mockComputePublishDisabled.mockReturnValue(true);
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: true,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     const publishBtn = container.querySelector(
       '.btn--primary',
     ) as HTMLButtonElement;
     expect(publishBtn?.disabled).toBe(true);
+
+    mockComputePublishDisabled.mockReturnValue(false);
   });
 
-  it('enables the Publish button when publishDisabled is false and not saving', () => {
-    mockGetEditorFile.mockReturnValue(makeFile({ saving: false }));
+  it('enables the Publish button when not disabled and not saving', () => {
+    mockGetEditorFile.mockReturnValue(makeEditorFile({ saving: false }));
+    mockComputePublishDisabled.mockReturnValue(false);
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     const publishBtn = container.querySelector(
       '.btn--primary',
@@ -249,21 +191,23 @@ describe('EditorToolbar', () => {
     expect(publishBtn?.disabled).toBe(false);
   });
 
-  it('calls onPublish when the Publish button is clicked', async () => {
-    mockGetEditorFile.mockReturnValue(makeFile());
-    const onPublish = vi.fn();
+  it('calls handlePublish when the Publish button is clicked', async () => {
+    mockGetEditorFile.mockReturnValue(makeEditorFile());
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish,
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     await fireEvent.click(container.querySelector('.btn--primary')!);
-    expect(onPublish).toHaveBeenCalledOnce();
+    expect(mockHandlePublish).toHaveBeenCalledOnce();
+  });
+
+  it('shows filename dialog when publish needs a filename', async () => {
+    mockGetEditorFile.mockReturnValue(makeEditorFile());
+    mockHandlePublish.mockResolvedValueOnce({ status: 'needs-filename' });
+
+    const { container } = render(EditorToolbar);
+
+    await fireEvent.click(container.querySelector('.btn--primary')!);
+    expect(mockShowFilenameDialog).toHaveBeenCalledOnce();
   });
 
   //////////////////////////////
@@ -271,49 +215,29 @@ describe('EditorToolbar', () => {
   //////////////////////////////
 
   it('renders the Delete Draft button when draftId is set', () => {
-    mockGetEditorFile.mockReturnValue(makeFile({ draftId: 'draft-abc-123' }));
+    mockGetEditorFile.mockReturnValue(
+      makeEditorFile({ draftId: 'draft-abc-123' }),
+    );
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     expect(container.querySelector('.btn--danger-outline')).not.toBeNull();
   });
 
   it('does not render the Delete Draft button when draftId is null', () => {
-    mockGetEditorFile.mockReturnValue(makeFile({ draftId: null }));
+    mockGetEditorFile.mockReturnValue(makeEditorFile({ draftId: null }));
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete: vi.fn(),
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     expect(container.querySelector('.btn--danger-outline')).toBeNull();
   });
 
-  it('calls onDelete when the Delete Draft button is clicked', async () => {
-    mockGetEditorFile.mockReturnValue(makeFile({ draftId: 'draft-abc' }));
-    const onDelete = vi.fn();
+  it('calls showDeleteDialog when the Delete Draft button is clicked', async () => {
+    mockGetEditorFile.mockReturnValue(makeEditorFile({ draftId: 'draft-abc' }));
 
-    const { container } = render(EditorToolbar, {
-      props: {
-        onSave: vi.fn(),
-        onPublish: vi.fn(),
-        onDelete,
-        publishDisabled: false,
-      },
-    });
+    const { container } = render(EditorToolbar);
 
     await fireEvent.click(container.querySelector('.btn--danger-outline')!);
-    expect(onDelete).toHaveBeenCalledOnce();
+    expect(mockShowDeleteDialog).toHaveBeenCalledOnce();
   });
 });
