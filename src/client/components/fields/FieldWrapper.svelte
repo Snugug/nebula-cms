@@ -43,13 +43,9 @@
   const deprecated = $derived(!!(schema['deprecated'] as boolean | undefined));
 </script>
 
-<div
-  class="field"
-  class:field--deprecated={deprecated}
-  class:field--inline={inline}
->
+<div class="field" class:field--deprecated={deprecated}>
   {#if !hideLabel}
-    <label class="field-label" for={name}>
+    <label class="field-label" class:sr-only={inline} for={name}>
       {label}{#if required}<span class="field-required" aria-hidden="true"
           >*</span
         >{/if}
@@ -59,7 +55,7 @@
   {@render children()}
 
   {#if description || constraintText}
-    <p class="field-help">
+    <p class="field-help" class:sr-only={inline}>
       {#if description}{description}{/if}
       {#if description && constraintText}&ensp;{/if}
       {#if constraintText}<span class="field-constraint">{constraintText}</span
@@ -77,18 +73,6 @@
   /* Dimmed appearance for deprecated fields */
   .field--deprecated {
     opacity: 0.5;
-  }
-
-  /* Inline mode: visually hide label and help text while keeping them in the DOM for screen readers */
-  .field--inline .field-label,
-  .field--inline .field-help {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
   }
 
   .field-label {

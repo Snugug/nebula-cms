@@ -41,6 +41,7 @@
   import './css/btn.css';
   import './css/field-input.css';
   import './css/dialog.css';
+  import './css/a11y.css';
   import BackendPicker from './components/BackendPicker.svelte';
   import AdminSidebar from './components/sidebar/AdminSidebar.svelte';
   import EditorToolbar from './components/editor/EditorToolbar.svelte';
