@@ -284,8 +284,10 @@
     flex: 1;
   }
 
-  /* Primitive items: input fills space between drag handle and buttons.
-     Label/help hiding is handled by FieldWrapper's compact prop via SchemaField inline={true}. */
+  /*
+   * Primitive items: input fills space between drag handle and buttons.
+   * Label/help hiding is handled by FieldWrapper's inline prop via SchemaField inline={true}.
+   */
   .array-item__inline-field {
     flex: 1;
     min-width: 0;
