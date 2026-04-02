@@ -228,21 +228,21 @@ vi.mock('../../src/client/js/state/theme.svelte', () => ({
   theme: { resolved: 'dark', icon: 'brightness_auto', label: 'Auto' },
 }));
 vi.mock('../../src/client/js/state/dialogs.svelte', () => ({
-  dialogs: {
+  dialog: {
     get active() {
       return dialogState.active;
     },
+    open: vi.fn((type: string) => {
+      dialogState.active = type;
+    }),
+    close: vi.fn(() => {
+      dialogState.active = null;
+    }),
   },
-  openDialog: vi.fn((type: string) => {
-    dialogState.active = type;
-  }),
-  closeDialog: vi.fn(() => {
-    dialogState.active = null;
-  }),
 }));
 
 import Admin from '../../src/client/Admin.svelte';
-import { openDialog } from '../../src/client/js/state/dialogs.svelte';
+import { dialog } from '../../src/client/js/state/dialogs.svelte';
 
 afterEach(() => cleanup());
 beforeEach(() => {
@@ -283,7 +283,7 @@ describe('Publishing', () => {
     if (publishBtn) await fireEvent.click(publishBtn);
 
     // EditorToolbar calls showFilenameDialog when handlePublish returns 'needs-filename'
-    expect(openDialog).toHaveBeenCalledWith('filename');
+    expect(dialog.open).toHaveBeenCalledWith('filename');
   });
 
   it('disables publish button when computePublishDisabled returns true', () => {

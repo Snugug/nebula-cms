@@ -52,7 +52,9 @@ vi.mock('../../../../src/client/js/handlers/admin', () => ({
 }));
 
 vi.mock('../../../../src/client/js/state/dialogs.svelte', () => ({
-  openDialog: mockOpenDialog,
+  dialog: {
+    open: mockOpenDialog,
+  },
 }));
 
 // Prevent accumulated renders from bleeding between tests

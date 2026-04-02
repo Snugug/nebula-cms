@@ -32,7 +32,7 @@
     buildCollectionItems,
     buildActiveFileHref,
   } from './js/handlers/admin';
-  import { dialogs, closeDialog } from './js/state/dialogs.svelte';
+  import { dialog } from './js/state/dialogs.svelte';
   import { stripExtension, getTypeForFilename } from './js/utils/file-types';
   import { initTheme, theme } from './js/state/theme.svelte';
   import './css/reset.css';
@@ -181,7 +181,7 @@
    * @return {Promise<void>}
    */
   async function onFilenameConfirm(filename: string): Promise<void> {
-    closeDialog();
+    dialog.close();
     await handleFilenameConfirm(filename, activeCollection);
   }
 
@@ -190,7 +190,7 @@
    * @return {Promise<void>}
    */
   async function onDeleteConfirm(): Promise<void> {
-    closeDialog();
+    dialog.close();
     await handleDeleteDraft(activeCollection);
   }
 
@@ -255,18 +255,18 @@
   {/if}
 </div>
 
-{#if dialogs.active === 'filename'}
+{#if dialog.active === 'filename'}
   {@const file = getEditorFile()}
   <FilenameDialog
     title={typeof file?.formData.title === 'string' ? file.formData.title : ''}
     {existingFilenames}
     onConfirm={onFilenameConfirm}
-    onCancel={closeDialog}
+    onCancel={dialog.close}
   />
 {/if}
 
-{#if dialogs.active === 'delete'}
-  <DeleteDraftDialog onConfirm={onDeleteConfirm} onCancel={closeDialog} />
+{#if dialog.active === 'delete'}
+  <DeleteDraftDialog onConfirm={onDeleteConfirm} onCancel={dialog.close} />
 {/if}
 
 <style>

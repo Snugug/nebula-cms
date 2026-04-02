@@ -219,13 +219,13 @@ vi.mock('../../src/client/js/state/theme.svelte', () => ({
   theme: { resolved: 'dark', icon: 'brightness_auto', label: 'Auto' },
 }));
 vi.mock('../../src/client/js/state/dialogs.svelte', () => ({
-  dialogs: {
+  dialog: {
     get active() {
       return null;
     },
+    open: vi.fn(),
+    close: vi.fn(),
   },
-  openDialog: vi.fn(),
-  closeDialog: vi.fn(),
 }));
 
 import Admin from '../../src/client/Admin.svelte';

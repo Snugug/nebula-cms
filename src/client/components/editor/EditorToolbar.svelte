@@ -7,7 +7,7 @@
     handlePublish,
     computePublishDisabled,
   } from '../../js/handlers/admin';
-  import { openDialog } from '../../js/state/dialogs.svelte';
+  import { dialog } from '../../js/state/dialogs.svelte';
 
   // Current editor file state
   const file = $derived(getEditorFile());
@@ -36,7 +36,7 @@
   async function onPublish(): Promise<void> {
     const result = await handlePublish(activeCollection);
     if (result.status === 'needs-filename') {
-      openDialog('filename');
+      dialog.open('filename');
     }
   }
 </script>
@@ -61,7 +61,7 @@
         <button
           class="btn btn--danger-outline btn--compact"
           type="button"
-          onclick={() => openDialog('delete')}
+          onclick={() => dialog.open('delete')}
         >
           Delete Draft
         </button>
