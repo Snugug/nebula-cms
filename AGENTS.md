@@ -82,8 +82,8 @@ Prefer CSS Grid to Flexbox unless you need the specific characteristics of flexb
 **Not allowed:**
 
 - **Convenience** — If a style could be a global partial or scoped class, don't use `:global`
-- **Shared/reusable styles** — Move to `src/sass/partials/` (e.g. `_input.scss`, `_utilities.scss`)
-- **Utility classes** — Add to `src/sass/partials/_utilities.scss`
+- **Shared/reusable styles** — Move to `src/css` (e.g. `input.css`, `utilities.css`)
+- **Utility classes** — Add to `src/css/utilities.css`
 - **Portal-rendered content** — Refactor to Svelte-rendered markup with scoped styles instead of imperative DOM + `:global`
 
 ### Code Comments
