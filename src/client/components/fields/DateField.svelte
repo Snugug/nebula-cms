@@ -74,15 +74,9 @@
   <input
     type="date"
     id={name}
-    class="field-input"
+    class="field-input field-input--auto"
     value={inputValue}
     readonly={readOnly}
     oninput={handleChange}
   />
 </FieldWrapper>
-
-<style>
-  .field-input {
-    width: auto;
-  }
-</style>

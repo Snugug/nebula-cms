@@ -88,7 +88,7 @@
   <input
     type="number"
     id={name}
-    class="field-input"
+    class="field-input field-input--auto"
     value={inputValue}
     {min}
     {max}
@@ -97,9 +97,3 @@
     oninput={handleChange}
   />
 </FieldWrapper>
-
-<style>
-  .field-input {
-    width: auto;
-  }
-</style>

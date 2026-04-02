@@ -72,13 +72,3 @@
     {/each}
   </select>
 </FieldWrapper>
-
-<style>
-  .field-input--select {
-    /* Restore native dropdown arrow stripped by CSS reset */
-    appearance: auto;
-    width: auto;
-    padding-right: 2rem;
-    cursor: pointer;
-  }
-</style>

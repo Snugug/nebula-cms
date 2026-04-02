@@ -24,3 +24,16 @@
     cursor: default;
   }
 }
+
+/* Intrinsic-width inputs (number, date, select) — prevents stretching to 100% */
+.field-input--auto {
+  width: auto;
+}
+
+/* Native select dropdown with restored arrow and extra padding for the indicator */
+.field-input--select {
+  appearance: auto;
+  width: auto;
+  padding-right: 2rem;
+  cursor: pointer;
+}
