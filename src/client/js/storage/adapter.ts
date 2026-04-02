@@ -1,3 +1,8 @@
+/*
+ * Storage adapter interface and shared types.
+ * Defines the contract that FSA and GitHub storage backends implement.
+ */
+
 // A single file's name and content as returned by listFiles.
 export type FileEntry = {
   filename: string;
@@ -58,9 +63,11 @@ export interface StorageAdapter {
   writeFiles(files: FileWrite[]): Promise<void>;
 }
 
+/*
 //////////////////////////////
 // Message types for SharedWorker communication
 //////////////////////////////
+*/
 
 // Union of all request messages that can be sent to the storage SharedWorker.
 export type StorageRequest =

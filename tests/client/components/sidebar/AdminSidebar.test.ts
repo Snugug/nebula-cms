@@ -9,20 +9,10 @@ import AdminSidebar from '../../../../src/client/components/sidebar/AdminSidebar
  * active item highlighting, showAdd prop, and showFooter prop.
  */
 
-vi.mock('../../../../src/client/js/utils/sort', () => ({
-  SORT_MODES: {
-    alpha: { icon: 'sort_by_alpha', label: 'Alphabetical' },
-    'date-asc': { icon: 'hourglass_arrow_down', label: 'Oldest first' },
-    'date-desc': { icon: 'hourglass_arrow_up', label: 'Newest first' },
-  },
-  SORT_ORDER: ['alpha', 'date-asc', 'date-desc'],
-  readSortMode: vi.fn(() => 'alpha'),
-  writeSortMode: vi.fn(),
-  createComparator: vi.fn(
-    () => (a: { label: string }, b: { label: string }) =>
-      a.label.localeCompare(b.label),
-  ),
-}));
+vi.mock('../../../../src/client/js/utils/sort', async () => {
+  const { createSortMock } = await import('./sort-mock');
+  return createSortMock();
+});
 
 vi.mock('../../../../src/client/js/state/router.svelte', () => ({
   navigate: vi.fn(),
@@ -59,9 +49,11 @@ const sampleItems = [
 ];
 
 describe('AdminSidebar', () => {
+  /*
   //////////////////////////////
   // Item list rendering
   //////////////////////////////
+  */
 
   it('renders all provided items as links', () => {
     const { container } = render(AdminSidebar, {
@@ -119,9 +111,11 @@ describe('AdminSidebar', () => {
     );
   });
 
+  /*
   //////////////////////////////
   // Active item
   //////////////////////////////
+  */
 
   it('sets aria-current="page" on the active item link', () => {
     const { container } = render(AdminSidebar, {
@@ -158,9 +152,11 @@ describe('AdminSidebar', () => {
     }
   });
 
+  /*
   //////////////////////////////
   // Search filtering
   //////////////////////////////
+  */
 
   it('filters items when the search input has a value', async () => {
     const { container } = render(AdminSidebar, {
@@ -201,9 +197,11 @@ describe('AdminSidebar', () => {
     );
   });
 
+  /*
   //////////////////////////////
   // showAdd prop
   //////////////////////////////
+  */
 
   it('renders the add button when showAdd is true', () => {
     const { container } = render(AdminSidebar, {
@@ -226,9 +224,11 @@ describe('AdminSidebar', () => {
     expect(container.querySelector('.add-btn')).toBeNull();
   });
 
+  /*
   //////////////////////////////
   // showFooter prop
   //////////////////////////////
+  */
 
   it('renders the footer when showFooter is true', () => {
     const { container } = render(AdminSidebar, {
@@ -255,9 +255,11 @@ describe('AdminSidebar', () => {
     expect(footer?.querySelector('.logout-btn')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Sort controls
   //////////////////////////////
+  */
 
   it('renders the sort control when hasDates is true', () => {
     const { container } = render(AdminSidebar, {

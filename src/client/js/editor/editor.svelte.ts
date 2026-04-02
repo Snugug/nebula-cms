@@ -1,3 +1,8 @@
+/*
+ * Reactive editor state for the file editing view.
+ * Manages loading, saving, and dirty-checking of content files and drafts.
+ */
+
 import { registerDirtyChecker } from '../state/router.svelte';
 import { splitFrontmatter } from '../utils/frontmatter';
 import { setByPath, type PathSegment } from '../utils/schema-utils';
@@ -95,8 +100,10 @@ export function applyEditorState(c: EditorStateConfig, open: boolean): void {
   draftCreatedAt = c.draftCreatedAt;
 }
 
-// Tracks whether formData has diverged from its saved snapshot.
-// Updated only by updateFormField to avoid re-serializing on every body keystroke.
+/*
+ * Tracks whether formData has diverged from its saved snapshot.
+ * Updated only by updateFormField to avoid re-serializing on every body keystroke.
+ */
 let formDataDirty = false;
 /**
  * Recomputes dirty state from body comparison and the cached formData flag.
@@ -331,8 +338,10 @@ export function clearEditor(): void {
   );
 }
 
-// Re-export draft operations so existing import paths keep working.
-// The canonical source is editor-draft-ops.svelte.ts.
+/*
+ * Re-export draft operations so existing import paths keep working.
+ * The canonical source is editor-draft-ops.svelte.ts.
+ */
 export {
   saveDraftToIDB,
   saveFile,

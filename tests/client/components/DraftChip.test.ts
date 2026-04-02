@@ -12,9 +12,11 @@ import DraftChip from '../../../src/client/components/DraftChip.svelte';
 afterEach(() => cleanup());
 
 describe('DraftChip', () => {
+  /*
   //////////////////////////////
   // draft variant
   //////////////////////////////
+  */
 
   it('renders "draft" text with chip--draft class when variant is draft', () => {
     const { container } = render(DraftChip, { props: { variant: 'draft' } });
@@ -26,9 +28,11 @@ describe('DraftChip', () => {
     expect(chip!.classList.contains('chip--outdated')).toBe(false);
   });
 
+  /*
   //////////////////////////////
   // outdated variant
   //////////////////////////////
+  */
 
   it('renders "outdated" text with chip--outdated class when variant is outdated', () => {
     const { container } = render(DraftChip, { props: { variant: 'outdated' } });

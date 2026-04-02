@@ -42,9 +42,11 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
 afterEach(() => cleanup());
 
 describe('EditorTabs', () => {
+  /*
   //////////////////////////////
   // Default tabs
   //////////////////////////////
+  */
 
   it('always renders the Metadata and Body tabs', () => {
     const { container } = render(EditorTabs, {
@@ -69,9 +71,11 @@ describe('EditorTabs', () => {
     expect(labels.indexOf('Metadata')).toBeLessThan(labels.indexOf('Body'));
   });
 
+  /*
   //////////////////////////////
   // Schema-derived custom tabs
   //////////////////////////////
+  */
 
   it('renders custom tabs returned by extractTabs', () => {
     mockExtractTabs.mockReturnValueOnce(['seo', 'social']);
@@ -118,9 +122,11 @@ describe('EditorTabs', () => {
     expect(buttons.length).toBe(2);
   });
 
+  /*
   //////////////////////////////
   // Active tab state
   //////////////////////////////
+  */
 
   it('marks the active tab with tabs__tab--active class', () => {
     mockActiveTab.mockReturnValue('body');
@@ -154,9 +160,11 @@ describe('EditorTabs', () => {
     expect(activeBtn?.textContent?.trim()).toBe('Metadata');
   });
 
+  /*
   //////////////////////////////
   // Click interaction
   //////////////////////////////
+  */
 
   it('calls setActiveTab with the clicked tab identifier', async () => {
     mockSetActiveTab.mockClear();
@@ -195,9 +203,11 @@ describe('EditorTabs', () => {
     expect(mockSetActiveTab).toHaveBeenCalledWith('metadata');
   });
 
+  /*
   //////////////////////////////
   // Body tab visibility by file type
   //////////////////////////////
+  */
 
   it('shows the Body tab when the open file is a .md file', () => {
     mockEditorFile.mockReturnValueOnce({ filename: 'post.md' });

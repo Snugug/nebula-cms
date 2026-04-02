@@ -20,10 +20,10 @@
   });
 </script>
 
-<dialog class="confirm-dialog" bind:this={dialogEl} onclose={onCancel}>
-  <h2 class="dialog-title">Delete Draft?</h2>
-  <p class="dialog-message">This cannot be undone.</p>
-  <div class="dialog-actions">
+<dialog class="dialog confirm-dialog" bind:this={dialogEl} onclose={onCancel}>
+  <h2 class="dialog__title">Delete Draft?</h2>
+  <p class="dialog__message">This cannot be undone.</p>
+  <div class="dialog__actions">
     <button class="btn btn--cancel" type="button" onclick={onCancel}
       >Cancel</button
     >
@@ -35,34 +35,17 @@
 
 <style>
   .confirm-dialog {
-    background: var(--cms-surface);
-    color: var(--cms-fg);
-    border: 1px solid var(--cms-border);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
     min-width: 18rem;
   }
 
-  /* Backdrop for the modal overlay */
-  .confirm-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.6);
-  }
-
-  .dialog-title {
-    font-size: 1rem;
-    font-weight: 600;
+  /* Tighter title spacing for the short confirmation dialog */
+  .dialog__title {
     margin-bottom: 0.5rem;
   }
 
-  .dialog-message {
+  .dialog__message {
     font-size: 0.875rem;
     color: var(--cms-muted);
     margin-bottom: 1.25rem;
-  }
-
-  .dialog-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
   }
 </style>

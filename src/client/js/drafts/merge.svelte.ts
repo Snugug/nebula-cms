@@ -47,8 +47,10 @@ function ensureDiffWorker(): Worker {
 export async function mergeDrafts(collection: string): Promise<void> {
   draftList = await loadDrafts(collection);
 
-  // Filter to drafts that need outdated checking:
-  // must be linked to a live file (not new), have a snapshot, and have a filename
+  /*
+   * Filter to drafts that need outdated checking:
+   * must be linked to a live file (not new), have a snapshot, and have a filename.
+   */
   const candidates = draftList.filter(
     (d) => !d.isNew && d.snapshot && d.filename,
   );
@@ -57,20 +59,17 @@ export async function mergeDrafts(collection: string): Promise<void> {
     return;
   }
 
-  if (!storageClient) {
-    outdatedMap = {};
-    return;
-  }
-
-  // Read all candidate files in parallel instead of sequentially.
-  // js-yaml is dynamically imported because it's a transitive dep, not a direct devDependency.
-  // The import is cached after the first resolution so only the first candidate pays the cost.
+  /*
+   * Read all candidate files in parallel instead of sequentially.
+   * js-yaml is dynamically imported because it's a transitive dep — hoist
+   * before the loop so the import is evaluated once, not per-candidate.
+   */
+  const { load } = await import('js-yaml');
   const settled = await Promise.all(
     candidates.map(async (d) => {
       try {
         const text = await storageClient.readFile(collection, d.filename!);
         const { rawFrontmatter, body } = splitFrontmatter(text);
-        const { load } = await import('js-yaml');
         const liveFormData = (load(rawFrontmatter) ?? {}) as Record<
           string,
           unknown

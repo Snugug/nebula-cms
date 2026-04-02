@@ -30,6 +30,18 @@ vi.mock('../../../src/client/js/utils/schema-utils', () => ({
   createDefaultValue: vi.fn(() => ''),
   getByPath: vi.fn(),
   setByPath: vi.fn(),
+  getProperties: vi.fn(
+    (schema: Record<string, unknown>) =>
+      schema['properties'] as Record<string, unknown> | undefined,
+  ),
+  getRequiredFields: vi.fn((schema: Record<string, unknown>) =>
+    Array.isArray(schema['required']) ? schema['required'] : [],
+  ),
+  isReadOnly: vi.fn(() => false),
+  isNullable: vi.fn(() => false),
+  getLabel: vi.fn((schema: Record<string, unknown>, name: string) =>
+    typeof schema['title'] === 'string' ? schema['title'] : name,
+  ),
 }));
 
 vi.mock('../../../src/client/js/editor/editor.svelte', () => ({
@@ -62,9 +74,11 @@ const sampleSchema = {
 };
 
 describe('MetadataForm', () => {
+  /*
   //////////////////////////////
   // Field rendering
   //////////////////////////////
+  */
 
   it('renders a field for each property returned by getFieldsForTab', () => {
     mockGetFieldsForTab.mockReturnValue(['title', 'description']);
@@ -111,9 +125,11 @@ describe('MetadataForm', () => {
     expect(inputs.length).toBe(1);
   });
 
+  /*
   //////////////////////////////
   // Container structure
   //////////////////////////////
+  */
 
   it('renders the metadata-form wrapper element', () => {
     mockGetFieldsForTab.mockReturnValue([]);
@@ -126,9 +142,11 @@ describe('MetadataForm', () => {
     expect(container.querySelector('.metadata-form')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Required field passthrough
   //////////////////////////////
+  */
 
   it('passes required fields down to SchemaField', () => {
     mockGetFieldsForTab.mockReturnValue(['title']);

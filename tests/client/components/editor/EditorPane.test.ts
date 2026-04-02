@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import EditorPane from '../../../../src/client/components/editor/EditorPane.svelte';
+import { makeEditorFile } from './fixtures';
 
 /**
  * Tests for the EditorPane component.
@@ -29,9 +30,11 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
 afterEach(() => cleanup());
 
 describe('EditorPane', () => {
+  /*
   //////////////////////////////
   // DOM structure
   //////////////////////////////
+  */
 
   it('renders the outer wrapper element', () => {
     mockGetEditorFile.mockReturnValue(null);
@@ -54,9 +57,11 @@ describe('EditorPane', () => {
     expect(container.querySelector('.editor-pane')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Mount/unmount without error
   //////////////////////////////
+  */
 
   it('mounts without error when no file is open', () => {
     mockGetEditorFile.mockReturnValue(null);
@@ -65,31 +70,17 @@ describe('EditorPane', () => {
   });
 
   it('mounts without error when a file with body is open', () => {
-    mockGetEditorFile.mockReturnValue({
-      body: '# Hello',
-      bodyLoaded: true,
-      filename: 'post.md',
-      draftId: null,
-      formData: {},
-      dirty: false,
-      saving: false,
-      isNewDraft: false,
-    });
+    mockGetEditorFile.mockReturnValue(
+      makeEditorFile({ body: '# Hello', filename: 'post.md' }),
+    );
 
     expect(() => render(EditorPane, { props: {} })).not.toThrow();
   });
 
   it('mounts without error when body is not yet loaded', () => {
-    mockGetEditorFile.mockReturnValue({
-      body: '',
-      bodyLoaded: false,
-      filename: 'post.md',
-      draftId: null,
-      formData: {},
-      dirty: false,
-      saving: false,
-      isNewDraft: false,
-    });
+    mockGetEditorFile.mockReturnValue(
+      makeEditorFile({ bodyLoaded: false, filename: 'post.md' }),
+    );
 
     expect(() => render(EditorPane, { props: {} })).not.toThrow();
   });

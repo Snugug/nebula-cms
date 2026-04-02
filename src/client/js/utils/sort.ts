@@ -1,6 +1,9 @@
-/**
- * Sidebar item displayed as a link in the admin navigation. Used by AdminSidebar for both collections and content lists.
+/*
+ * Sorting utilities and types for admin sidebar content lists.
+ * Handles sort mode persistence, date coercion, and comparator generation.
  */
+
+// Sidebar item displayed as a link in the admin navigation. Used by AdminSidebar for both collections and content lists.
 export type SidebarItem = {
   label: string;
   href: string;
@@ -12,9 +15,7 @@ export type SidebarItem = {
   isOutdated?: boolean;
 };
 
-/**
- * Sort mode identifiers.
- */
+// Sort mode identifiers.
 export type SortMode = 'alpha' | 'date-asc' | 'date-desc';
 
 // Sort mode configuration: icon name and display label

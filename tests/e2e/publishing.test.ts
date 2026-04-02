@@ -33,6 +33,11 @@ const handlers = vi.hoisted(() => ({
   mockHandlePublish: vi.fn(async () => ({ status: 'ok' as const })),
 }));
 
+// Tracks which dialog is active so dialogs.active reflects it
+const dialogState = vi.hoisted(() => ({
+  active: null as string | null,
+}));
+
 //////////////////////////////
 // Module mocks
 //////////////////////////////
@@ -191,6 +196,17 @@ vi.mock('../../src/client/js/utils/schema-utils', () => ({
   createDefaultValue: vi.fn(() => ''),
   getByPath: vi.fn(),
   setByPath: vi.fn(),
+  isReadOnly: vi.fn(() => false),
+  isNullable: vi.fn(() => false),
+  getProperties: vi.fn(
+    (schema: Record<string, unknown>) => schema['properties'],
+  ),
+  getRequiredFields: vi.fn((schema: Record<string, unknown>) =>
+    Array.isArray(schema['required']) ? schema['required'] : [],
+  ),
+  getLabel: vi.fn((schema: Record<string, unknown>, name: string) =>
+    typeof schema['title'] === 'string' ? schema['title'] : name,
+  ),
 }));
 vi.mock('../../src/client/js/drafts/merge.svelte', () => ({
   drafts: {
@@ -211,14 +227,29 @@ vi.mock('../../src/client/js/state/theme.svelte', () => ({
   cycleTheme: vi.fn(),
   theme: { resolved: 'dark', icon: 'brightness_auto', label: 'Auto' },
 }));
+vi.mock('../../src/client/js/state/dialogs.svelte', () => ({
+  dialog: {
+    get active() {
+      return dialogState.active;
+    },
+    open: vi.fn((type: string) => {
+      dialogState.active = type;
+    }),
+    close: vi.fn(() => {
+      dialogState.active = null;
+    }),
+  },
+}));
 
 import Admin from '../../src/client/Admin.svelte';
+import { dialog } from '../../src/client/js/state/dialogs.svelte';
 
 afterEach(() => cleanup());
 beforeEach(() => {
   resetMocks(mocks);
   handlers.mockHandlePublish.mockClear();
   handlers.mockHandlePublish.mockResolvedValue({ status: 'ok' });
+  dialogState.active = null;
 });
 
 describe('Publishing', () => {
@@ -251,9 +282,8 @@ describe('Publishing', () => {
 
     if (publishBtn) await fireEvent.click(publishBtn);
 
-    // FilenameDialog renders a <dialog> element
-    const dialog = container.querySelector('dialog');
-    expect(dialog).not.toBeNull();
+    // EditorToolbar calls showFilenameDialog when handlePublish returns 'needs-filename'
+    expect(dialog.open).toHaveBeenCalledWith('filename');
   });
 
   it('disables publish button when computePublishDisabled returns true', () => {

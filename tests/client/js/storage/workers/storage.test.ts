@@ -19,6 +19,7 @@ import { describe, it, expect, vi, afterEach, type MockInstance } from 'vitest';
 //////////////////////////////
 
 import type { StorageRequest } from '../../../../../src/client/js/storage/adapter';
+import { makeWorkerMockPort as makeMockPort } from '../mock-port';
 
 // ── Mock adapter modules ────────────────────────────────────────────────────
 
@@ -72,34 +73,6 @@ vi.stubGlobal('self', {
 await import('../../../../../src/client/js/storage/workers/storage');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-/**
- * Creates an isolated port whose outgoing messages are captured by a spy.
- * @return {{ port: MessagePort; postSpy: MockInstance; send: (req: StorageRequest & { _id?: string }) => void }}
- */
-function makeMockPort() {
-  const target = new EventTarget();
-  const postSpy = vi.fn();
-
-  const port = {
-    addEventListener: target.addEventListener.bind(target),
-    removeEventListener: target.removeEventListener.bind(target),
-    postMessage: postSpy,
-    start: vi.fn(),
-  } as unknown as MessagePort;
-
-  /**
-   * Fires a message event to simulate a client request arriving on the port.
-   * @param {StorageRequest & { _id?: string }} req - The request payload
-   * @return {void}
-   */
-  function send(req: StorageRequest & { _id?: string }): void {
-    const event = new MessageEvent('message', { data: req });
-    target.dispatchEvent(event);
-  }
-
-  return { port, postSpy, send };
-}
 
 /**
  * Connects a port to the worker by invoking the captured connect handler

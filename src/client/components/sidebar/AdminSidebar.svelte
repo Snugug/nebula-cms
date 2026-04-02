@@ -85,8 +85,10 @@
       snapshot: null,
       createdAt: new Date().toISOString(),
     });
-    // Only refresh drafts — the live file list hasn't changed, so a full
-    // collection reload (which re-reads all files from disk/GitHub) is wasteful
+    /*
+     * Only refresh drafts — the live file list hasn't changed, so a full
+     * collection reload (which re-reads all files from disk/GitHub) is wasteful.
+     */
     await refreshDrafts(collection);
     navigate(adminPath(collection, `draft-${id}`));
   }
@@ -115,7 +117,7 @@
       <h2 class="sidebar-heading">{title}</h2>
       {#if showAdd}
         <button
-          class="add-btn"
+          class="icon-btn add-btn"
           title="New {title.toLowerCase()}"
           onclick={handleAdd}
         >
@@ -263,9 +265,11 @@
       background: var(--cms-border);
     }
 
-    /* Active highlight extends to sidebar edges with no border-radius.
-       Text is always white — --plum lacks sufficient contrast with
-       both --cms-fg values (light-on-pink and dark-on-pink both fail WCAG AA). */
+    /*
+     * Active highlight extends to sidebar edges with no border-radius.
+     * Text is always white — --plum lacks sufficient contrast with
+     * both --cms-fg values (light-on-pink and dark-on-pink both fail WCAG AA).
+     */
     &[aria-current='page'] {
       background: var(--plum);
       color: #fff;
@@ -291,22 +295,8 @@
     margin-bottom: 0.75rem;
   }
 
-  .add-btn {
-    background: none;
-    border: none;
-    color: var(--cms-muted);
-    padding: 0;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-
-    &:hover {
-      color: var(--cms-fg);
-    }
-
-    .material-symbols-outlined {
-      font-size: 1rem;
-    }
+  .add-btn .material-symbols-outlined {
+    font-size: 1rem;
   }
 
   /* Flex is appropriate here because chips need inline flow with wrapping */

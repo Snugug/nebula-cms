@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
+  import { isReadOnly, isNullable } from '../../js/utils/schema-utils';
   import FieldWrapper from './FieldWrapper.svelte';
 
   /**
@@ -18,6 +19,8 @@
     required?: boolean;
     // Callback fired when the value changes
     onchange: (value: string | null) => void;
+    // When true, visually hides FieldWrapper chrome (label/help) for inline array contexts
+    inline?: boolean;
   }
 
   let {
@@ -27,16 +30,17 @@
     options,
     required = false,
     onchange,
+    inline = false,
   }: Props = $props();
 
   // String representation of the current value for select binding
   const selectedValue = $derived(value != null ? String(value) : '');
 
   // Whether field is read-only
-  const readOnly = $derived(!!(schema['readOnly'] as boolean | undefined));
+  const readOnly = $derived(isReadOnly(schema));
 
   // Whether empty selection should emit null (nullable anyOf-unwrapped types)
-  const nullable = $derived(!!(schema['_nullable'] as boolean | undefined));
+  const nullable = $derived(isNullable(schema));
 
   // Whether to show the empty placeholder option — when not required or no value is set
   const showEmptyOption = $derived(!required || value == null);
@@ -52,10 +56,10 @@
   }
 </script>
 
-<FieldWrapper {name} {schema} {required}>
+<FieldWrapper {name} {schema} {required} {inline}>
   <select
     id={name}
-    class="field-select"
+    class="field-input field-input--select"
     value={selectedValue}
     disabled={readOnly}
     onchange={handleChange}
@@ -68,28 +72,3 @@
     {/each}
   </select>
 </FieldWrapper>
-
-<style>
-  .field-select {
-    /* Restore native dropdown arrow stripped by CSS reset */
-    appearance: auto;
-    width: auto;
-    background: var(--cms-surface, #2a2a2e);
-    border: 1px solid var(--cms-border);
-    border-radius: 4px;
-    padding: 0.5rem 2rem 0.5rem 0.5rem;
-    font-size: 1rem;
-    color: var(--cms-fg);
-    cursor: pointer;
-
-    &:focus {
-      outline: 2px solid var(--plum);
-      outline-offset: -1px;
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-  }
-</style>

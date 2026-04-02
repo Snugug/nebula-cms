@@ -13,8 +13,10 @@
   --light-plum: #e8508f;
   --button-bg: linear-gradient(135deg, #d83333, var(--plum));
   --button-hover-bg: linear-gradient(135deg, #e04848, #f565ff);
-  /* Always light text on the gradient — intentionally not --cms-fg,
-     which inverts in light mode and would produce dark-on-gradient */
+  /*
+   * Always light text on the gradient — intentionally not --cms-fg,
+   * which inverts in light mode and would produce dark-on-gradient.
+   */
   --button-color: #e8eaf0;
   --spacing: 2rem;
   --font-family: system-ui, -apple-system, sans-serif;
@@ -41,9 +43,11 @@
   color-scheme: dark;
 }
 
-/* Light mode — white background, same accent.
-   Variable names are functional roles (--cms-bg = page background,
-   --cms-fg = body text), not literal colors. */
+/*
+ * Light mode — white background, same accent.
+ * Variable names are functional roles (--cms-bg = page background,
+ * --cms-fg = body text), not literal colors.
+ */
 
 :root[data-theme='light'] {
   --cms-bg: #ffffff;

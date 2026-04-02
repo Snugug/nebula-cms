@@ -1,4 +1,4 @@
-/**
+/*
  * Parsed route state for the admin SPA.
  * Host applications configure the base path via initRouter() so the CMS
  * can live under any URL prefix, not just /admin.
@@ -54,14 +54,18 @@ function isUnderBasePath(pathname: string): boolean {
  * @return {AdminRoute} The route corresponding to the given pathname
  */
 function parsePathname(pathname: string): AdminRoute {
-  // Strip the basePath prefix at a segment boundary, then split the remainder.
-  // Must mirror isUnderBasePath's boundary check to avoid false matches
-  // (e.g. basePath '/cms' should not match pathname '/cmsextra/posts').
+  /*
+   * Strip the basePath prefix at a segment boundary, then split the remainder.
+   * Must mirror isUnderBasePath's boundary check to avoid false matches
+   * (e.g. basePath '/cms' should not match pathname '/cmsextra/posts').
+   */
   const underBase = isUnderBasePath(pathname);
   const rest = underBase ? pathname.slice(basePath.length) : pathname;
   const segments = rest.split('/').filter(Boolean);
-  // Draft URLs use a 2-segment pattern: {basePath}/{collection}/draft-{draftId}
-  // This keeps the same URL depth as regular files so Astro static paths work
+  /*
+   * Draft URLs use a 2-segment pattern: {basePath}/{collection}/draft-{draftId}
+   * This keeps the same URL depth as regular files so Astro static paths work.
+   */
   if (segments.length >= 2 && segments[1].startsWith('draft-')) {
     return {
       view: 'draft',
@@ -134,9 +138,11 @@ export function initRouter(configuredBasePath?: string): void {
 
     if (!event.canIntercept) return;
 
-    // Block navigation if editor has unsaved changes and user cancels.
-    // This check must happen before event.intercept() — if it were inside the
-    // handler, the URL would already be updated by the time the user cancels.
+    /*
+     * Block navigation if editor has unsaved changes and user cancels.
+     * This check must happen before event.intercept() — if it were inside the
+     * handler, the URL would already be updated by the time the user cancels.
+     */
     if (
       dirtyChecker?.() &&
       !confirm('You have unsaved changes. Leave without saving?')

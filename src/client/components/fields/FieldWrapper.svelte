@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
+  import { getLabel } from '../../js/utils/schema-utils';
   import type { Snippet } from 'svelte';
-  import { toTitleCase } from '../../js/utils/format';
 
   /**
    * Shared wrapper for all form field components. Provides the label, required marker, deprecated dimming, description, and constraint text so individual field components only supply the input element via a Svelte snippet.
@@ -19,6 +19,8 @@
     constraintText?: string;
     // When true, hides the default label — used by BooleanField which renders its own inline checkbox+label
     hideLabel?: boolean;
+    // When true, visually hides label and help text using sr-only for inline array contexts where the parent provides visible labels
+    inline?: boolean;
   }
 
   let {
@@ -28,12 +30,11 @@
     children,
     constraintText,
     hideLabel = false,
+    inline = false,
   }: Props = $props();
 
   // Display label — schema.title if present, otherwise title-cased name
-  const label = $derived(
-    (schema['title'] as string | undefined) ?? toTitleCase(name),
-  );
+  const label = $derived(getLabel(schema, name));
 
   // Description from schema
   const description = $derived(schema['description'] as string | undefined);
@@ -44,7 +45,7 @@
 
 <div class="field" class:field--deprecated={deprecated}>
   {#if !hideLabel}
-    <label class="field-label" for={name}>
+    <label class="field-label" class:sr-only={inline} for={name}>
       {label}{#if required}<span class="field-required" aria-hidden="true"
           >*</span
         >{/if}
@@ -54,7 +55,7 @@
   {@render children()}
 
   {#if description || constraintText}
-    <p class="field-help">
+    <p class="field-help" class:sr-only={inline}>
       {#if description}{description}{/if}
       {#if description && constraintText}&ensp;{/if}
       {#if constraintText}<span class="field-constraint">{constraintText}</span

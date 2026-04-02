@@ -15,7 +15,6 @@
     editor,
     getEditorFile,
     loadDraftById,
-    changeFileFormat,
     setDefaultFormat,
   } from './js/editor/editor.svelte';
   import {
@@ -27,21 +26,22 @@
     getCollectionTitle,
   } from './js/state/schema.svelte';
   import {
-    handleSave,
-    handlePublish,
     handleDeleteDraft,
     handleFilenameConfirm,
-    computePublishDisabled,
     buildContentItems,
     buildCollectionItems,
     buildActiveFileHref,
   } from './js/handlers/admin';
+  import { dialog } from './js/state/dialogs.svelte';
   import { stripExtension, getTypeForFilename } from './js/utils/file-types';
   import { initTheme, theme } from './js/state/theme.svelte';
   import './css/reset.css';
   import './css/icons.css';
   import './css/theme.css';
   import './css/btn.css';
+  import './css/field-input.css';
+  import './css/dialog.css';
+  import './css/a11y.css';
   import BackendPicker from './components/BackendPicker.svelte';
   import AdminSidebar from './components/sidebar/AdminSidebar.svelte';
   import EditorToolbar from './components/editor/EditorToolbar.svelte';
@@ -94,11 +94,6 @@
     activeCollection ? collectionHasDates(activeCollection) : false,
   );
 
-  // Whether the publish button should be disabled (missing required fields)
-  const publishDisabled = $derived(
-    computePublishDisabled(schema.active, getEditorFile()?.formData ?? {}),
-  );
-
   // Existing filenames for uniqueness validation in the filename dialog — includes both live files and drafts with filenames
   const existingFilenames = $derived([
     ...content.list.map((item) => item.filename),
@@ -121,10 +116,6 @@
       : (schemaFileTypes[0] ?? ''),
   );
 
-  // Dialog visibility state
-  let showFilenameDialog = $state(false);
-  let showDeleteDialog = $state(false);
-
   // Sync the resolved theme to :root so top-layer elements (dialogs) inherit the tokens
   $effect(() => {
     document.documentElement.dataset.theme = theme.resolved;
@@ -137,8 +128,10 @@
     }
   });
 
-  // Loads content for the file or draft view. Both branches gate on `backend.ready`
-  // so they re-run when the directory handle is restored on page load.
+  /*
+   * Loads content for the file or draft view. Both branches gate on `backend.ready`
+   * so they re-run when the directory handle is restored on page load.
+   */
   $effect(() => {
     if (backend.ready && nav.route.view === 'file' && content.list.length > 0) {
       const item = content.list.find(
@@ -161,9 +154,11 @@
     }
   });
 
-  // Set the default format for new drafts once the schema is available.
-  // New drafts start with an empty filename, so setDefaultFormat assigns
-  // the collection's first file type extension (e.g. '.mdx' for guides).
+  /*
+   * Set the default format for new drafts once the schema is available.
+   * New drafts start with an empty filename, so setDefaultFormat assigns
+   * the collection's first file type extension (e.g. '.mdx' for guides).
+   */
   $effect(() => {
     const file = getEditorFile();
     if (file?.isNewDraft && !file.filename && schemaFileTypes.length > 0) {
@@ -181,32 +176,21 @@
   });
 
   /**
-   * Handles the publish button click, showing the filename dialog if needed.
-   * @return {Promise<void>}
-   */
-  async function onPublish(): Promise<void> {
-    const result = await handlePublish(activeCollection);
-    if (result.status === 'needs-filename') {
-      showFilenameDialog = true;
-    }
-  }
-
-  /**
-   * Handles filename dialog confirmation.
+   * Handles filename dialog confirmation — hides the dialog and triggers publish with the chosen filename.
    * @param {string} filename - The chosen filename
    * @return {Promise<void>}
    */
   async function onFilenameConfirm(filename: string): Promise<void> {
-    showFilenameDialog = false;
+    dialog.close();
     await handleFilenameConfirm(filename, activeCollection);
   }
 
   /**
-   * Handles delete draft confirmation.
+   * Handles delete draft confirmation — hides the dialog and deletes the current draft.
    * @return {Promise<void>}
    */
   async function onDeleteConfirm(): Promise<void> {
-    showDeleteDialog = false;
+    dialog.close();
     await handleDeleteDraft(activeCollection);
   }
 
@@ -250,19 +234,11 @@
     {/if}
     {#if fileOpen}
       <div class="editor-area">
-        <EditorToolbar
-          onSave={() => handleSave(activeCollection)}
-          {onPublish}
-          onDelete={() => {
-            showDeleteDialog = true;
-          }}
-          {publishDisabled}
-        />
+        <EditorToolbar />
         <EditorTabs schema={schema.active} />
         <FormatSelector
           fileTypes={schemaFileTypes}
           activeType={activeFileType}
-          onChange={changeFileFormat}
         />
         <div class="editor-content">
           {#if editor.tab === 'body'}
@@ -279,25 +255,18 @@
   {/if}
 </div>
 
-{#if showFilenameDialog}
+{#if dialog.active === 'filename'}
   {@const file = getEditorFile()}
   <FilenameDialog
     title={typeof file?.formData.title === 'string' ? file.formData.title : ''}
     {existingFilenames}
     onConfirm={onFilenameConfirm}
-    onCancel={() => {
-      showFilenameDialog = false;
-    }}
+    onCancel={dialog.close}
   />
 {/if}
 
-{#if showDeleteDialog}
-  <DeleteDraftDialog
-    onConfirm={onDeleteConfirm}
-    onCancel={() => {
-      showDeleteDialog = false;
-    }}
-  />
+{#if dialog.active === 'delete'}
+  <DeleteDraftDialog onConfirm={onDeleteConfirm} onCancel={dialog.close} />
 {/if}
 
 <style>

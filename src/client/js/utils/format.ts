@@ -1,3 +1,7 @@
+/*
+ * Display formatting utilities for property names and labels.
+ */
+
 /**
  * Converts a property name string to Title Case for display in form labels.
  * Splits on camelCase boundaries, hyphens, and underscores, then capitalizes each word.

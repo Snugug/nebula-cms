@@ -24,9 +24,11 @@ function extractYamlBlock(content: string): string | null {
   return rawFrontmatter.trim() ? rawFrontmatter : null;
 }
 
+/*
 //////////////////////////////
 // Batch item type for parser worker communication
 //////////////////////////////
+*/
 
 // A key/content pair for batch parsing requests.
 type BatchItem = {
@@ -34,9 +36,11 @@ type BatchItem = {
   content: string;
 };
 
+/*
 //////////////////////////////
 // Parser worker management
 //////////////////////////////
+*/
 
 // Lazily-spawned parser workers
 let yamlWorker: Worker | null = null;
@@ -139,9 +143,11 @@ function sendBatch(
   });
 }
 
+/*
 //////////////////////////////
 // File categorization and parsing
 //////////////////////////////
+*/
 
 /**
  * Processes a list of files by categorizing each file, collecting batch items
@@ -256,9 +262,11 @@ async function processFiles(
   return items;
 }
 
+/*
 //////////////////////////////
 // Main message handler
 //////////////////////////////
+*/
 
 // Storage client, initialized when the main thread transfers a port
 let storageClient: StorageClient | null = null;

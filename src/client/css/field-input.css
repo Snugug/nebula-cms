@@ -1,0 +1,39 @@
+/*
+ * Shared form field input styles used by StringField, NumberField,
+ * DateField, and EnumField. Provides the base appearance, focus ring,
+ * and disabled/readonly dimming so each leaf field only adds its own
+ * type-specific overrides.
+ */
+
+.field-input {
+  background: var(--cms-surface, #2a2a2e);
+  border: 1px solid var(--cms-border);
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 1rem;
+  color: var(--cms-fg);
+
+  &:focus {
+    outline: 2px solid var(--plum);
+    outline-offset: -1px;
+  }
+
+  &[readonly],
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+/* Intrinsic-width inputs (number, date, select) — prevents stretching to 100% */
+.field-input--auto {
+  width: auto;
+}
+
+/* Native select dropdown with restored arrow and extra padding for the indicator */
+.field-input--select {
+  appearance: auto;
+  width: auto;
+  padding-right: 2rem;
+  cursor: pointer;
+}

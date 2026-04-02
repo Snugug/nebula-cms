@@ -58,9 +58,11 @@ vi.mock('../../../src/client/js/state/state.svelte', () => ({
 afterEach(() => cleanup());
 
 describe('BackendPicker', () => {
+  /*
   //////////////////////////////
   // Normal (non-reauth) state
   //////////////////////////////
+  */
 
   it('renders the picker title when not in reauth state', () => {
     mockBackendType.mockReturnValue(null);
@@ -85,9 +87,11 @@ describe('BackendPicker', () => {
     expect(headings).toContain('GitHub Repository');
   });
 
+  /*
   //////////////////////////////
   // pickDirectory
   //////////////////////////////
+  */
 
   it('calls pickDirectory when the "Choose project folder" button is clicked', async () => {
     mockBackendType.mockReturnValue(null);
@@ -105,9 +109,11 @@ describe('BackendPicker', () => {
     expect(mockPickDirectory).toHaveBeenCalledOnce();
   });
 
+  /*
   //////////////////////////////
   // GitHub connect
   //////////////////////////////
+  */
 
   it('renders the GitHub form with token and repo inputs', () => {
     mockBackendType.mockReturnValue(null);
@@ -159,9 +165,11 @@ describe('BackendPicker', () => {
     expect(mockConnectGitHub).toHaveBeenCalledWith('ghp_token', 'owner/repo');
   });
 
+  /*
   //////////////////////////////
   // Re-auth state
   //////////////////////////////
+  */
 
   it('renders the re-auth message when backend is fsa and permission is prompt', () => {
     mockBackendType.mockReturnValue('fsa');
@@ -201,9 +209,11 @@ describe('BackendPicker', () => {
     expect(mockRequestPermission).toHaveBeenCalledOnce();
   });
 
+  /*
   //////////////////////////////
   // Error display
   //////////////////////////////
+  */
 
   it('renders the error message when error state is present', () => {
     mockBackendType.mockReturnValue(null);

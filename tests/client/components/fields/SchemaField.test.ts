@@ -13,9 +13,11 @@ import SchemaField from '../../../../src/client/components/fields/SchemaField.sv
 afterEach(() => cleanup());
 
 describe('SchemaField', () => {
+  /*
   //////////////////////////////
   // Routing by type
   //////////////////////////////
+  */
 
   it('renders a text input for a string schema', () => {
     const { container } = render(SchemaField, {
@@ -125,9 +127,11 @@ describe('SchemaField', () => {
     expect(container.querySelector('fieldset')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Nullable anyOf unwrapping
   //////////////////////////////
+  */
 
   it('renders a text input for a nullable string anyOf schema', () => {
     const { container } = render(SchemaField, {
@@ -160,9 +164,11 @@ describe('SchemaField', () => {
     expect(onchange).toHaveBeenCalledWith(null);
   });
 
+  /*
   //////////////////////////////
   // onChange passthrough
   //////////////////////////////
+  */
 
   it('passes onchange calls through for string fields', async () => {
     const onchange = vi.fn();

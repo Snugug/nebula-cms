@@ -26,9 +26,11 @@ describe('ObjectField', () => {
     required: ['street'],
   };
 
+  /*
   //////////////////////////////
   // Fieldset rendering (default)
   //////////////////////////////
+  */
 
   it('renders a fieldset with a legend derived from the schema title', () => {
     const { container } = render(ObjectField, {
@@ -90,9 +92,11 @@ describe('ObjectField', () => {
     expect(cityInput.value).toBe('Springfield');
   });
 
+  /*
   //////////////////////////////
   // Inline rendering
   //////////////////////////////
+  */
 
   it('renders without a fieldset when inline is true', () => {
     const { container } = render(ObjectField, {
@@ -109,9 +113,11 @@ describe('ObjectField', () => {
     expect(container.querySelector('.object-field--inline')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // onChange behavior
   //////////////////////////////
+  */
 
   it('calls onchange with the full updated object when a child field changes', async () => {
     const onchange = vi.fn();

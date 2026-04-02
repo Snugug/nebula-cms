@@ -1,6 +1,12 @@
-/**
- * A generic JSON Schema node represented as a plain object.
+/*
+ * Utilities for reading and resolving JSON Schema nodes.
+ * Provides type resolution, path traversal, tab extraction, and
+ * convenience accessors for common schema annotations.
  */
+
+import { toTitleCase } from './format';
+
+// A generic JSON Schema node represented as a plain object.
 export type SchemaNode = Record<string, unknown>;
 
 /**
@@ -21,9 +27,11 @@ export type FieldType =
  */
 export type PathSegment = string | number;
 
+/*
 //////////////////////////////
 // resolveFieldType
 //////////////////////////////
+*/
 
 /**
  * Resolves a JSON Schema node to a `FieldType` discriminated union.
@@ -65,9 +73,11 @@ export function resolveFieldType(schema: SchemaNode): FieldType {
   return { kind: 'unknown' };
 }
 
+/*
 //////////////////////////////
 // extractTabs
 //////////////////////////////
+*/
 
 /**
  * Scans an object schema's properties for `tab` arrays and returns a sorted, deduplicated list of all tab names found.
@@ -75,9 +85,7 @@ export function resolveFieldType(schema: SchemaNode): FieldType {
  * @return {string[]} Sorted, deduplicated list of tab names
  */
 export function extractTabs(schema: SchemaNode): string[] {
-  const properties = schema['properties'] as
-    | Record<string, SchemaNode>
-    | undefined;
+  const properties = getProperties(schema);
   if (!properties) return [];
 
   const tabs = new Set<string>();
@@ -94,9 +102,11 @@ export function extractTabs(schema: SchemaNode): string[] {
   return Array.from(tabs).sort();
 }
 
+/*
 //////////////////////////////
 // createDefaultValue
 //////////////////////////////
+*/
 
 /**
  * Returns a type-appropriate default value for a given JSON Schema node.
@@ -125,9 +135,7 @@ export function createDefaultValue(schema: SchemaNode): unknown {
   if (type === 'array') return [];
 
   if (type === 'object') {
-    const properties = schema['properties'] as
-      | Record<string, SchemaNode>
-      | undefined;
+    const properties = getProperties(schema);
     if (!properties) return {};
     const result: Record<string, unknown> = {};
     for (const [key, fieldSchema] of Object.entries(properties)) {
@@ -139,9 +147,11 @@ export function createDefaultValue(schema: SchemaNode): unknown {
   return null;
 }
 
+/*
 //////////////////////////////
 // getByPath
 //////////////////////////////
+*/
 
 /**
  * Reads a deeply nested value from an object by following path segments.
@@ -159,9 +169,11 @@ export function getByPath(obj: unknown, path: PathSegment[]): unknown {
   return current;
 }
 
+/*
 //////////////////////////////
 // setByPath
 //////////////////////////////
+*/
 
 /**
  * Sets a deeply nested value in an object by following path segments, creating intermediate objects as needed.
@@ -191,9 +203,11 @@ export function setByPath(
   current[path[path.length - 1]] = value;
 }
 
+/*
 //////////////////////////////
 // getFieldsForTab
 //////////////////////////////
+*/
 
 /**
  * Returns property names from a schema that belong to the given tab.
@@ -206,9 +220,7 @@ export function getFieldsForTab(
   schema: SchemaNode,
   tab: string | null,
 ): string[] {
-  const properties = schema['properties'] as
-    | Record<string, SchemaNode>
-    | undefined;
+  const properties = getProperties(schema);
   if (!properties) return [];
 
   // Filter out $schema — it's a JSON Schema meta-property that Astro adds
@@ -224,4 +236,60 @@ export function getFieldsForTab(
     const fieldTab = properties[key]['tab'];
     return Array.isArray(fieldTab) && (fieldTab as string[]).includes(tab);
   });
+}
+
+/*
+//////////////////////////////
+// Schema property accessors
+//////////////////////////////
+*/
+
+/**
+ * Extracts the `properties` map from a schema node, with a safe cast.
+ * @param {SchemaNode} schema - A JSON Schema node
+ * @return {Record<string, SchemaNode> | undefined} The properties map, or undefined if absent
+ */
+export function getProperties(
+  schema: SchemaNode,
+): Record<string, SchemaNode> | undefined {
+  return schema['properties'] as Record<string, SchemaNode> | undefined;
+}
+
+/**
+ * Extracts the `required` array from a schema node, returning an empty array if absent.
+ * @param {SchemaNode} schema - A JSON Schema node
+ * @return {string[]} Array of required property names
+ */
+export function getRequiredFields(schema: SchemaNode): string[] {
+  return Array.isArray(schema['required'])
+    ? (schema['required'] as string[])
+    : [];
+}
+
+/**
+ * Returns whether a schema node is marked as read-only.
+ * @param {SchemaNode} schema - A JSON Schema node
+ * @return {boolean} True if the schema has readOnly set to true
+ */
+export function isReadOnly(schema: SchemaNode): boolean {
+  return !!(schema['readOnly'] as boolean | undefined);
+}
+
+/**
+ * Returns whether a schema node was unwrapped from a nullable anyOf and flagged as nullable by SchemaField.
+ * @param {SchemaNode} schema - A JSON Schema node (possibly annotated with _nullable)
+ * @return {boolean} True if the schema has the _nullable annotation
+ */
+export function isNullable(schema: SchemaNode): boolean {
+  return !!(schema['_nullable'] as boolean | undefined);
+}
+
+/**
+ * Returns the display label for a schema field — the schema title if present, otherwise the property name converted to title case.
+ * @param {SchemaNode} schema - A JSON Schema node
+ * @param {string} name - The raw property name used as a fallback
+ * @return {string} The human-readable label
+ */
+export function getLabel(schema: SchemaNode, name: string): string {
+  return (schema['title'] as string | undefined) ?? toTitleCase(name);
 }

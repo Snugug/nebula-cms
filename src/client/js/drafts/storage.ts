@@ -1,3 +1,8 @@
+/*
+ * Draft persistence layer backed by IndexedDB.
+ * CRUD operations for draft content entries, used by the editor and merge logic.
+ */
+
 import { openDB } from '../storage/db';
 
 /**

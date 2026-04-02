@@ -1,3 +1,9 @@
+/*
+ * SharedWorker entry point for storage operations.
+ * Receives requests over MessagePort, dispatches to the active StorageAdapter,
+ * and posts responses back to each connected client.
+ */
+
 import type {
   StorageAdapter,
   StorageRequest,

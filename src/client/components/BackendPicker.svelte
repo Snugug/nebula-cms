@@ -69,7 +69,7 @@
             <span class="field-label">
               Personal Access Token
               <button
-                class="info-btn"
+                class="icon-btn info-btn"
                 type="button"
                 title="Required permissions"
                 interestfor="pat-info"
@@ -196,26 +196,14 @@
     color: var(--cms-muted);
   }
 
-  /* Override generic button styles for the inline info icon */
+  /* Anchor positioning and icon size for the PAT info tooltip trigger */
   .info-btn {
     anchor-name: --pat-info-btn;
     interest-delay: 0s;
-    background: none;
-    border: none;
     border-radius: 0;
-    color: var(--cms-muted);
-    padding: 0;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
 
     .material-symbols-outlined {
       font-size: 1rem;
-    }
-
-    &:hover {
-      background: none;
-      color: var(--cms-fg);
     }
   }
 

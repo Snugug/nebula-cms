@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import 'fake-indexeddb/auto';
 
 //////////////////////////////
 // Draft storage tests
@@ -16,27 +15,8 @@ import {
   loadDraft,
   deleteDraft,
   getDraftByFile,
-  type Draft,
 } from '../../../../src/client/js/drafts/storage';
-
-/**
- * Builds a minimal valid Draft fixture with optional overrides.
- * @param {Partial<Draft>} overrides - Fields to override from the defaults
- * @return {Draft} A complete Draft object for use in tests
- */
-function makeDraft(overrides: Partial<Draft> = {}): Draft {
-  return {
-    id: 'draft-001',
-    collection: 'posts',
-    filename: 'hello-world.md',
-    isNew: false,
-    formData: { title: 'Hello World' },
-    body: '# Hello World\n\nBody content.',
-    snapshot: '{"body":"original","formData":{"title":"Original"}}',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    ...overrides,
-  };
-}
+import { makeDraft } from './fixtures';
 
 //////////////////////////////
 // saveDraft + loadDraft

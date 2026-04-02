@@ -192,6 +192,17 @@ vi.mock('../../src/client/js/utils/schema-utils', () => ({
   createDefaultValue: vi.fn(() => ''),
   getByPath: vi.fn(),
   setByPath: vi.fn(),
+  isReadOnly: vi.fn(() => false),
+  isNullable: vi.fn(() => false),
+  getProperties: vi.fn(
+    (schema: Record<string, unknown>) => schema['properties'],
+  ),
+  getRequiredFields: vi.fn((schema: Record<string, unknown>) =>
+    Array.isArray(schema['required']) ? schema['required'] : [],
+  ),
+  getLabel: vi.fn((schema: Record<string, unknown>, name: string) =>
+    typeof schema['title'] === 'string' ? schema['title'] : name,
+  ),
 }));
 vi.mock('../../src/client/js/drafts/merge.svelte', () => ({
   drafts: {
@@ -211,6 +222,15 @@ vi.mock('../../src/client/js/state/theme.svelte', () => ({
   initTheme: vi.fn(() => () => {}),
   cycleTheme: vi.fn(),
   theme: { resolved: 'dark', icon: 'brightness_auto', label: 'Auto' },
+}));
+vi.mock('../../src/client/js/state/dialogs.svelte', () => ({
+  dialog: {
+    get active() {
+      return null;
+    },
+    open: vi.fn(),
+    close: vi.fn(),
+  },
 }));
 
 import Admin from '../../src/client/Admin.svelte';

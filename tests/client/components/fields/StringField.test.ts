@@ -12,9 +12,11 @@ import StringField from '../../../../src/client/components/fields/StringField.sv
 afterEach(() => cleanup());
 
 describe('StringField', () => {
+  /*
   //////////////////////////////
   // Label rendering
   //////////////////////////////
+  */
 
   it('renders a label derived from the name when schema has no title', () => {
     const { container } = render(StringField, {
@@ -56,9 +58,11 @@ describe('StringField', () => {
     expect(container.querySelector('.field-required')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Input rendering and value
   //////////////////////////////
+  */
 
   it('renders a text input with the provided value', () => {
     const { container } = render(StringField, {
@@ -122,9 +126,11 @@ describe('StringField', () => {
     expect(within(container).getByText('Enter a value')).toBeTruthy();
   });
 
+  /*
   //////////////////////////////
   // onChange behavior
   //////////////////////////////
+  */
 
   it('calls onchange with the new string value on input', async () => {
     const onchange = vi.fn();
@@ -180,9 +186,11 @@ describe('StringField', () => {
     expect(onchange).toHaveBeenCalledWith('');
   });
 
+  /*
   //////////////////////////////
   // Deprecated / read-only
   //////////////////////////////
+  */
 
   it('applies the deprecated class when schema.deprecated is true', () => {
     const { container } = render(StringField, {

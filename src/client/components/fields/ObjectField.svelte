@@ -1,6 +1,10 @@
 <script lang="ts">
   import type { SchemaNode } from '../../js/utils/schema-utils';
-  import { toTitleCase } from '../../js/utils/format';
+  import {
+    getProperties,
+    getRequiredFields,
+    getLabel,
+  } from '../../js/utils/schema-utils';
   import SchemaField from './SchemaField.svelte';
 
   /**
@@ -31,19 +35,13 @@
   }: Props = $props();
 
   // Display label from schema title or property name
-  const label = $derived(
-    (schema['title'] as string | undefined) ?? toTitleCase(name),
-  );
+  const label = $derived(getLabel(schema, name));
 
   // Properties map from the schema
-  const properties = $derived(
-    (schema['properties'] as Record<string, SchemaNode>) ?? {},
-  );
+  const properties = $derived(getProperties(schema) ?? {});
 
   // Required field names within this object
-  const requiredFields = $derived(
-    Array.isArray(schema['required']) ? (schema['required'] as string[]) : [],
-  );
+  const requiredFields = $derived(getRequiredFields(schema));
 
   // Current object value, defaulting to empty object
   const objValue = $derived(
@@ -111,7 +109,7 @@
   }
 
   .object-field__required {
-    color: var(--light-plum);
+    color: var(--light-red);
     margin-left: 0.25rem;
   }
 

@@ -12,9 +12,11 @@ import BooleanField from '../../../../src/client/components/fields/BooleanField.
 afterEach(() => cleanup());
 
 describe('BooleanField', () => {
+  /*
   //////////////////////////////
   // Label rendering
   //////////////////////////////
+  */
 
   it('renders a label derived from the name', () => {
     const { container } = render(BooleanField, {
@@ -56,9 +58,11 @@ describe('BooleanField', () => {
     expect(container.querySelector('.field-required')).not.toBeNull();
   });
 
+  /*
   //////////////////////////////
   // Checkbox state
   //////////////////////////////
+  */
 
   it('renders an unchecked checkbox when value is false', () => {
     const { container } = render(BooleanField, {
@@ -110,9 +114,11 @@ describe('BooleanField', () => {
     expect(checkbox.checked).toBe(false);
   });
 
+  /*
   //////////////////////////////
   // onChange behavior
   //////////////////////////////
+  */
 
   it('calls onchange with true when checkbox is checked', async () => {
     const onchange = vi.fn();
@@ -163,9 +169,11 @@ describe('BooleanField', () => {
     expect(within(container).getByText('Enables the feature')).toBeTruthy();
   });
 
+  /*
   //////////////////////////////
   // Deprecated / read-only
   //////////////////////////////
+  */
 
   it('applies the deprecated class when schema.deprecated is true', () => {
     const { container } = render(BooleanField, {

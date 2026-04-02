@@ -8,17 +8,10 @@ import AdminSidebarSort from '../../../../src/client/components/sidebar/AdminSid
  * calls writeSortMode with the selected mode.
  */
 
-vi.mock('../../../../src/client/js/utils/sort', () => ({
-  SORT_MODES: {
-    alpha: { icon: 'sort_by_alpha', label: 'Alphabetical' },
-    'date-asc': { icon: 'hourglass_arrow_down', label: 'Oldest first' },
-    'date-desc': { icon: 'hourglass_arrow_up', label: 'Newest first' },
-  },
-  SORT_ORDER: ['alpha', 'date-asc', 'date-desc'],
-  writeSortMode: vi.fn(),
-  readSortMode: vi.fn(() => 'alpha'),
-  createComparator: vi.fn(() => () => 0),
-}));
+vi.mock('../../../../src/client/js/utils/sort', async () => {
+  const { createSortMock } = await import('./sort-mock');
+  return createSortMock();
+});
 
 // Prevent accumulated renders from bleeding between tests
 afterEach(() => cleanup());
@@ -30,9 +23,11 @@ beforeEach(() => {
 });
 
 describe('AdminSidebarSort', () => {
+  /*
   //////////////////////////////
   // Initial render
   //////////////////////////////
+  */
 
   it('renders the sort button with the active mode icon', () => {
     const { container } = render(AdminSidebarSort, {
@@ -71,9 +66,11 @@ describe('AdminSidebarSort', () => {
     expect(hasDateAsc).toBe(false);
   });
 
+  /*
   //////////////////////////////
   // Sort option click
   //////////////////////////////
+  */
 
   it('calls writeSortMode with the selected mode and storageKey when a popover option is clicked', async () => {
     const { writeSortMode } =
@@ -112,9 +109,11 @@ describe('AdminSidebarSort', () => {
     expect(writeMock).not.toHaveBeenCalled();
   });
 
+  /*
   //////////////////////////////
   // Popover ID
   //////////////////////////////
+  */
 
   it('uses the storageKey in the popover element ID', () => {
     const { container } = render(AdminSidebarSort, {

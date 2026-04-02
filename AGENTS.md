@@ -90,18 +90,49 @@ Prefer CSS Grid to Flexbox unless you need the specific characteristics of flexb
 
 You are REQUIRED to professionally comment your code. Comments should be short and helpful, explaining what something does, but MUST NOT include your dialog or thinking.
 
-For JavaScript and TypeScript:
-
-- Single line comments MUST ALWAYS use `//`, even when describing types, interfaces, or classes. NEVER use single-line JSDoc (`/** foo */`).
-- Functions MUST have multi-line JSDoc comments (`/** ... */` with newlines). They MUST include a description of why they've been written, plus `@param` and `@return` with proper TypeScript typing, EVEN IF ITS ALREADY DOCUMENTED WITH TYPESCRIPT TYPES AT THE METHOD LEVEL
-- File-level description comments MUST come BEFORE any imports and MUST use standard JavaScript multi-line comment syntax (`/* ... */`). They describe what the file is for and why it exists.
-
-Comment Blocks that are meant to draw the eye and describe a section of code must be written as follows (allowing for multiple lines, each starting with `//`):
+If supported by the language, single line comments MUST ALWAYS use `//`, even when describing types, interfaces, or classes. NEVER use single-line JSDoc (`/** foo */`). If unsuppored, use standard, single asterix comments.
 
 ```js
+// Whether the dialog should be shown
+let showDialog = $state(false);
+```
+
+```css
+/* Reset dialog box-sizing */
+dialog {
+  box-sizing: border-box;
+}
+```
+
+Functions MUST have multi-line JSDoc comments (`/** ... */` with newlines). They MUST include a description of why they've been written, plus `@param` and `@return` with proper TypeScript typing, EVEN IF ITS ALREADY DOCUMENTED WITH TYPESCRIPT TYPES AT THE METHOD LEVEL.
+
+```js
+/**
+ * Display the dialog
+ * @param {string} text - The text to show in the dialog
+ * @return {void}
+ */
+function showDialog(text: string) {
+  dialog.textContent = text;
+}
+```
+
+File-level description comments MUST come BEFORE any imports and MUST use standard JavaScript multi-line comment syntax (`/* ... */`). They describe what the file is for and why it exists. Multi-line comments that are not covered by JSDoc comments MUST use this style of comment block, too.
+
+```js
+/*
+ * State management for dialog
+ */
+```
+
+Comment Blocks that are meant to draw the eye and describe a section of code be written as follows, with each line of the description starting with `//`:
+
+```js
+/*
 //////////////////////////////
 // Description
 //////////////////////////////
+*/
 ```
 
 Comments MUST NOT have arbitrary line breaks to conform to an invisible max character count, just write normally and have line wrapping handle comment wrapping.

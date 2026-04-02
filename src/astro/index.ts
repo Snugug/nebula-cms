@@ -1,3 +1,9 @@
+/*
+ * Astro integration entry point for Nebula CMS.
+ * Exposes content collection JSON schemas to client-side JavaScript via a
+ * virtual module, dev middleware, and build-time file copy.
+ */
+
 import {
   copyFileSync,
   existsSync,
@@ -43,10 +49,21 @@ export default function NebulaCMS(
             plugins: [
               collectionsVitePlugin(logger, process.cwd(), collectionsPath),
             ],
-            // Workers use dynamic imports (e.g. storage worker lazy-loads
-            // adapters), which require code splitting. The default 'iife'
-            // format does not support code splitting, so use ES modules.
+            /*
+             * Workers use dynamic imports (e.g. storage worker lazy-loads
+             * adapters), which require code splitting. The default 'iife'
+             * format does not support code splitting, so use ES modules.
+             */
             worker: { format: 'es' },
+            /*
+             * smol-toml is only imported inside the TOML parser sub-worker,
+             * never on the main thread. Without this, Vite discovers it late
+             * and re-optimizes mid-session, causing the worker to request a
+             * stale dep hash (504 Outdated Optimize Dep).
+             */
+            optimizeDeps: {
+              include: ['smol-toml'],
+            },
           },
         });
       },

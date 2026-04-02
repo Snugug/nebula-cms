@@ -3,9 +3,11 @@ import { EditorSelection, type EditorState } from '@codemirror/state';
 import { EditorView, type KeyBinding } from '@codemirror/view';
 import { isURL } from '../utils/url-utils';
 
+/*
 //////////////////////////////
 // Bracket/Quote Pair Map
 //////////////////////////////
+*/
 
 // Maps opening characters to their closing counterparts for selection wrapping
 const wrapPairs: Record<string, string> = {
@@ -16,9 +18,11 @@ const wrapPairs: Record<string, string> = {
   '"': '"',
 };
 
+/*
 //////////////////////////////
 // Formatting Toggle Helpers
 //////////////////////////////
+*/
 
 /**
  * Finds the innermost syntax tree node of the given type that contains the
@@ -66,15 +70,19 @@ function toggleMarker(
       const node = findWrappingNode(state, range.from, nodeType);
 
       if (node) {
-        // Unwrap — remove markers from both ends of the node.
-        // Post-change coordinates: removing the opening marker shifts everything
-        // left by len, and removing the closing marker doesn't affect earlier positions.
-        // So the inner text spans from node.from to node.to - len * 2.
+        /*
+         * Unwrap — remove markers from both ends of the node.
+         * Post-change coordinates: removing the opening marker shifts everything
+         * left by len, and removing the closing marker doesn't affect earlier positions.
+         * So the inner text spans from node.from to node.to - len * 2.
+         */
         const len = marker.length;
-        // Preserve cursor vs selection: if the user had a cursor (no selection),
-        // keep it as a cursor inside the unwrapped text rather than selecting all of it.
-        // Clamp the post-change cursor: if the cursor was at or before the opening marker,
-        // it lands at the start of the unwrapped text (node.from).
+        /*
+         * Preserve cursor vs selection: if the user had a cursor (no selection),
+         * keep it as a cursor inside the unwrapped text rather than selecting all of it.
+         * Clamp the post-change cursor: if the cursor was at or before the opening marker,
+         * it lands at the start of the unwrapped text (node.from).
+         */
         const innerEnd = node.to - len * 2;
         const postRange = range.empty
           ? EditorSelection.cursor(
@@ -117,9 +125,11 @@ function toggleMarker(
   };
 }
 
+/*
 //////////////////////////////
 // Link Insertion Command
 //////////////////////////////
+*/
 
 /**
  * Inserts a markdown link. With a selection, wraps as [text]() and places the
@@ -157,23 +167,29 @@ function insertLink(view: EditorView): boolean {
   return true;
 }
 
+/*
 //////////////////////////////
 // Keymap Export
 //////////////////////////////
+*/
 
-/** Keymap bindings for markdown formatting shortcuts (bold, italic, link) */
+// Keymap bindings for markdown formatting shortcuts (bold, italic, link)
 export const markdownShortcutsKeymap: KeyBinding[] = [
   { key: 'Mod-b', run: toggleMarker('**', 'StrongEmphasis') },
   { key: 'Mod-i', run: toggleMarker('_', 'Emphasis') },
   { key: 'Mod-k', run: insertLink },
 ];
 
+/*
 //////////////////////////////
 // Smart Paste Handler
 //////////////////////////////
+*/
 
-// Intercepts paste events to wrap selected text as a markdown link when
-// the clipboard contains a URL. Only activates when text is selected.
+/*
+ * Intercepts paste events to wrap selected text as a markdown link when
+ * the clipboard contains a URL. Only activates when text is selected.
+ */
 const smartPasteHandler = EditorView.domEventHandlers({
   paste(event: ClipboardEvent, view: EditorView) {
     const { from, to, empty } = view.state.selection.main;
@@ -196,13 +212,17 @@ const smartPasteHandler = EditorView.domEventHandlers({
   },
 });
 
+/*
 //////////////////////////////
 // Bracket/Quote Wrap Handler
 //////////////////////////////
+*/
 
-// Intercepts single-character input to wrap selected text in matching
-// bracket or quote pairs. Only activates when text is selected and
-// the typed character is a recognized opening bracket or quote.
+/*
+ * Intercepts single-character input to wrap selected text in matching
+ * bracket or quote pairs. Only activates when text is selected and
+ * the typed character is a recognized opening bracket or quote.
+ */
 const bracketWrapHandler = EditorView.inputHandler.of(
   (view: EditorView, from: number, to: number, text: string) => {
     const closing = wrapPairs[text];
@@ -228,11 +248,13 @@ const bracketWrapHandler = EditorView.inputHandler.of(
   },
 );
 
+/*
 //////////////////////////////
 // Extensions Export
 //////////////////////////////
+*/
 
-/** Non-keymap extensions: smart paste URL handler and bracket/quote wrapping */
+// Non-keymap extensions: smart paste URL handler and bracket/quote wrapping
 export const markdownShortcutsExtensions = [
   smartPasteHandler,
   bracketWrapHandler,

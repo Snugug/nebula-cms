@@ -23,8 +23,10 @@
   // Current open file — null when no file is loaded
   const file = $derived(getEditorFile());
 
-  // Show the Body tab for files that have a body editor (markdown, MDX, Markdoc).
-  // Defaults to true when no file is open to preserve the prior behavior.
+  /*
+   * Show the Body tab for files that have a body editor (markdown, MDX, Markdoc).
+   * Defaults to true when no file is open to preserve the prior behavior.
+   */
   const showBody = $derived(file ? hasBodyEditor(file.filename) : true);
 
   // All tabs: Metadata, conditionally Body, then custom tabs

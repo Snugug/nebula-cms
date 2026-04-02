@@ -17,9 +17,6 @@ export const schema = {
   },
 };
 
-// Whether all schemas have been prefetched
-let allFetched = false;
-
 /**
  * Fetches all collection schemas in parallel and caches them.
  * Call once on app startup so schema-derived state is available before the first collection renders.
@@ -37,7 +34,6 @@ export async function prefetchAllSchemas(): Promise<void> {
   for (const [name, data] of results) {
     cache.set(name, data);
   }
-  allFetched = true;
 }
 
 /**
@@ -76,16 +72,27 @@ export function collectionHasDates(collection: string): boolean {
 }
 
 /**
+ * Reads a top-level string field from a collection's cached schema.
+ * Returns null if the schema isn't cached or the field is absent/non-string.
+ * @param {string} collection - The collection name
+ * @param {string} field - The schema field to read (e.g. 'title', 'description')
+ * @return {string | null} The field value, or null
+ */
+function getStringField(collection: string, field: string): string | null {
+  const s = cache.get(collection);
+  if (!s) return null;
+  const value = s[field];
+  return typeof value === 'string' ? value : null;
+}
+
+/**
  * Returns the display title for a collection from its cached schema.
  * Returns null if the schema hasn't been fetched or has no title.
  * @param {string} collection - The collection name
  * @return {string | null} The schema title, or null
  */
 export function getCollectionTitle(collection: string): string | null {
-  const s = cache.get(collection);
-  if (!s) return null;
-  const title = s['title'];
-  return typeof title === 'string' ? title : null;
+  return getStringField(collection, 'title');
 }
 
 /**
@@ -95,21 +102,20 @@ export function getCollectionTitle(collection: string): string | null {
  * @return {string | null} The schema description, or null
  */
 export function getCollectionDescription(collection: string): string | null {
-  const s = cache.get(collection);
-  if (!s) return null;
-  const desc = s['description'];
-  return typeof desc === 'string' ? desc : null;
+  return getStringField(collection, 'description');
 }
+
+/*
+ * Known race condition: if a caller invokes getSchemaExtensions before
+ * prefetchAllSchemas() has completed, the schema won't be cached yet and the
+ * fallback is returned. The caller (dispatchWorker in state.svelte.ts)
+ * mitigates this by awaiting initPromise, which includes prefetchAllSchemas().
+ * If the ordering changes, callers should await prefetchAllSchemas() first.
+ */
 
 /**
  * Returns the resolved file extensions for a collection from its cached schema.
  * Falls back to ['.md', '.mdx'] if the schema hasn't been fetched or declares no files.
- *
- * Known race condition: if a caller invokes this before prefetchAllSchemas() has
- * completed, the schema won't be cached yet and the fallback is returned. The caller
- * (dispatchWorker in state.svelte.ts) mitigates this by awaiting initPromise, which
- * includes prefetchAllSchemas(). If the ordering changes, callers should check
- * await prefetchAllSchemas() before calling this function.
  * @param {string} collection - The collection name
  * @return {string[]} Array of file extensions
  */

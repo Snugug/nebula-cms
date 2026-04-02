@@ -74,6 +74,31 @@
   }
 }
 
+/* Compact variant for tight layouts like the editor toolbar */
+
+.btn--compact {
+  padding: 0.25rem 0.75rem;
+}
+
+/*
+ * Icon-only button for small icon triggers (add, sort, theme, info).
+ * Standalone class — not combined with .btn.
+ */
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--cms-muted);
+  padding: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+
+  &:hover {
+    color: var(--cms-fg);
+  }
+}
+
 /* Outlined teal (save draft in toolbar) */
 
 .btn--save-outline {
