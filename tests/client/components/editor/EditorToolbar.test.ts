@@ -15,15 +15,13 @@ const {
   mockGetEditorFile,
   mockHandleSave,
   mockHandlePublish,
-  mockShowFilenameDialog,
-  mockShowDeleteDialog,
+  mockOpenDialog,
   mockComputePublishDisabled,
 } = vi.hoisted(() => ({
   mockGetEditorFile: vi.fn(),
   mockHandleSave: vi.fn(),
   mockHandlePublish: vi.fn(() => Promise.resolve({ status: 'ok' as const })),
-  mockShowFilenameDialog: vi.fn(),
-  mockShowDeleteDialog: vi.fn(),
+  mockOpenDialog: vi.fn(),
   mockComputePublishDisabled: vi.fn(() => false),
 }));
 
@@ -54,8 +52,7 @@ vi.mock('../../../../src/client/js/handlers/admin', () => ({
 }));
 
 vi.mock('../../../../src/client/js/state/dialogs.svelte', () => ({
-  showFilenameDialog: mockShowFilenameDialog,
-  showDeleteDialog: mockShowDeleteDialog,
+  openDialog: mockOpenDialog,
 }));
 
 // Prevent accumulated renders from bleeding between tests
@@ -207,7 +204,7 @@ describe('EditorToolbar', () => {
     const { container } = render(EditorToolbar);
 
     await fireEvent.click(container.querySelector('.btn--primary')!);
-    expect(mockShowFilenameDialog).toHaveBeenCalledOnce();
+    expect(mockOpenDialog).toHaveBeenCalledWith('filename');
   });
 
   //////////////////////////////
@@ -238,6 +235,6 @@ describe('EditorToolbar', () => {
     const { container } = render(EditorToolbar);
 
     await fireEvent.click(container.querySelector('.btn--danger-outline')!);
-    expect(mockShowDeleteDialog).toHaveBeenCalledOnce();
+    expect(mockOpenDialog).toHaveBeenCalledWith('delete');
   });
 });

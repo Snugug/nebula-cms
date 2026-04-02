@@ -33,10 +33,9 @@ const handlers = vi.hoisted(() => ({
   mockHandlePublish: vi.fn(async () => ({ status: 'ok' as const })),
 }));
 
-// Tracks whether showFilenameDialog was called so dialogs.filenameOpen reflects it
+// Tracks which dialog is active so dialogs.active reflects it
 const dialogState = vi.hoisted(() => ({
-  filenameOpen: false,
-  deleteOpen: false,
+  active: null as string | null,
 }));
 
 //////////////////////////////
@@ -230,37 +229,27 @@ vi.mock('../../src/client/js/state/theme.svelte', () => ({
 }));
 vi.mock('../../src/client/js/state/dialogs.svelte', () => ({
   dialogs: {
-    get filenameOpen() {
-      return dialogState.filenameOpen;
-    },
-    get deleteOpen() {
-      return dialogState.deleteOpen;
+    get active() {
+      return dialogState.active;
     },
   },
-  showFilenameDialog: vi.fn(() => {
-    dialogState.filenameOpen = true;
+  openDialog: vi.fn((type: string) => {
+    dialogState.active = type;
   }),
-  hideFilenameDialog: vi.fn(() => {
-    dialogState.filenameOpen = false;
-  }),
-  showDeleteDialog: vi.fn(() => {
-    dialogState.deleteOpen = true;
-  }),
-  hideDeleteDialog: vi.fn(() => {
-    dialogState.deleteOpen = false;
+  closeDialog: vi.fn(() => {
+    dialogState.active = null;
   }),
 }));
 
 import Admin from '../../src/client/Admin.svelte';
-import { showFilenameDialog } from '../../src/client/js/state/dialogs.svelte';
+import { openDialog } from '../../src/client/js/state/dialogs.svelte';
 
 afterEach(() => cleanup());
 beforeEach(() => {
   resetMocks(mocks);
   handlers.mockHandlePublish.mockClear();
   handlers.mockHandlePublish.mockResolvedValue({ status: 'ok' });
-  dialogState.filenameOpen = false;
-  dialogState.deleteOpen = false;
+  dialogState.active = null;
 });
 
 describe('Publishing', () => {
@@ -294,7 +283,7 @@ describe('Publishing', () => {
     if (publishBtn) await fireEvent.click(publishBtn);
 
     // EditorToolbar calls showFilenameDialog when handlePublish returns 'needs-filename'
-    expect(showFilenameDialog).toHaveBeenCalled();
+    expect(openDialog).toHaveBeenCalledWith('filename');
   });
 
   it('disables publish button when computePublishDisabled returns true', () => {

@@ -225,17 +225,12 @@ vi.mock('../../src/client/js/state/theme.svelte', () => ({
 }));
 vi.mock('../../src/client/js/state/dialogs.svelte', () => ({
   dialogs: {
-    get filenameOpen() {
-      return false;
-    },
-    get deleteOpen() {
-      return false;
+    get active() {
+      return null;
     },
   },
-  showFilenameDialog: vi.fn(),
-  hideFilenameDialog: vi.fn(),
-  showDeleteDialog: vi.fn(),
-  hideDeleteDialog: vi.fn(),
+  openDialog: vi.fn(),
+  closeDialog: vi.fn(),
 }));
 
 import Admin from '../../src/client/Admin.svelte';
