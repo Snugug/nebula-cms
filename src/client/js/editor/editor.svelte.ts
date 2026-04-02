@@ -202,7 +202,11 @@ export async function preloadFile(
   itemFilename: string,
   data: Record<string, unknown>,
 ): Promise<void> {
-  if (filename === itemFilename && fileOpen) return;
+  // Compare slugs (without extension) so a format change doesn't trigger a full reload.
+  // changeFileFormat swaps the extension, which changes `filename` from e.g. 'intro.md'
+  // to 'intro.mdx' — but the underlying file is the same and shouldn't be re-preloaded.
+  if (stripExtension(filename) === stripExtension(itemFilename) && fileOpen)
+    return;
 
   // Check IndexedDB for an existing draft of this live file
   const d = await getDraftByFile(collection, itemFilename);
