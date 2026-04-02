@@ -47,7 +47,6 @@
   import EditorToolbar from './components/editor/EditorToolbar.svelte';
   import EditorPane from './components/editor/EditorPane.svelte';
   import EditorTabs from './components/editor/EditorTabs.svelte';
-  import FormatSelector from './components/editor/FormatSelector.svelte';
   import MetadataForm from './components/MetadataForm.svelte';
   import FilenameDialog from './components/dialogs/FilenameDialog.svelte';
   import DeleteDraftDialog from './components/dialogs/DeleteDraftDialog.svelte';
@@ -236,13 +235,12 @@
       <div class="editor-area">
         <EditorToolbar />
         <EditorTabs schema={schema.active} />
-        <FormatSelector
-          fileTypes={schemaFileTypes}
-          activeType={activeFileType}
-        />
         <div class="editor-content">
           {#if editor.tab === 'body'}
-            <EditorPane />
+            <EditorPane
+              fileTypes={schemaFileTypes}
+              activeType={activeFileType}
+            />
           {:else if schema.active}
             <MetadataForm
               schema={schema.active}
@@ -290,8 +288,8 @@
 
   .editor-area {
     display: grid;
-    /* FormatSelector is conditionally rendered between tabs and content; grid-template-rows uses auto for all header rows and 1fr for the scrollable content area */
-    grid-template-rows: auto auto auto 1fr;
+    /* Toolbar + tabs above, scrollable content below */
+    grid-template-rows: auto auto 1fr;
     overflow: hidden;
     border-left: 1px solid var(--cms-border);
   }
