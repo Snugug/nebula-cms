@@ -44,8 +44,15 @@ vi.mock('../../../../src/client/js/drafts/storage', () => ({
   loadDrafts: vi.fn(async () => []),
 }));
 
+// storageClient is a direct object export (not a getter function), so the
+// mock uses a hoisted ref that tests swap between null and a fake client.
+const { mockStorageClientRef } = vi.hoisted(() => ({
+  mockStorageClientRef: { current: null as any },
+}));
 vi.mock('../../../../src/client/js/state/state.svelte', () => ({
-  getStorageClient: vi.fn(() => null),
+  get storageClient() {
+    return mockStorageClientRef.current;
+  },
 }));
 
 // js-yaml is a real dependency but we need to control its output in some tests
@@ -55,7 +62,7 @@ vi.mock('js-yaml', async (importOriginal) => {
 });
 
 import { loadDrafts } from '../../../../src/client/js/drafts/storage';
-import { getStorageClient } from '../../../../src/client/js/state/state.svelte';
+// storageClient import removed — tests configure mockStorageClientRef.current directly
 import type { Draft } from '../../../../src/client/js/drafts/storage';
 
 /**
@@ -78,26 +85,26 @@ function makeDraft(overrides: Partial<Draft> = {}): Draft {
 }
 
 //////////////////////////////
-// getDrafts / getOutdatedMap
+// drafts / outdatedMap
 //////////////////////////////
 
-describe('getDrafts / getOutdatedMap — reactive getters', () => {
+describe('drafts / outdatedMap — reactive exports', () => {
   afterEach(() => {
     vi.resetModules();
   });
 
-  it('getDrafts returns empty array before mergeDrafts is called', async () => {
+  it('drafts is an empty array before mergeDrafts is called', async () => {
     vi.resetModules();
-    const { getDrafts } =
+    const { drafts } =
       await import('../../../../src/client/js/drafts/merge.svelte');
-    expect(getDrafts()).toEqual([]);
+    expect(drafts.all).toEqual([]);
   });
 
-  it('getOutdatedMap returns empty object before mergeDrafts is called', async () => {
+  it('outdatedMap is an empty object before mergeDrafts is called', async () => {
     vi.resetModules();
-    const { getOutdatedMap } =
+    const { drafts } =
       await import('../../../../src/client/js/drafts/merge.svelte');
-    expect(getOutdatedMap()).toEqual({});
+    expect(drafts.outdated).toEqual({});
   });
 });
 
@@ -114,17 +121,17 @@ describe('mergeDrafts', () => {
     vi.resetModules();
   });
 
-  it('populates getDrafts with the loaded drafts', async () => {
+  it('populates drafts with the loaded drafts', async () => {
     const drafts = [makeDraft({ id: 'md-01' }), makeDraft({ id: 'md-02' })];
     vi.mocked(loadDrafts).mockResolvedValue(drafts);
     // No storage client — candidates go through the empty-entries path
-    vi.mocked(getStorageClient).mockReturnValue(null as any);
+    mockStorageClientRef.current = null;
 
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
 
-    expect(mod.getDrafts()).toEqual(drafts);
+    expect(mod.drafts.all).toEqual(drafts);
   });
 
   it('sets outdatedMap to {} when there are no candidate drafts', async () => {
@@ -132,31 +139,31 @@ describe('mergeDrafts', () => {
     vi.mocked(loadDrafts).mockResolvedValue([
       makeDraft({ id: 'new-01', isNew: true, snapshot: null }),
     ]);
-    vi.mocked(getStorageClient).mockReturnValue(null as any);
+    mockStorageClientRef.current = null;
 
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
 
-    expect(mod.getOutdatedMap()).toEqual({});
+    expect(mod.drafts.outdated).toEqual({});
   });
 
   it('sets outdatedMap to {} when storage client is not available', async () => {
     vi.mocked(loadDrafts).mockResolvedValue([
       makeDraft({ id: 'no-client-01', isNew: false, snapshot: 'snap' }),
     ]);
-    vi.mocked(getStorageClient).mockReturnValue(null as any);
+    mockStorageClientRef.current = null;
 
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
 
-    expect(mod.getOutdatedMap()).toEqual({});
+    expect(mod.drafts.outdated).toEqual({});
   });
 
   it('calls loadDrafts with the collection name', async () => {
     vi.mocked(loadDrafts).mockResolvedValue([]);
-    vi.mocked(getStorageClient).mockReturnValue(null as any);
+    mockStorageClientRef.current = null;
 
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
@@ -178,13 +185,13 @@ describe('mergeDrafts', () => {
         filename: 'x.md',
       }),
     ]);
-    vi.mocked(getStorageClient).mockReturnValue(fakeClient as any);
+    mockStorageClientRef.current = fakeClient;
 
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
 
-    expect(mod.getOutdatedMap()).toEqual({});
+    expect(mod.drafts.outdated).toEqual({});
   });
 });
 
@@ -206,16 +213,16 @@ describe('refreshDrafts', () => {
     const refreshed = [makeDraft({ id: 'rf-01' }), makeDraft({ id: 'rf-02' })];
 
     vi.mocked(loadDrafts).mockResolvedValueOnce(initial);
-    vi.mocked(getStorageClient).mockReturnValue(null as any);
+    mockStorageClientRef.current = null;
 
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
-    expect(mod.getDrafts()).toHaveLength(1);
+    expect(mod.drafts.all).toHaveLength(1);
 
     vi.mocked(loadDrafts).mockResolvedValueOnce(refreshed);
     await mod.refreshDrafts('posts');
-    expect(mod.getDrafts()).toHaveLength(2);
+    expect(mod.drafts.all).toHaveLength(2);
   });
 
   it('calls loadDrafts with the correct collection', async () => {
@@ -240,27 +247,27 @@ describe('resetDraftMerge', () => {
 
   it('clears the drafts list', async () => {
     vi.mocked(loadDrafts).mockResolvedValue([makeDraft({ id: 'rst-01' })]);
-    vi.mocked(getStorageClient).mockReturnValue(null as any);
+    mockStorageClientRef.current = null;
 
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
-    expect(mod.getDrafts()).toHaveLength(1);
+    expect(mod.drafts.all).toHaveLength(1);
 
     mod.resetDraftMerge();
-    expect(mod.getDrafts()).toEqual([]);
+    expect(mod.drafts.all).toEqual([]);
   });
 
   it('clears the outdatedMap', async () => {
     vi.mocked(loadDrafts).mockResolvedValue([]);
-    vi.mocked(getStorageClient).mockReturnValue(null as any);
+    mockStorageClientRef.current = null;
 
     vi.resetModules();
     const mod = await import('../../../../src/client/js/drafts/merge.svelte');
     await mod.mergeDrafts('posts');
 
     mod.resetDraftMerge();
-    expect(mod.getOutdatedMap()).toEqual({});
+    expect(mod.drafts.outdated).toEqual({});
   });
 
   it('is safe to call multiple times without throwing', async () => {

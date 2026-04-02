@@ -17,13 +17,12 @@ let basePath = $state('/admin');
 // Current route, reactive via Svelte 5 runes
 let route = $state<AdminRoute>(parsePathname(location.pathname));
 
-/**
- * Returns the current base path for constructing admin URLs.
- * @return {string} The base path (e.g. '/admin')
- */
-export function getBasePath(): string {
-  return basePath;
-}
+export const nav = {
+  // Current parsed admin route.
+  get route(): AdminRoute {
+    return route;
+  },
+};
 
 /**
  * Builds an absolute path under the configured basePath by joining segments.
@@ -77,14 +76,6 @@ function parsePathname(pathname: string): AdminRoute {
     return { view: 'collection', collection: segments[0] };
   }
   return { view: 'home' };
-}
-
-/**
- * Returns the current admin route (reactive).
- * @return {AdminRoute} The current parsed admin route
- */
-export function getRoute(): AdminRoute {
-  return route;
 }
 
 /**

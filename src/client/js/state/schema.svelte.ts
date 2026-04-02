@@ -8,26 +8,17 @@ type JsonSchema = Record<string, unknown>;
 const cache = new Map<string, JsonSchema>();
 
 // Currently active schema for the selected collection
-let schema = $state<JsonSchema | null>(null);
+let activeSchema = $state<JsonSchema | null>(null);
+
+export const schema = {
+  // The loaded JSON Schema for the active collection, or null.
+  get active(): JsonSchema | null {
+    return activeSchema;
+  },
+};
 
 // Whether all schemas have been prefetched
-let allFetched = $state(false);
-
-/**
- * Returns the currently loaded JSON Schema (reactive).
- * @return {JsonSchema | null} The active schema, or null if none is loaded
- */
-export function getSchema(): JsonSchema | null {
-  return schema;
-}
-
-/**
- * Returns whether all schemas have been prefetched (reactive).
- * @return {boolean} True if all collection schemas have been fetched and cached
- */
-export function areSchemasReady(): boolean {
-  return allFetched;
-}
+let allFetched = false;
 
 /**
  * Fetches all collection schemas in parallel and caches them.
@@ -57,7 +48,7 @@ export async function prefetchAllSchemas(): Promise<void> {
 export async function fetchSchema(collection: string): Promise<void> {
   const cached = cache.get(collection);
   if (cached) {
-    schema = cached;
+    activeSchema = cached;
     return;
   }
 
@@ -67,7 +58,7 @@ export async function fetchSchema(collection: string): Promise<void> {
   const response = await fetch(url);
   const data = (await response.json()) as JsonSchema;
   cache.set(collection, data);
-  schema = data;
+  activeSchema = data;
 }
 
 /**
@@ -118,7 +109,7 @@ export function getCollectionDescription(collection: string): string | null {
  * completed, the schema won't be cached yet and the fallback is returned. The caller
  * (dispatchWorker in state.svelte.ts) mitigates this by awaiting initPromise, which
  * includes prefetchAllSchemas(). If the ordering changes, callers should check
- * areSchemasReady() or await prefetchAllSchemas() before calling this function.
+ * await prefetchAllSchemas() before calling this function.
  * @param {string} collection - The collection name
  * @return {string[]} Array of file extensions
  */
@@ -134,5 +125,5 @@ export function getSchemaExtensions(collection: string): string[] {
  * @return {void}
  */
 export function clearSchema(): void {
-  schema = null;
+  activeSchema = null;
 }

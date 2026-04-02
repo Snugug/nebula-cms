@@ -10,26 +10,32 @@ import EditorTabs from '../../../../src/client/components/editor/EditorTabs.svel
 
 // vi.hoisted ensures these declarations are available when vi.mock factories run,
 // since vi.mock calls are hoisted to the top of the file by Vitest.
-const {
-  mockGetActiveTab,
-  mockSetActiveTab,
-  mockExtractTabs,
-  mockGetEditorFile,
-} = vi.hoisted(() => ({
-  mockGetActiveTab: vi.fn(() => 'metadata'),
-  mockSetActiveTab: vi.fn(),
-  mockExtractTabs: vi.fn(() => [] as string[]),
-  mockGetEditorFile: vi.fn(() => null),
-}));
+const { mockActiveTab, mockSetActiveTab, mockExtractTabs, mockEditorFile } =
+  vi.hoisted(() => ({
+    mockActiveTab: vi.fn(() => 'metadata'),
+    mockSetActiveTab: vi.fn(),
+    mockExtractTabs: vi.fn(() => [] as string[]),
+    mockEditorFile: vi.fn(() => null),
+  }));
 
 vi.mock('../../../../src/client/js/utils/schema-utils', () => ({
   extractTabs: mockExtractTabs,
 }));
 
 vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
-  getActiveTab: mockGetActiveTab,
+  editor: {
+    get tab() {
+      return mockActiveTab();
+    },
+    get data() {
+      return {};
+    },
+    get originalFilename() {
+      return '';
+    },
+  },
   setActiveTab: mockSetActiveTab,
-  getEditorFile: mockGetEditorFile,
+  getEditorFile: mockEditorFile,
 }));
 
 // Prevent accumulated renders from bleeding between tests
@@ -117,7 +123,7 @@ describe('EditorTabs', () => {
   //////////////////////////////
 
   it('marks the active tab with tabs__tab--active class', () => {
-    mockGetActiveTab.mockReturnValue('body');
+    mockActiveTab.mockReturnValue('body');
     mockExtractTabs.mockReturnValueOnce([]);
 
     const { container } = render(EditorTabs, {
@@ -133,7 +139,7 @@ describe('EditorTabs', () => {
   });
 
   it('sets aria-selected="true" on the active tab', () => {
-    mockGetActiveTab.mockReturnValue('metadata');
+    mockActiveTab.mockReturnValue('metadata');
     mockExtractTabs.mockReturnValueOnce([]);
 
     const { container } = render(EditorTabs, {
@@ -154,7 +160,7 @@ describe('EditorTabs', () => {
 
   it('calls setActiveTab with the clicked tab identifier', async () => {
     mockSetActiveTab.mockClear();
-    mockGetActiveTab.mockReturnValue('metadata');
+    mockActiveTab.mockReturnValue('metadata');
     mockExtractTabs.mockReturnValueOnce([]);
 
     const { container } = render(EditorTabs, {
@@ -173,7 +179,7 @@ describe('EditorTabs', () => {
 
   it('calls setActiveTab with "metadata" when the Metadata tab is clicked', async () => {
     mockSetActiveTab.mockClear();
-    mockGetActiveTab.mockReturnValue('body');
+    mockActiveTab.mockReturnValue('body');
     mockExtractTabs.mockReturnValueOnce([]);
 
     const { container } = render(EditorTabs, {
@@ -194,7 +200,7 @@ describe('EditorTabs', () => {
   //////////////////////////////
 
   it('shows the Body tab when the open file is a .md file', () => {
-    mockGetEditorFile.mockReturnValueOnce({ filename: 'post.md' });
+    mockEditorFile.mockReturnValueOnce({ filename: 'post.md' });
     mockExtractTabs.mockReturnValueOnce([]);
 
     const { container } = render(EditorTabs, {
@@ -208,7 +214,7 @@ describe('EditorTabs', () => {
   });
 
   it('hides the Body tab when the open file is a .json file', () => {
-    mockGetEditorFile.mockReturnValueOnce({ filename: 'data.json' });
+    mockEditorFile.mockReturnValueOnce({ filename: 'data.json' });
     mockExtractTabs.mockReturnValueOnce([]);
 
     const { container } = render(EditorTabs, {
@@ -222,7 +228,7 @@ describe('EditorTabs', () => {
   });
 
   it('shows the Body tab when no file is open (fallback default)', () => {
-    mockGetEditorFile.mockReturnValueOnce(null);
+    mockEditorFile.mockReturnValueOnce(null);
     mockExtractTabs.mockReturnValueOnce([]);
 
     const { container } = render(EditorTabs, {

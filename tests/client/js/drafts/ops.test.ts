@@ -40,8 +40,15 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
   _setDraftState: vi.fn(),
 }));
 
+// storageClient is a direct object export (not a getter function), so the
+// mock uses a hoisted ref that tests swap between null and a fake client.
+const { mockStorageClientRef } = vi.hoisted(() => ({
+  mockStorageClientRef: { current: null as any },
+}));
 vi.mock('../../../../src/client/js/state/state.svelte', () => ({
-  getStorageClient: vi.fn(() => null),
+  get storageClient() {
+    return mockStorageClientRef.current;
+  },
 }));
 
 vi.mock('../../../../src/client/js/utils/file-types', () => ({
@@ -67,7 +74,7 @@ import {
   _getDraftState,
   _setDraftState,
 } from '../../../../src/client/js/editor/editor.svelte';
-import { getStorageClient } from '../../../../src/client/js/state/state.svelte';
+// storageClient import removed — tests configure mockStorageClientRef.current directly
 import { stableStringify } from '../../../../src/client/js/utils/stable-stringify';
 import {
   getFileCategory,
@@ -328,7 +335,7 @@ describe('publishFile', () => {
   });
 
   it('throws when no storage client is connected', async () => {
-    vi.mocked(getStorageClient).mockReturnValue(null as any);
+    mockStorageClientRef.current = null;
     vi.mocked(_getDraftState).mockReturnValue(
       makeEditorState({
         draftId: 'pf-01',
@@ -345,7 +352,7 @@ describe('publishFile', () => {
 
   it('writes the file via the storage client', async () => {
     const writeFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    mockStorageClientRef.current = { writeFile };
     vi.mocked(_getDraftState).mockReturnValue(
       makeEditorState({
         draftId: 'pf-02',
@@ -368,7 +375,7 @@ describe('publishFile', () => {
 
   it('deletes the draft from IDB after a successful write', async () => {
     const writeFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    mockStorageClientRef.current = { writeFile };
     vi.mocked(_getDraftState).mockReturnValue(
       makeEditorState({
         draftId: 'pf-03',
@@ -385,7 +392,7 @@ describe('publishFile', () => {
 
   it('clears draftId in state after publish', async () => {
     const writeFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    mockStorageClientRef.current = { writeFile };
     vi.mocked(_getDraftState).mockReturnValue(
       makeEditorState({
         draftId: 'pf-04',
@@ -404,7 +411,7 @@ describe('publishFile', () => {
 
   it('sets saving to true then false', async () => {
     const writeFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    mockStorageClientRef.current = { writeFile };
     vi.mocked(_getDraftState).mockReturnValue(
       makeEditorState({
         draftId: 'pf-05',
@@ -423,7 +430,7 @@ describe('publishFile', () => {
 
   it('skips draft deletion when draftId is null', async () => {
     const writeFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    mockStorageClientRef.current = { writeFile };
     vi.mocked(_getDraftState).mockReturnValue(
       makeEditorState({ draftId: null }),
     );
@@ -500,7 +507,7 @@ describe('publishFile multi-format serialization', () => {
 
   it('serializes JSON data files as formatted JSON', async () => {
     const writeFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    mockStorageClientRef.current = { writeFile };
     vi.mocked(getFileCategory).mockReturnValue('data');
     vi.mocked(getDataFormat).mockReturnValue('json');
     vi.mocked(_getDraftState).mockReturnValue(
@@ -531,7 +538,7 @@ describe('publishFile multi-format serialization', () => {
 
   it('serializes YAML data files as plain YAML without frontmatter delimiters', async () => {
     const writeFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    mockStorageClientRef.current = { writeFile };
     vi.mocked(getFileCategory).mockReturnValue('data');
     vi.mocked(getDataFormat).mockReturnValue('yaml');
     vi.mocked(dump).mockReturnValue('title: Hello\n');
@@ -560,7 +567,7 @@ describe('publishFile multi-format serialization', () => {
 
   it('serializes TOML data files', async () => {
     const writeFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    mockStorageClientRef.current = { writeFile };
     vi.mocked(getFileCategory).mockReturnValue('data');
     vi.mocked(getDataFormat).mockReturnValue('toml');
     vi.mocked(tomlStringify).mockReturnValue('title = "Hello"\n');
@@ -588,7 +595,7 @@ describe('publishFile multi-format serialization', () => {
 
   it('serializes frontmatter files with --- delimiters', async () => {
     const writeFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({ writeFile } as any);
+    mockStorageClientRef.current = { writeFile };
     vi.mocked(getFileCategory).mockReturnValue('frontmatter');
     vi.mocked(getDataFormat).mockReturnValue(null);
     vi.mocked(dump).mockReturnValue('title: Hello\n');
@@ -618,10 +625,7 @@ describe('publishFile multi-format serialization', () => {
   it('deletes old file on type conversion when originalFilename differs', async () => {
     const writeFile = vi.fn(async () => undefined);
     const deleteFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({
-      writeFile,
-      deleteFile,
-    } as any);
+    mockStorageClientRef.current = { writeFile, deleteFile };
     vi.mocked(getFileCategory).mockReturnValue('frontmatter');
     vi.mocked(getDataFormat).mockReturnValue(null);
     vi.mocked(dump).mockReturnValue('title: Hello\n');
@@ -648,10 +652,7 @@ describe('publishFile multi-format serialization', () => {
   it('does not delete when originalFilename matches filename', async () => {
     const writeFile = vi.fn(async () => undefined);
     const deleteFile = vi.fn(async () => undefined);
-    vi.mocked(getStorageClient).mockReturnValue({
-      writeFile,
-      deleteFile,
-    } as any);
+    mockStorageClientRef.current = { writeFile, deleteFile };
     vi.mocked(getFileCategory).mockReturnValue('frontmatter');
     vi.mocked(getDataFormat).mockReturnValue(null);
     vi.mocked(dump).mockReturnValue('title: Hello\n');

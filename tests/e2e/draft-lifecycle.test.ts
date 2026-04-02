@@ -12,19 +12,19 @@ import {
 //////////////////////////////
 
 const mocks = vi.hoisted(() => ({
-  mockIsBackendReady: vi.fn(() => false),
-  mockGetRoute: vi.fn(() => ({ view: 'home' as const })),
-  mockGetCollections: vi.fn(() => [] as string[]),
-  mockGetContentList: vi.fn(
+  mockBackendReady: vi.fn(() => false),
+  mockRoute: vi.fn(() => ({ view: 'home' as const })),
+  mockCollections: vi.fn(() => [] as string[]),
+  mockContentList: vi.fn(
     () => [] as Array<{ filename: string; data: Record<string, unknown> }>,
   ),
-  mockIsLoading: vi.fn(() => false),
-  mockGetError: vi.fn(() => null as string | null),
-  mockGetDrafts: vi.fn(() => []),
-  mockGetOutdatedMap: vi.fn(() => ({}) as Record<string, boolean>),
-  mockGetActiveTab: vi.fn(() => 'metadata'),
+  mockLoading: vi.fn(() => false),
+  mockError: vi.fn(() => null as string | null),
+  mockDrafts: vi.fn(() => []),
+  mockOutdatedMap: vi.fn(() => ({}) as Record<string, boolean>),
+  mockActiveTab: vi.fn(() => 'metadata'),
   mockGetEditorFile: vi.fn(() => null),
-  mockGetSchema: vi.fn(() => null),
+  mockSchema: vi.fn(() => null),
   mockCollectionHasDates: vi.fn(() => false),
   mockComputePublishDisabled: vi.fn(() => false),
 }));
@@ -46,39 +46,70 @@ vi.mock('virtual:collections', () => ({
   },
 }));
 vi.mock('../../src/client/js/state/state.svelte', () => ({
-  isBackendReady: mocks.mockIsBackendReady,
-  getCollections: mocks.mockGetCollections,
-  getContentList: mocks.mockGetContentList,
-  isLoading: mocks.mockIsLoading,
-  getError: mocks.mockGetError,
-  getDrafts: mocks.mockGetDrafts,
-  getOutdatedMap: mocks.mockGetOutdatedMap,
+  backend: {
+    get type() {
+      return null;
+    },
+    get ready() {
+      return mocks.mockBackendReady();
+    },
+    get permission() {
+      return 'denied';
+    },
+  },
+  content: {
+    get list() {
+      return mocks.mockContentList();
+    },
+    get loading() {
+      return mocks.mockLoading();
+    },
+    get error() {
+      return mocks.mockError();
+    },
+  },
+  get collections() {
+    return mocks.mockCollections();
+  },
+  storageClient: null,
+  drafts: {
+    get all() {
+      return mocks.mockDrafts();
+    },
+    get outdated() {
+      return mocks.mockOutdatedMap();
+    },
+  },
   restoreBackend: vi.fn(async () => {}),
   loadCollection: vi.fn(),
   reloadCollection: vi.fn(),
   disconnect: vi.fn(),
   refreshDrafts: vi.fn(async () => {}),
   updateContentItem: vi.fn(),
-  getBackendType: vi.fn(() => null),
-  getPermissionState: vi.fn(() => 'denied'),
   pickDirectory: vi.fn(),
   requestPermission: vi.fn(),
   connectGitHub: vi.fn(async () => {}),
-  getStorageClient: vi.fn(() => null),
 }));
 vi.mock('../../src/client/js/state/router.svelte', () => ({
   initRouter: vi.fn(),
-  getRoute: mocks.mockGetRoute,
+  nav: {
+    get route() {
+      return mocks.mockRoute();
+    },
+  },
   navigate: vi.fn(),
   registerDirtyChecker: vi.fn(),
-  getBasePath: vi.fn(() => '/admin'),
   adminPath: vi.fn((...segments) =>
     segments.length === 0 ? '/admin' : '/admin/' + segments.join('/'),
   ),
 }));
 vi.mock('../../src/client/js/state/schema.svelte', () => ({
   fetchSchema: vi.fn(async () => {}),
-  getSchema: mocks.mockGetSchema,
+  schema: {
+    get active() {
+      return mocks.mockSchema();
+    },
+  },
   clearSchema: vi.fn(),
   prefetchAllSchemas: vi.fn(async () => {}),
   collectionHasDates: mocks.mockCollectionHasDates,
@@ -89,14 +120,23 @@ vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   preloadFile: vi.fn(async () => {}),
   loadFileBody: vi.fn(async () => {}),
   clearEditor: vi.fn(),
-  getActiveTab: mocks.mockGetActiveTab,
+  editor: {
+    get tab() {
+      return mocks.mockActiveTab();
+    },
+    get data() {
+      return {};
+    },
+    get originalFilename() {
+      return '';
+    },
+  },
   setActiveTab: vi.fn(),
   getEditorFile: mocks.mockGetEditorFile,
   loadDraftById: vi.fn(async () => {}),
   setFilename: vi.fn(),
   updateBody: vi.fn(),
   updateFormField: vi.fn(),
-  getFormData: vi.fn(() => ({})),
   saveDraftToIDB: vi.fn(async () => {}),
   saveFile: vi.fn(async () => {}),
   publishFile: vi.fn(async () => {}),
@@ -106,7 +146,6 @@ vi.mock('../../src/client/js/editor/editor.svelte', () => ({
   _setDraftState: vi.fn(),
   changeFileFormat: vi.fn(),
   setDefaultFormat: vi.fn(),
-  getOriginalFilename: vi.fn(() => ''),
 }));
 vi.mock('../../src/client/js/handlers/admin', async (importOriginal) => {
   const actual =
@@ -118,6 +157,14 @@ vi.mock('../../src/client/js/handlers/admin', async (importOriginal) => {
     handleDeleteDraft: handlers.mockHandleDeleteDraft,
     handleFilenameConfirm: vi.fn(async () => {}),
     computePublishDisabled: mocks.mockComputePublishDisabled,
+    // Override buildCollectionItems to read from mockCollections — the
+    // module-level getter for `collections` is not a live binding in
+    // vitest's browser mode, so the real function would see an empty array.
+    buildCollectionItems: () =>
+      mocks.mockCollections().map((name: string) => ({
+        label: name.charAt(0).toUpperCase() + name.slice(1),
+        href: '/admin/' + name,
+      })),
   };
 });
 vi.mock('../../src/client/js/utils/sort', () => ({
@@ -148,8 +195,14 @@ vi.mock('../../src/client/js/utils/schema-utils', () => ({
   setByPath: vi.fn(),
 }));
 vi.mock('../../src/client/js/drafts/merge.svelte', () => ({
-  getDrafts: mocks.mockGetDrafts,
-  getOutdatedMap: mocks.mockGetOutdatedMap,
+  drafts: {
+    get all() {
+      return mocks.mockDrafts();
+    },
+    get outdated() {
+      return mocks.mockOutdatedMap();
+    },
+  },
   mergeDrafts: vi.fn(async () => {}),
   refreshDrafts: vi.fn(async () => {}),
   resetDraftMerge: vi.fn(),
@@ -227,14 +280,14 @@ describe('Draft Lifecycle', () => {
 
   it('shows draft chip for items with draft status', () => {
     configureConnected(mocks, ['posts']);
-    mocks.mockGetRoute.mockReturnValue({
+    mocks.mockRoute.mockReturnValue({
       view: 'collection',
       collection: 'posts',
     });
-    mocks.mockGetContentList.mockReturnValue([
+    mocks.mockContentList.mockReturnValue([
       { filename: 'hello.md', data: { title: 'Hello' } },
     ]);
-    mocks.mockGetDrafts.mockReturnValue([
+    mocks.mockDrafts.mockReturnValue([
       {
         id: 'draft-1',
         isNew: false,
@@ -254,14 +307,14 @@ describe('Draft Lifecycle', () => {
 
   it('shows outdated chip when draft is outdated', () => {
     configureConnected(mocks, ['posts']);
-    mocks.mockGetRoute.mockReturnValue({
+    mocks.mockRoute.mockReturnValue({
       view: 'collection',
       collection: 'posts',
     });
-    mocks.mockGetContentList.mockReturnValue([
+    mocks.mockContentList.mockReturnValue([
       { filename: 'hello.md', data: { title: 'Hello' } },
     ]);
-    mocks.mockGetDrafts.mockReturnValue([
+    mocks.mockDrafts.mockReturnValue([
       {
         id: 'draft-1',
         isNew: false,
@@ -270,7 +323,7 @@ describe('Draft Lifecycle', () => {
         collection: 'posts',
       },
     ]);
-    mocks.mockGetOutdatedMap.mockReturnValue({ 'draft-1': true });
+    mocks.mockOutdatedMap.mockReturnValue({ 'draft-1': true });
 
     const { container } = render(Admin);
 
@@ -282,12 +335,12 @@ describe('Draft Lifecycle', () => {
 
   it('shows new draft items in the sidebar', () => {
     configureConnected(mocks, ['posts']);
-    mocks.mockGetRoute.mockReturnValue({
+    mocks.mockRoute.mockReturnValue({
       view: 'collection',
       collection: 'posts',
     });
-    mocks.mockGetContentList.mockReturnValue([]);
-    mocks.mockGetDrafts.mockReturnValue([
+    mocks.mockContentList.mockReturnValue([]);
+    mocks.mockDrafts.mockReturnValue([
       {
         id: 'new-draft-1',
         isNew: true,

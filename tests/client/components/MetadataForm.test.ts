@@ -14,9 +14,9 @@ import MetadataForm from '../../../src/client/components/MetadataForm.svelte';
 
 // vi.hoisted ensures these declarations are available when vi.mock factories run,
 // since vi.mock calls are hoisted to the top of the file by Vitest.
-const { mockGetFieldsForTab, mockGetFormData } = vi.hoisted(() => ({
+const { mockGetFieldsForTab, mockFormData } = vi.hoisted(() => ({
   mockGetFieldsForTab: vi.fn(() => [] as string[]),
-  mockGetFormData: vi.fn(() => ({}) as Record<string, unknown>),
+  mockFormData: vi.fn(() => ({}) as Record<string, unknown>),
 }));
 
 vi.mock('../../../src/client/js/utils/schema-utils', () => ({
@@ -33,7 +33,17 @@ vi.mock('../../../src/client/js/utils/schema-utils', () => ({
 }));
 
 vi.mock('../../../src/client/js/editor/editor.svelte', () => ({
-  getFormData: mockGetFormData,
+  editor: {
+    get data() {
+      return mockFormData();
+    },
+    get tab() {
+      return 'metadata';
+    },
+    get originalFilename() {
+      return '';
+    },
+  },
   updateFormField: vi.fn(),
 }));
 
@@ -58,7 +68,7 @@ describe('MetadataForm', () => {
 
   it('renders a field for each property returned by getFieldsForTab', () => {
     mockGetFieldsForTab.mockReturnValue(['title', 'description']);
-    mockGetFormData.mockReturnValue({ title: 'Hello', description: 'World' });
+    mockFormData.mockReturnValue({ title: 'Hello', description: 'World' });
 
     const { container } = render(MetadataForm, {
       props: { schema: sampleSchema },
@@ -71,7 +81,7 @@ describe('MetadataForm', () => {
 
   it('renders an empty form when getFieldsForTab returns no fields', () => {
     mockGetFieldsForTab.mockReturnValue([]);
-    mockGetFormData.mockReturnValue({});
+    mockFormData.mockReturnValue({});
 
     const { container } = render(MetadataForm, {
       props: { schema: sampleSchema },
@@ -90,7 +100,7 @@ describe('MetadataForm', () => {
       (_schema: unknown, tab: string | null) =>
         tab === 'seo' ? ['title'] : ['title', 'description'],
     );
-    mockGetFormData.mockReturnValue({ title: '', description: '' });
+    mockFormData.mockReturnValue({ title: '', description: '' });
 
     const { container } = render(MetadataForm, {
       props: { schema: sampleSchema, tab: 'seo' },
@@ -107,7 +117,7 @@ describe('MetadataForm', () => {
 
   it('renders the metadata-form wrapper element', () => {
     mockGetFieldsForTab.mockReturnValue([]);
-    mockGetFormData.mockReturnValue({});
+    mockFormData.mockReturnValue({});
 
     const { container } = render(MetadataForm, {
       props: { schema: sampleSchema },
@@ -122,7 +132,7 @@ describe('MetadataForm', () => {
 
   it('passes required fields down to SchemaField', () => {
     mockGetFieldsForTab.mockReturnValue(['title']);
-    mockGetFormData.mockReturnValue({ title: '' });
+    mockFormData.mockReturnValue({ title: '' });
 
     const { container } = render(MetadataForm, {
       props: { schema: sampleSchema },

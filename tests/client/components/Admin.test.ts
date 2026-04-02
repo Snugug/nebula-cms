@@ -18,29 +18,29 @@ import Admin from '../../../src/client/Admin.svelte';
 //////////////////////////////
 
 const {
-  mockIsBackendReady,
-  mockGetRoute,
-  mockGetCollections,
-  mockGetContentList,
-  mockIsLoading,
-  mockGetError,
-  mockGetDrafts,
-  mockGetOutdatedMap,
-  mockGetActiveTab,
-  mockGetEditorFile,
-  mockGetSchema,
+  mockBackendReady,
+  mockRoute,
+  mockCollections,
+  mockContentList,
+  mockLoading,
+  mockError,
+  mockDrafts,
+  mockOutdatedMap,
+  mockActiveTab,
+  mockEditorFile,
+  mockSchema,
   mockCollectionHasDates,
   mockComputePublishDisabled,
 } = vi.hoisted(() => ({
-  mockIsBackendReady: vi.fn(() => false),
-  mockGetRoute: vi.fn(() => ({ view: 'home' as const })),
-  mockGetCollections: vi.fn(() => [] as string[]),
-  mockGetContentList: vi.fn(
+  mockBackendReady: vi.fn(() => false),
+  mockRoute: vi.fn(() => ({ view: 'home' as const })),
+  mockCollections: vi.fn(() => [] as string[]),
+  mockContentList: vi.fn(
     () => [] as Array<{ filename: string; data: Record<string, unknown> }>,
   ),
-  mockIsLoading: vi.fn(() => false),
-  mockGetError: vi.fn(() => null as string | null),
-  mockGetDrafts: vi.fn(
+  mockLoading: vi.fn(() => false),
+  mockError: vi.fn(() => null as string | null),
+  mockDrafts: vi.fn(
     () =>
       [] as Array<{
         id: string;
@@ -50,10 +50,10 @@ const {
         collection: string;
       }>,
   ),
-  mockGetOutdatedMap: vi.fn(() => ({}) as Record<string, boolean>),
-  mockGetActiveTab: vi.fn(() => 'metadata'),
-  mockGetEditorFile: vi.fn(() => null),
-  mockGetSchema: vi.fn(() => null),
+  mockOutdatedMap: vi.fn(() => ({}) as Record<string, boolean>),
+  mockActiveTab: vi.fn(() => 'metadata'),
+  mockEditorFile: vi.fn(() => null),
+  mockSchema: vi.fn(() => null),
   mockCollectionHasDates: vi.fn(() => false),
   mockComputePublishDisabled: vi.fn(() => false),
 }));
@@ -63,22 +63,46 @@ const {
 //////////////////////////////
 
 vi.mock('../../../src/client/js/state/state.svelte', () => ({
-  isBackendReady: mockIsBackendReady,
-  getCollections: mockGetCollections,
-  getContentList: mockGetContentList,
-  isLoading: mockIsLoading,
-  getError: mockGetError,
-  getDrafts: mockGetDrafts,
-  getOutdatedMap: mockGetOutdatedMap,
+  backend: {
+    get type() {
+      return null;
+    },
+    get ready() {
+      return mockBackendReady();
+    },
+    get permission() {
+      return 'denied';
+    },
+  },
+  content: {
+    get list() {
+      return mockContentList();
+    },
+    get loading() {
+      return mockLoading();
+    },
+    get error() {
+      return mockError();
+    },
+  },
+  get collections() {
+    return mockCollections();
+  },
+  drafts: {
+    get all() {
+      return mockDrafts();
+    },
+    get outdated() {
+      return mockOutdatedMap();
+    },
+  },
+  storageClient: {},
   restoreBackend: vi.fn(() => Promise.resolve()),
   loadCollection: vi.fn(() => Promise.resolve()),
   reloadCollection: vi.fn(),
   disconnect: vi.fn(),
   refreshDrafts: vi.fn(() => Promise.resolve()),
   updateContentItem: vi.fn(),
-  // BackendPicker (rendered when not ready) also imports these from state.svelte
-  getBackendType: vi.fn(() => null),
-  getPermissionState: vi.fn(() => 'denied'),
   pickDirectory: vi.fn(),
   requestPermission: vi.fn(),
   connectGitHub: vi.fn(() => Promise.resolve()),
@@ -86,10 +110,13 @@ vi.mock('../../../src/client/js/state/state.svelte', () => ({
 
 vi.mock('../../../src/client/js/state/router.svelte', () => ({
   initRouter: vi.fn(),
-  getRoute: mockGetRoute,
+  nav: {
+    get route() {
+      return mockRoute();
+    },
+  },
   navigate: vi.fn(),
   registerDirtyChecker: vi.fn(),
-  getBasePath: vi.fn(() => '/admin'),
   adminPath: vi.fn((...segments) =>
     segments.length === 0 ? '/admin' : '/admin/' + segments.join('/'),
   ),
@@ -97,7 +124,11 @@ vi.mock('../../../src/client/js/state/router.svelte', () => ({
 
 vi.mock('../../../src/client/js/state/schema.svelte', () => ({
   fetchSchema: vi.fn(() => Promise.resolve()),
-  getSchema: mockGetSchema,
+  schema: {
+    get active() {
+      return mockSchema();
+    },
+  },
   clearSchema: vi.fn(),
   prefetchAllSchemas: vi.fn(() => Promise.resolve()),
   collectionHasDates: mockCollectionHasDates,
@@ -109,8 +140,18 @@ vi.mock('../../../src/client/js/editor/editor.svelte', () => ({
   preloadFile: vi.fn(() => Promise.resolve()),
   loadFileBody: vi.fn(() => Promise.resolve()),
   clearEditor: vi.fn(),
-  getActiveTab: mockGetActiveTab,
-  getEditorFile: mockGetEditorFile,
+  editor: {
+    get tab() {
+      return mockActiveTab();
+    },
+    get data() {
+      return {};
+    },
+    get originalFilename() {
+      return '';
+    },
+  },
+  getEditorFile: mockEditorFile,
   loadDraftById: vi.fn(() => Promise.resolve()),
   setFilename: vi.fn(),
   updateBody: vi.fn(),
@@ -185,8 +226,8 @@ describe('Admin', () => {
   //////////////////////////////
 
   it('renders BackendPicker when backend is not ready', () => {
-    mockIsBackendReady.mockReturnValue(false);
-    mockGetRoute.mockReturnValue({ view: 'home' });
+    mockBackendReady.mockReturnValue(false);
+    mockRoute.mockReturnValue({ view: 'home' });
 
     const { container } = render(Admin, { props: {} });
 
@@ -195,8 +236,8 @@ describe('Admin', () => {
   });
 
   it('does not render sidebar navigation when backend is not ready', () => {
-    mockIsBackendReady.mockReturnValue(false);
-    mockGetRoute.mockReturnValue({ view: 'home' });
+    mockBackendReady.mockReturnValue(false);
+    mockRoute.mockReturnValue({ view: 'home' });
 
     const { container } = render(Admin, { props: {} });
 
@@ -208,9 +249,9 @@ describe('Admin', () => {
   //////////////////////////////
 
   it('renders the collections sidebar when ready at home view', () => {
-    mockIsBackendReady.mockReturnValue(true);
-    mockGetRoute.mockReturnValue({ view: 'home' });
-    mockGetCollections.mockReturnValue(['posts', 'pages']);
+    mockBackendReady.mockReturnValue(true);
+    mockRoute.mockReturnValue({ view: 'home' });
+    mockCollections.mockReturnValue(['posts', 'pages']);
 
     const { container } = render(Admin, { props: {} });
 
@@ -219,9 +260,9 @@ describe('Admin', () => {
   });
 
   it('shows collection items in the sidebar when backend is ready', () => {
-    mockIsBackendReady.mockReturnValue(true);
-    mockGetRoute.mockReturnValue({ view: 'home' });
-    mockGetCollections.mockReturnValue(['posts', 'pages']);
+    mockBackendReady.mockReturnValue(true);
+    mockRoute.mockReturnValue({ view: 'home' });
+    mockCollections.mockReturnValue(['posts', 'pages']);
 
     const { container } = render(Admin, { props: {} });
 
@@ -230,9 +271,9 @@ describe('Admin', () => {
   });
 
   it('does not render the editor area when at home view', () => {
-    mockIsBackendReady.mockReturnValue(true);
-    mockGetRoute.mockReturnValue({ view: 'home' });
-    mockGetCollections.mockReturnValue([]);
+    mockBackendReady.mockReturnValue(true);
+    mockRoute.mockReturnValue({ view: 'home' });
+    mockCollections.mockReturnValue([]);
 
     const { container } = render(Admin, { props: {} });
 
@@ -244,13 +285,13 @@ describe('Admin', () => {
   //////////////////////////////
 
   it('renders both sidebars when a collection is selected', () => {
-    mockIsBackendReady.mockReturnValue(true);
-    mockGetRoute.mockReturnValue({
+    mockBackendReady.mockReturnValue(true);
+    mockRoute.mockReturnValue({
       view: 'collection',
       collection: 'posts',
     });
-    mockGetCollections.mockReturnValue(['posts']);
-    mockGetContentList.mockReturnValue([]);
+    mockCollections.mockReturnValue(['posts']);
+    mockContentList.mockReturnValue([]);
 
     const { container } = render(Admin, { props: {} });
 
@@ -259,13 +300,13 @@ describe('Admin', () => {
   });
 
   it('does not render the editor area in collection view', () => {
-    mockIsBackendReady.mockReturnValue(true);
-    mockGetRoute.mockReturnValue({
+    mockBackendReady.mockReturnValue(true);
+    mockRoute.mockReturnValue({
       view: 'collection',
       collection: 'posts',
     });
-    mockGetCollections.mockReturnValue(['posts']);
-    mockGetContentList.mockReturnValue([]);
+    mockCollections.mockReturnValue(['posts']);
+    mockContentList.mockReturnValue([]);
 
     const { container } = render(Admin, { props: {} });
 
@@ -277,15 +318,15 @@ describe('Admin', () => {
   //////////////////////////////
 
   it('renders the editor area when a file is open', () => {
-    mockIsBackendReady.mockReturnValue(true);
-    mockGetRoute.mockReturnValue({
+    mockBackendReady.mockReturnValue(true);
+    mockRoute.mockReturnValue({
       view: 'file',
       collection: 'posts',
       slug: 'my-post',
     });
-    mockGetCollections.mockReturnValue(['posts']);
-    mockGetContentList.mockReturnValue([]);
-    mockGetEditorFile.mockReturnValue({
+    mockCollections.mockReturnValue(['posts']);
+    mockContentList.mockReturnValue([]);
+    mockEditorFile.mockReturnValue({
       filename: 'my-post.md',
       dirty: false,
       saving: false,
@@ -302,15 +343,15 @@ describe('Admin', () => {
   });
 
   it('renders both sidebars and the editor area in file view', () => {
-    mockIsBackendReady.mockReturnValue(true);
-    mockGetRoute.mockReturnValue({
+    mockBackendReady.mockReturnValue(true);
+    mockRoute.mockReturnValue({
       view: 'file',
       collection: 'posts',
       slug: 'my-post',
     });
-    mockGetCollections.mockReturnValue(['posts']);
-    mockGetContentList.mockReturnValue([]);
-    mockGetEditorFile.mockReturnValue({
+    mockCollections.mockReturnValue(['posts']);
+    mockContentList.mockReturnValue([]);
+    mockEditorFile.mockReturnValue({
       filename: 'my-post.md',
       dirty: false,
       saving: false,
@@ -333,15 +374,15 @@ describe('Admin', () => {
   //////////////////////////////
 
   it('renders the editor area when a draft is open', () => {
-    mockIsBackendReady.mockReturnValue(true);
-    mockGetRoute.mockReturnValue({
+    mockBackendReady.mockReturnValue(true);
+    mockRoute.mockReturnValue({
       view: 'draft',
       collection: 'posts',
       draftId: 'abc-123',
     });
-    mockGetCollections.mockReturnValue(['posts']);
-    mockGetContentList.mockReturnValue([]);
-    mockGetEditorFile.mockReturnValue({
+    mockCollections.mockReturnValue(['posts']);
+    mockContentList.mockReturnValue([]);
+    mockEditorFile.mockReturnValue({
       filename: '',
       dirty: false,
       saving: false,
@@ -362,9 +403,9 @@ describe('Admin', () => {
   //////////////////////////////
 
   it('adds admin--connected class when backend is ready', () => {
-    mockIsBackendReady.mockReturnValue(true);
-    mockGetRoute.mockReturnValue({ view: 'home' });
-    mockGetCollections.mockReturnValue([]);
+    mockBackendReady.mockReturnValue(true);
+    mockRoute.mockReturnValue({ view: 'home' });
+    mockCollections.mockReturnValue([]);
 
     const { container } = render(Admin, { props: {} });
 
@@ -372,8 +413,8 @@ describe('Admin', () => {
   });
 
   it('does not add admin--connected class when backend is not ready', () => {
-    mockIsBackendReady.mockReturnValue(false);
-    mockGetRoute.mockReturnValue({ view: 'home' });
+    mockBackendReady.mockReturnValue(false);
+    mockRoute.mockReturnValue({ view: 'home' });
 
     const { container } = render(Admin, { props: {} });
 

@@ -6,17 +6,16 @@ import {
   type BackendConfig,
 } from '../storage/storage';
 import { StorageClient } from '../storage/client';
-import { getRoute, navigate, adminPath } from './router.svelte';
+import { nav, navigate, adminPath } from './router.svelte';
 import {
-  getDrafts,
-  getOutdatedMap,
+  drafts,
   mergeDrafts,
   refreshDrafts,
   resetDraftMerge,
 } from '../drafts/merge.svelte';
 import { getSchemaExtensions } from './schema.svelte';
 
-export { getDrafts, getOutdatedMap, refreshDrafts };
+export { drafts, refreshDrafts };
 
 // Content item with full frontmatter data returned by the worker.
 export type ContentItem = {
@@ -28,81 +27,57 @@ export type ContentItem = {
 type PermissionState = 'granted' | 'prompt' | 'denied';
 // Backend type discriminator.
 type BackendType = 'fsa' | 'github' | null;
-const collectionNames = Object.keys(schemas).sort();
+// Sorted collection names derived from virtual:collections.
+export const collections = Object.keys(schemas).sort();
 // Uses .js extension because svelte-package does not rewrite URL string literals;
 // the dist output must reference the compiled .js file, not the source .ts file.
 const sharedWorker = new SharedWorker(
   new URL('../storage/workers/storage.js', import.meta.url),
   { type: 'module', name: 'cms-storage' },
 );
-const storageClient = new StorageClient(sharedWorker.port);
+// Main-thread StorageClient for editor and draft-merge I/O.
+export const storageClient = new StorageClient(sharedWorker.port);
 let backendType = $state<BackendType>(null);
 let backendReady = $state(false);
 let permissionState = $state<PermissionState>('denied');
 let contentList = $state<ContentItem[]>([]);
 let error = $state<string | null>(null);
 let loading = $state(false);
+
+export const backend = {
+  // Active backend type, or null if not connected.
+  get type(): BackendType {
+    return backendType;
+  },
+  // True if a backend is initialized and ready.
+  get ready(): boolean {
+    return backendReady;
+  },
+  // FSA permission state for the re-auth flow in BackendPicker.
+  get permission(): PermissionState {
+    return permissionState;
+  },
+};
+
+export const content = {
+  // Parsed content items for the selected collection.
+  get list(): ContentItem[] {
+    return contentList;
+  },
+  // True if the frontmatter worker is actively parsing.
+  get loading(): boolean {
+    return loading;
+  },
+  // Error message for display in the sidebar.
+  get error(): string | null {
+    return error;
+  },
+};
 let worker: Worker | null = null;
 let loadedCollection = '';
 let initPromise: Promise<void> | null = null;
 const contentCache = new Map<string, ContentItem[]>();
 
-/**
- * Exposes sorted collection names derived from virtual:collections.
- * @return {string[]} Alphabetically sorted collection names
- */
-export function getCollections(): string[] {
-  return collectionNames;
-}
-/**
- * Reactive getter for the active backend type.
- * @return {BackendType} The backend type, or null if not connected
- */
-export function getBackendType(): BackendType {
-  return backendType;
-}
-/**
- * Reactive "logged in" check used by Admin.svelte to gate the UI.
- * @return {boolean} True if a backend is initialized and ready
- */
-export function isBackendReady(): boolean {
-  return backendReady;
-}
-/**
- * Reactive FSA permission state for the re-auth flow in BackendPicker.
- * @return {PermissionState} The current permission state
- */
-export function getPermissionState(): PermissionState {
-  return permissionState;
-}
-/**
- * Exposes the main-thread StorageClient for editor and draft-merge I/O.
- * @return {StorageClient} The client connected to the storage SharedWorker
- */
-export function getStorageClient(): StorageClient {
-  return storageClient;
-}
-/**
- * Reactive content list for the active collection, rendered by the sidebar.
- * @return {ContentItem[]} Parsed content items for the selected collection
- */
-export function getContentList(): ContentItem[] {
-  return contentList;
-}
-/**
- * Reactive error message for display in the sidebar.
- * @return {string | null} The error message, or null
- */
-export function getError(): string | null {
-  return error;
-}
-/**
- * Reactive loading state for the sidebar loading indicator.
- * @return {boolean} True if the frontmatter worker is actively parsing
- */
-export function isLoading(): boolean {
-  return loading;
-}
 /**
  * Initializes the frontmatter worker and bridges a port to the SharedWorker.
  * @return {Worker}
@@ -300,9 +275,8 @@ export async function disconnect(): Promise<void> {
  * @return {void}
  */
 function navigateToFirstCollectionIfHome(): void {
-  const current = getRoute();
-  if (current.view === 'home' && collectionNames.length > 0) {
-    navigate(adminPath(collectionNames[0]));
+  if (nav.route.view === 'home' && collections.length > 0) {
+    navigate(adminPath(collections[0]));
   }
 }
 

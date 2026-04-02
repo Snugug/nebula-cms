@@ -47,8 +47,15 @@ vi.mock('../../../../src/client/js/drafts/storage', () => ({
   getDraftByFile: vi.fn(async () => null),
 }));
 
+// storageClient is a direct object export (not a getter function), so the
+// mock uses a hoisted ref that tests swap between null and a fake client.
+const { mockStorageClientRef } = vi.hoisted(() => ({
+  mockStorageClientRef: { current: null as any },
+}));
 vi.mock('../../../../src/client/js/state/state.svelte', () => ({
-  getStorageClient: vi.fn(() => null),
+  get storageClient() {
+    return mockStorageClientRef.current;
+  },
 }));
 
 vi.mock('../../../../src/client/js/utils/file-types', () => ({
@@ -66,7 +73,7 @@ vi.mock('../../../../src/client/js/drafts/ops.svelte', () => ({
 }));
 
 import { getDraftByFile } from '../../../../src/client/js/drafts/storage';
-import { getStorageClient } from '../../../../src/client/js/state/state.svelte';
+// storageClient import removed — tests configure mockStorageClientRef.current directly
 import { splitFrontmatter } from '../../../../src/client/js/utils/frontmatter';
 import { getFileCategory } from '../../../../src/client/js/utils/file-types';
 
@@ -92,7 +99,7 @@ function makeDraft(overrides: Partial<Draft> = {}): Draft {
 }
 
 //////////////////////////////
-// getEditorFile / getFormData — initial state
+// getEditorFile / formData — initial state
 //////////////////////////////
 
 describe('getEditorFile — initial state', () => {
@@ -108,49 +115,47 @@ describe('getEditorFile — initial state', () => {
   });
 });
 
-describe('getFormData — initial state', () => {
+describe('formData — initial state', () => {
   afterEach(() => {
     vi.resetModules();
   });
 
   it('returns an empty object before any file is loaded', async () => {
     vi.resetModules();
-    const { getFormData } =
+    const { editor } =
       await import('../../../../src/client/js/editor/editor.svelte');
-    expect(getFormData()).toEqual({});
+    expect(editor.data).toEqual({});
   });
 });
 
 //////////////////////////////
-// getActiveTab / setActiveTab
+// activeTab / setActiveTab
 //////////////////////////////
 
-describe('getActiveTab / setActiveTab', () => {
+describe('activeTab / setActiveTab', () => {
   afterEach(() => {
     vi.resetModules();
   });
 
   it('returns "metadata" as the default active tab', async () => {
     vi.resetModules();
-    const { getActiveTab } =
+    const { editor } =
       await import('../../../../src/client/js/editor/editor.svelte');
-    expect(getActiveTab()).toBe('metadata');
+    expect(editor.tab).toBe('metadata');
   });
 
   it('updates the active tab via setActiveTab', async () => {
     vi.resetModules();
-    const { getActiveTab, setActiveTab } =
-      await import('../../../../src/client/js/editor/editor.svelte');
-    setActiveTab('content');
-    expect(getActiveTab()).toBe('content');
+    const mod = await import('../../../../src/client/js/editor/editor.svelte');
+    mod.setActiveTab('content');
+    expect(mod.editor.tab).toBe('content');
   });
 
   it('can set any arbitrary tab string', async () => {
     vi.resetModules();
-    const { getActiveTab, setActiveTab } =
-      await import('../../../../src/client/js/editor/editor.svelte');
-    setActiveTab('seo');
-    expect(getActiveTab()).toBe('seo');
+    const mod = await import('../../../../src/client/js/editor/editor.svelte');
+    mod.setActiveTab('seo');
+    expect(mod.editor.tab).toBe('seo');
   });
 });
 
@@ -190,10 +195,9 @@ describe('applyEditorState', () => {
 
   it('resets activeTab to "metadata" on each apply', async () => {
     vi.resetModules();
-    const { applyEditorState, getActiveTab, setActiveTab } =
-      await import('../../../../src/client/js/editor/editor.svelte');
-    setActiveTab('content');
-    applyEditorState(
+    const mod = await import('../../../../src/client/js/editor/editor.svelte');
+    mod.setActiveTab('content');
+    mod.applyEditorState(
       {
         body: '',
         formData: {},
@@ -207,7 +211,7 @@ describe('applyEditorState', () => {
       },
       true,
     );
-    expect(getActiveTab()).toBe('metadata');
+    expect(mod.editor.tab).toBe('metadata');
   });
 
   it('keeps getEditorFile null when open=false', async () => {
@@ -243,9 +247,8 @@ describe('updateFormField', () => {
 
   it('updates a top-level formData field', async () => {
     vi.resetModules();
-    const { applyEditorState, updateFormField, getFormData } =
-      await import('../../../../src/client/js/editor/editor.svelte');
-    applyEditorState(
+    const mod = await import('../../../../src/client/js/editor/editor.svelte');
+    mod.applyEditorState(
       {
         body: '',
         formData: { title: 'Original' },
@@ -259,8 +262,8 @@ describe('updateFormField', () => {
       },
       true,
     );
-    updateFormField(['title'], 'Updated');
-    expect(getFormData()['title']).toBe('Updated');
+    mod.updateFormField(['title'], 'Updated');
+    expect(mod.editor.data['title']).toBe('Updated');
   });
 
   it('marks the file dirty after a formData change', async () => {
@@ -396,9 +399,8 @@ describe('clearEditor', () => {
 
   it('resets formData to empty object', async () => {
     vi.resetModules();
-    const { applyEditorState, clearEditor, getFormData } =
-      await import('../../../../src/client/js/editor/editor.svelte');
-    applyEditorState(
+    const mod = await import('../../../../src/client/js/editor/editor.svelte');
+    mod.applyEditorState(
       {
         body: '',
         formData: { title: 'X' },
@@ -412,8 +414,8 @@ describe('clearEditor', () => {
       },
       true,
     );
-    clearEditor();
-    expect(getFormData()).toEqual({});
+    mod.clearEditor();
+    expect(mod.editor.data).toEqual({});
   });
 });
 
@@ -486,7 +488,7 @@ describe('loadFileBody', () => {
 
   it('does nothing when no storage client is connected', async () => {
     vi.resetModules();
-    vi.mocked(getStorageClient).mockReturnValue(null as any);
+    mockStorageClientRef.current = null;
     vi.mocked(getDraftByFile).mockResolvedValue(null);
 
     const { preloadFile, loadFileBody, getEditorFile } =
@@ -510,7 +512,7 @@ describe('loadFileBody', () => {
         async () => '---\ntitle: T\n---\n\nThe markdown body\n\n',
       ),
     };
-    vi.mocked(getStorageClient).mockReturnValue(fakeClient as any);
+    mockStorageClientRef.current = fakeClient;
 
     const { preloadFile, loadFileBody, getEditorFile } =
       await import('../../../../src/client/js/editor/editor.svelte');
@@ -531,7 +533,7 @@ describe('loadFileBody', () => {
     const fakeClient = {
       readFile: vi.fn(async () => '{}'),
     };
-    vi.mocked(getStorageClient).mockReturnValue(fakeClient as any);
+    mockStorageClientRef.current = fakeClient;
 
     const { preloadFile, loadFileBody, getEditorFile } =
       await import('../../../../src/client/js/editor/editor.svelte');

@@ -22,12 +22,11 @@ const {
   mockClearEditor,
   mockGetEditorFile,
   mockSetFilename,
-  mockGetOriginalFilename,
+  mockOriginalFilename,
   mockReloadCollection,
   mockRefreshDrafts,
   mockUpdateContentItem,
   mockNavigate,
-  mockGetBasePath,
   mockAdminPath,
 } = vi.hoisted(() => ({
   mockSaveDraftToIDB: vi.fn(),
@@ -36,12 +35,11 @@ const {
   mockClearEditor: vi.fn(),
   mockGetEditorFile: vi.fn(),
   mockSetFilename: vi.fn(),
-  mockGetOriginalFilename: vi.fn(),
+  mockOriginalFilename: vi.fn(),
   mockReloadCollection: vi.fn(),
   mockRefreshDrafts: vi.fn(),
   mockUpdateContentItem: vi.fn(),
   mockNavigate: vi.fn(),
-  mockGetBasePath: vi.fn(() => '/admin'),
   // Default implementation for /admin; tests that change basePath override via mockImplementation
   mockAdminPath: vi.fn((...segments: string[]) =>
     segments.length === 0 ? '/admin' : '/admin/' + segments.join('/'),
@@ -57,11 +55,15 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
   clearEditor: mockClearEditor,
   getEditorFile: mockGetEditorFile,
   setFilename: mockSetFilename,
-  getOriginalFilename: mockGetOriginalFilename,
+  editor: {
+    get originalFilename() {
+      return mockOriginalFilename();
+    },
+  },
 }));
 
 vi.mock('../../../../src/client/js/state/state.svelte', () => ({
-  getCollections: vi.fn(() => ['posts', 'pages']),
+  collections: ['posts', 'pages'],
   reloadCollection: mockReloadCollection,
   refreshDrafts: mockRefreshDrafts,
   updateContentItem: mockUpdateContentItem,
@@ -74,7 +76,6 @@ vi.mock('../../../../src/client/js/state/schema.svelte', () => ({
 
 vi.mock('../../../../src/client/js/state/router.svelte', () => ({
   navigate: mockNavigate,
-  getBasePath: mockGetBasePath,
   adminPath: mockAdminPath,
 }));
 
@@ -154,7 +155,7 @@ describe('handlePublish', () => {
       formData: { title: 'Hello' },
     });
     // Same filename means no rename — originalFilename arg should be undefined
-    mockGetOriginalFilename.mockReturnValue('hello.md');
+    mockOriginalFilename.mockReturnValue('hello.md');
     const result = await handlePublish('posts');
     expect(mockPublishFile).toHaveBeenCalledWith(
       'posts',
@@ -171,7 +172,7 @@ describe('handlePublish', () => {
       formData: {},
     });
     // New draft — originalFilename is empty
-    mockGetOriginalFilename.mockReturnValue('');
+    mockOriginalFilename.mockReturnValue('');
     await handlePublish('posts');
     expect(mockReloadCollection).toHaveBeenCalledWith('posts');
     expect(mockUpdateContentItem).not.toHaveBeenCalled();
@@ -185,7 +186,7 @@ describe('handlePublish', () => {
       formData,
     });
     // Same filename — no rename
-    mockGetOriginalFilename.mockReturnValue('existing.md');
+    mockOriginalFilename.mockReturnValue('existing.md');
     await handlePublish('posts');
     expect(mockUpdateContentItem).toHaveBeenCalledWith('existing.md', formData);
     expect(mockReloadCollection).not.toHaveBeenCalled();
@@ -197,7 +198,7 @@ describe('handlePublish', () => {
       isNewDraft: false,
       formData: {},
     });
-    mockGetOriginalFilename.mockReturnValue('f.md');
+    mockOriginalFilename.mockReturnValue('f.md');
     await handlePublish('posts');
     expect(mockRefreshDrafts).toHaveBeenCalledWith('posts');
   });
@@ -276,7 +277,7 @@ describe('handleFilenameConfirm', () => {
       formData: {},
     });
     // New draft — no original filename
-    mockGetOriginalFilename.mockReturnValue('');
+    mockOriginalFilename.mockReturnValue('');
   });
 
   it('sets the filename then calls handlePublish', async () => {
@@ -297,13 +298,12 @@ describe('handlers use configurable basePath', () => {
     mockRefreshDrafts.mockResolvedValue(undefined);
     mockDeleteCurrentDraft.mockResolvedValue(undefined);
     // Override the default basePath for this group
-    mockGetBasePath.mockReturnValue('/cms');
     mockAdminPath.mockImplementation((...segments: string[]) =>
       segments.length === 0 ? '/cms' : '/cms/' + segments.join('/'),
     );
   });
 
-  it('buildContentItems uses getBasePath for live item hrefs', () => {
+  it('buildContentItems uses adminPath for live item hrefs', () => {
     const items = buildContentItems(
       [{ filename: 'hello.md', data: { title: 'Hello' } }],
       [],
@@ -313,7 +313,7 @@ describe('handlers use configurable basePath', () => {
     expect(items[0].href).toBe('/cms/posts/hello');
   });
 
-  it('buildContentItems uses getBasePath for new draft hrefs', () => {
+  it('buildContentItems uses adminPath for new draft hrefs', () => {
     const items = buildContentItems(
       [],
       [
@@ -361,7 +361,6 @@ describe('handlers with root basePath (/)', () => {
     mockRefreshDrafts.mockResolvedValue(undefined);
     mockDeleteCurrentDraft.mockResolvedValue(undefined);
     // Root basePath — the bug scenario where paths got double-slashed
-    mockGetBasePath.mockReturnValue('/');
     mockAdminPath.mockImplementation((...segments: string[]) =>
       segments.length === 0 ? '/' : '/' + segments.join('/'),
     );

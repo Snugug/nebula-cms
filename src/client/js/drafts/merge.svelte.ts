@@ -1,29 +1,24 @@
 import { loadDrafts, type Draft } from './storage';
 import { splitFrontmatter } from '../utils/frontmatter';
-import { getStorageClient } from '../state/state.svelte';
+import { storageClient } from '../state/state.svelte';
 
 // Drafts for the current collection
-let drafts = $state<Draft[]>([]);
+let draftList = $state<Draft[]>([]);
 // Map of draftId → whether the live content has diverged from the draft's snapshot
 let outdatedMap = $state<Record<string, boolean>>({});
+
+export const drafts = {
+  // All drafts for the active collection.
+  get all(): Draft[] {
+    return draftList;
+  },
+  // Map of draft ID to whether live content has diverged.
+  get outdated(): Record<string, boolean> {
+    return outdatedMap;
+  },
+};
 // Worker for off-thread snapshot comparison
 let diffWorker: Worker | null = null;
-
-/**
- * Returns the current list of drafts for the active collection (reactive).
- * @return {Draft[]} The loaded drafts
- */
-export function getDrafts(): Draft[] {
-  return drafts;
-}
-
-/**
- * Returns the current outdated map indicating which drafts have diverged from live content (reactive).
- * @return {Record<string, boolean>} Map of draft ID to outdated status
- */
-export function getOutdatedMap(): Record<string, boolean> {
-  return outdatedMap;
-}
 
 /**
  * Initializes the diff worker singleton and wires up the result handler.
@@ -50,18 +45,19 @@ function ensureDiffWorker(): Worker {
  * @return {Promise<void>}
  */
 export async function mergeDrafts(collection: string): Promise<void> {
-  drafts = await loadDrafts(collection);
+  draftList = await loadDrafts(collection);
 
   // Filter to drafts that need outdated checking:
   // must be linked to a live file (not new), have a snapshot, and have a filename
-  const candidates = drafts.filter((d) => !d.isNew && d.snapshot && d.filename);
+  const candidates = draftList.filter(
+    (d) => !d.isNew && d.snapshot && d.filename,
+  );
   if (candidates.length === 0) {
     outdatedMap = {};
     return;
   }
 
-  const client = getStorageClient();
-  if (!client) {
+  if (!storageClient) {
     outdatedMap = {};
     return;
   }
@@ -72,7 +68,7 @@ export async function mergeDrafts(collection: string): Promise<void> {
   const settled = await Promise.all(
     candidates.map(async (d) => {
       try {
-        const text = await client.readFile(collection, d.filename!);
+        const text = await storageClient.readFile(collection, d.filename!);
         const { rawFrontmatter, body } = splitFrontmatter(text);
         const { load } = await import('js-yaml');
         const liveFormData = (load(rawFrontmatter) ?? {}) as Record<
@@ -111,7 +107,7 @@ export async function mergeDrafts(collection: string): Promise<void> {
  * @return {Promise<void>}
  */
 export async function refreshDrafts(collection: string): Promise<void> {
-  drafts = await loadDrafts(collection);
+  draftList = await loadDrafts(collection);
 }
 
 /**
@@ -121,6 +117,6 @@ export async function refreshDrafts(collection: string): Promise<void> {
 export function resetDraftMerge(): void {
   diffWorker?.terminate();
   diffWorker = null;
-  drafts = [];
+  draftList = [];
   outdatedMap = {};
 }

@@ -8,10 +8,10 @@ import {
   clearEditor,
   getEditorFile,
   setFilename,
-  getOriginalFilename,
+  editor,
 } from '../editor/editor.svelte';
 import {
-  getCollections,
+  collections,
   reloadCollection,
   refreshDrafts,
   updateContentItem,
@@ -89,7 +89,7 @@ export function buildContentItems(
  * @return {SidebarItem[]} Collection sidebar items with hrefs under the configured basePath
  */
 export function buildCollectionItems(): SidebarItem[] {
-  return getCollections().map((name) => ({
+  return collections.map((name) => ({
     label:
       getCollectionTitle(name) ?? name.charAt(0).toUpperCase() + name.slice(1),
     href: adminPath(name),
@@ -146,7 +146,7 @@ export async function handlePublish(
   if (!activeCollection) return { status: 'no-file' };
 
   // Pass originalFilename so publishFile can delete the old file when format changes
-  const originalFn = getOriginalFilename();
+  const originalFn = editor.originalFilename;
   await publishFile(
     activeCollection,
     file.filename,

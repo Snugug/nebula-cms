@@ -3,7 +3,7 @@
   import { extractTabs } from '../../js/utils/schema-utils';
   import { toTitleCase } from '../../js/utils/format';
   import {
-    getActiveTab,
+    editor,
     setActiveTab,
     getEditorFile,
   } from '../../js/editor/editor.svelte';
@@ -16,9 +16,6 @@
   }
 
   let { schema }: Props = $props();
-
-  // Active tab from shared editor state
-  const activeTab = $derived(getActiveTab());
 
   // Custom tab names derived from schema, sorted alphabetically
   const customTabs = $derived(schema ? extractTabs(schema) : []);
@@ -42,10 +39,10 @@
   {#each allTabs as tab}
     <button
       class="tabs__tab"
-      class:tabs__tab--active={activeTab === tab}
+      class:tabs__tab--active={editor.tab === tab}
       type="button"
       onclick={() => setActiveTab(tab)}
-      aria-selected={activeTab === tab}
+      aria-selected={editor.tab === tab}
       role="tab"
     >
       {toTitleCase(tab)}

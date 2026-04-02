@@ -2,7 +2,7 @@ import { registerDirtyChecker } from '../state/router.svelte';
 import { splitFrontmatter } from '../utils/frontmatter';
 import { setByPath, type PathSegment } from '../utils/schema-utils';
 import { getDraftByFile } from '../drafts/storage';
-import { getStorageClient } from '../state/state.svelte';
+import { storageClient } from '../state/state.svelte';
 import {
   getFileCategory,
   stripExtension,
@@ -53,6 +53,21 @@ let snapshot = $state<string | null>(null);
 let currentCollection = $state('');
 let draftCreatedAt = $state<string | null>(null);
 registerDirtyChecker(() => dirty);
+
+export const editor = {
+  // Current structured form data for the open file.
+  get data(): Record<string, unknown> {
+    return formData;
+  },
+  // Currently active editor tab identifier.
+  get tab(): string {
+    return activeTab;
+  },
+  // Filename at load time — publish uses this to detect renames.
+  get originalFilename(): string {
+    return originalFilename;
+  },
+};
 
 /**
  * Applies a full set of editor state values, resetting dirty/saving flags and updating save baselines.
@@ -149,20 +164,6 @@ export function getEditorFile(): EditorFile | null {
   };
 }
 /**
- * Returns the current formData object (reactive).
- * @return {Record<string, unknown>} The current form data
- */
-export function getFormData(): Record<string, unknown> {
-  return formData;
-}
-/**
- * Returns the currently active editor tab (reactive).
- * @return {string} The active tab identifier
- */
-export function getActiveTab(): string {
-  return activeTab;
-}
-/**
  * Sets the active editor tab.
  * @param {string} tab - The tab identifier to activate
  * @return {void}
@@ -243,14 +244,6 @@ export function setFilename(newFilename: string): void {
 }
 
 /**
- * Returns the filename that was set when the file was loaded. Used by publishFile to detect renames and clean up the old file on disk.
- * @return {string} The original filename at load time
- */
-export function getOriginalFilename(): string {
-  return originalFilename;
-}
-
-/**
  * Changes the file format by swapping the filename extension to the new type's default. Preserves the slug (base filename without extension) and leaves originalFilename untouched so publishFile can detect the rename and delete the old file on disk.
  * @param {string} newType - The type identifier to switch to (e.g. 'md', 'json')
  * @return {void}
@@ -297,9 +290,8 @@ export async function loadFileBody(
     bodyLoaded = true;
     return;
   }
-  const client = getStorageClient();
-  if (!client) return;
-  const text = await client.readFile(collection, filename);
+  if (!storageClient) return;
+  const text = await storageClient.readFile(collection, filename);
   const split = splitFrontmatter(text);
   // Strip leading/trailing newlines from body; added back on save when reconstituting the file
   body = lastSavedBody = split.body.replace(/^\n+/, '').replace(/\n+$/, '');
