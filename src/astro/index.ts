@@ -47,6 +47,13 @@ export default function NebulaCMS(
             // adapters), which require code splitting. The default 'iife'
             // format does not support code splitting, so use ES modules.
             worker: { format: 'es' },
+            // smol-toml is only imported inside the TOML parser sub-worker,
+            // never on the main thread. Without this, Vite discovers it late
+            // and re-optimizes mid-session, causing the worker to request a
+            // stale dep hash (504 Outdated Optimize Dep).
+            optimizeDeps: {
+              include: ['smol-toml'],
+            },
           },
         });
       },

@@ -48,6 +48,9 @@ describe('NebulaCMS integration object', () => {
       vite: {
         plugins: [expect.objectContaining({ name: 'vite-plugin-nebula-cms' })],
         worker: { format: 'es' },
+        // smol-toml must be pre-bundled so the TOML parser sub-worker
+        // doesn't trigger a late re-optimization (504 Outdated Optimize Dep)
+        optimizeDeps: { include: ['smol-toml'] },
       },
     });
   });
