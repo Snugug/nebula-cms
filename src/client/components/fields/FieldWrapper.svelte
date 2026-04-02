@@ -20,7 +20,7 @@
     // When true, hides the default label — used by BooleanField which renders its own inline checkbox+label
     hideLabel?: boolean;
     // When true, visually hides label and help text using sr-only for inline array contexts where the parent provides visible labels
-    compact?: boolean;
+    inline?: boolean;
   }
 
   let {
@@ -30,7 +30,7 @@
     children,
     constraintText,
     hideLabel = false,
-    compact = false,
+    inline = false,
   }: Props = $props();
 
   // Display label — schema.title if present, otherwise title-cased name
@@ -46,7 +46,7 @@
 <div
   class="field"
   class:field--deprecated={deprecated}
-  class:field--compact={compact}
+  class:field--inline={inline}
 >
   {#if !hideLabel}
     <label class="field-label" for={name}>
@@ -79,9 +79,9 @@
     opacity: 0.5;
   }
 
-  /* Compact mode: visually hide label and help text while keeping them in the DOM for screen readers */
-  .field--compact .field-label,
-  .field--compact .field-help {
+  /* Inline mode: visually hide label and help text while keeping them in the DOM for screen readers */
+  .field--inline .field-label,
+  .field--inline .field-help {
     position: absolute;
     width: 1px;
     height: 1px;

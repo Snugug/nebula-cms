@@ -84,7 +84,7 @@
   }
 </script>
 
-<FieldWrapper {name} {schema} {required} {constraintText} compact={inline}>
+<FieldWrapper {name} {schema} {required} {constraintText} {inline}>
   <input
     type="number"
     id={name}

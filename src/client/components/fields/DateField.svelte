@@ -70,7 +70,7 @@
   }
 </script>
 
-<FieldWrapper {name} {schema} {required} compact={inline}>
+<FieldWrapper {name} {schema} {required} {inline}>
   <input
     type="date"
     id={name}

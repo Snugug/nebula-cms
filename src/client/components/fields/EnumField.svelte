@@ -56,7 +56,7 @@
   }
 </script>
 
-<FieldWrapper {name} {schema} {required} compact={inline}>
+<FieldWrapper {name} {schema} {required} {inline}>
   <select
     id={name}
     class="field-input field-input--select"

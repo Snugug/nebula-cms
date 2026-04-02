@@ -57,7 +57,7 @@
   }
 </script>
 
-<FieldWrapper {name} {schema} {required} hideLabel={true} compact={inline}>
+<FieldWrapper {name} {schema} {required} hideLabel={true} {inline}>
   <label class="field-label-wrap" for={name}>
     <input
       type="checkbox"

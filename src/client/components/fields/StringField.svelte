@@ -64,7 +64,7 @@
   }
 </script>
 
-<FieldWrapper {name} {schema} {required} {constraintText} compact={inline}>
+<FieldWrapper {name} {schema} {required} {constraintText} {inline}>
   {#if isTextarea}
     <textarea
       id={name}
