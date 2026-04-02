@@ -29,14 +29,11 @@
 {/if}
 
 <style>
-  /* Container uses grid to align label and select on one row */
+  /* Inline layout for label + select inside the editor body toolbar */
   .format-selector {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.5rem;
+    display: flex;
     align-items: center;
-    padding: 0.25rem 1rem;
-    border-bottom: 1px solid var(--cms-border);
+    gap: 0.5rem;
   }
 
   .format-selector__label {
