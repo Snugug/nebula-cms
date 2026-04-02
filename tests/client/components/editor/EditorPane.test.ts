@@ -39,21 +39,27 @@ describe('EditorPane', () => {
   it('renders the outer wrapper element', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    const { container } = render(EditorPane, { props: {} });
+    const { container } = render(EditorPane, {
+      props: { fileTypes: ['md'], activeType: 'md' },
+    });
     expect(container.querySelector('.editor-wrapper')).not.toBeNull();
   });
 
   it('renders the editor box element', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    const { container } = render(EditorPane, { props: {} });
+    const { container } = render(EditorPane, {
+      props: { fileTypes: ['md'], activeType: 'md' },
+    });
     expect(container.querySelector('.editor-box')).not.toBeNull();
   });
 
   it('renders the editor pane container element', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    const { container } = render(EditorPane, { props: {} });
+    const { container } = render(EditorPane, {
+      props: { fileTypes: ['md'], activeType: 'md' },
+    });
     expect(container.querySelector('.editor-pane')).not.toBeNull();
   });
 
@@ -66,7 +72,9 @@ describe('EditorPane', () => {
   it('mounts without error when no file is open', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    expect(() => render(EditorPane, { props: {} })).not.toThrow();
+    expect(() =>
+      render(EditorPane, { props: { fileTypes: ['md'], activeType: 'md' } }),
+    ).not.toThrow();
   });
 
   it('mounts without error when a file with body is open', () => {
@@ -74,7 +82,9 @@ describe('EditorPane', () => {
       makeEditorFile({ body: '# Hello', filename: 'post.md' }),
     );
 
-    expect(() => render(EditorPane, { props: {} })).not.toThrow();
+    expect(() =>
+      render(EditorPane, { props: { fileTypes: ['md'], activeType: 'md' } }),
+    ).not.toThrow();
   });
 
   it('mounts without error when body is not yet loaded', () => {
@@ -82,13 +92,17 @@ describe('EditorPane', () => {
       makeEditorFile({ bodyLoaded: false, filename: 'post.md' }),
     );
 
-    expect(() => render(EditorPane, { props: {} })).not.toThrow();
+    expect(() =>
+      render(EditorPane, { props: { fileTypes: ['md'], activeType: 'md' } }),
+    ).not.toThrow();
   });
 
   it('unmounts without error', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    const { unmount } = render(EditorPane, { props: {} });
+    const { unmount } = render(EditorPane, {
+      props: { fileTypes: ['md'], activeType: 'md' },
+    });
     expect(() => unmount()).not.toThrow();
   });
 });
