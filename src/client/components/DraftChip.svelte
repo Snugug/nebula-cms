@@ -19,8 +19,10 @@
 </span>
 
 <style>
-  /* Visually sized closer to the subtitle than the main label text —
-     exempt from font size scale and .25rem padding-block rule per CLAUDE.md */
+  /*
+   * Visually sized closer to the subtitle than the main label text —
+   * exempt from font size scale and .25rem padding-block rule per CLAUDE.md.
+   */
   .chip {
     font-size: 0.6rem;
     font-weight: normal;

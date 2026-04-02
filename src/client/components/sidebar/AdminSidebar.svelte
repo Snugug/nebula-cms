@@ -263,9 +263,11 @@
       background: var(--cms-border);
     }
 
-    /* Active highlight extends to sidebar edges with no border-radius.
-       Text is always white — --plum lacks sufficient contrast with
-       both --cms-fg values (light-on-pink and dark-on-pink both fail WCAG AA). */
+    /*
+     * Active highlight extends to sidebar edges with no border-radius.
+     * Text is always white — --plum lacks sufficient contrast with
+     * both --cms-fg values (light-on-pink and dark-on-pink both fail WCAG AA).
+     */
     &[aria-current='page'] {
       background: var(--plum);
       color: #fff;
