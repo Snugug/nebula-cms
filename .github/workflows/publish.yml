@@ -3,7 +3,7 @@ name: Publish Package
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   id-token: write # Required for OIDC
@@ -31,4 +31,4 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Publish
-        run: pnpm publish
+        run: pnpm publish --no-git-checks
