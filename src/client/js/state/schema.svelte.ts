@@ -1,4 +1,4 @@
-import schemas from 'virtual:collections';
+import schemas from 'virtual:nebula/collections';
 import { getExtensionsForSchema } from '../utils/file-types';
 
 // JSON Schema object type.

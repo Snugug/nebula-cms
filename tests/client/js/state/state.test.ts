@@ -45,7 +45,7 @@ const { FakeSharedWorker, FakeWorker } = vi.hoisted(() => {
 // under test. vi.mock() calls are hoisted by Vitest automatically.
 //////////////////////////////
 
-vi.mock('virtual:collections', () => ({
+vi.mock('virtual:nebula/collections', () => ({
   default: {
     posts: 'https://fake.test/posts.schema.json',
     products: 'https://fake.test/products.schema.json',

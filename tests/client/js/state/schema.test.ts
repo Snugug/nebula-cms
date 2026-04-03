@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 //////////////////////////////
-// virtual:collections mock
+// virtual:nebula/collections mock
 // The schema module fetches URLs stored in this map. We stub both the
 // import and the global fetch so no real network requests are made.
 //////////////////////////////
 
-vi.mock('virtual:collections', () => ({
+vi.mock('virtual:nebula/collections', () => ({
   default: {
     posts: 'https://fake.test/posts.schema.json',
     products: 'https://fake.test/products.schema.json',
