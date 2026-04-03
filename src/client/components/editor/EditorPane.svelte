@@ -1,10 +1,4 @@
 <script lang="ts">
-  /*
-   * CodeMirror editor pane with language compartment and toolbar.
-   * Renders the EditorBodyToolbar above the CodeMirror mount point and
-   * uses a Compartment to swap the language extension at runtime when
-   * the file type changes (e.g. switching from .md to .mdx).
-   */
   import { EditorView, keymap } from '@codemirror/view';
   import { Compartment, EditorState } from '@codemirror/state';
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
@@ -19,7 +13,7 @@
     markdownShortcutsKeymap,
     markdownShortcutsExtensions,
   } from '../../js/editor/markdown-shortcuts';
-  import EditorBodyToolbar from './EditorBodyToolbar.svelte';
+  import Toolbar from './Toolbar.svelte';
 
   // Container element for CodeMirror
   let container: HTMLDivElement;
@@ -166,7 +160,7 @@
 
 <div class="editor-wrapper">
   <div class="editor-box">
-    <EditorBodyToolbar />
+    <Toolbar />
     <div class="editor-pane" bind:this={container}></div>
   </div>
 </div>

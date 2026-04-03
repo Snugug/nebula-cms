@@ -45,27 +45,21 @@ describe('EditorPane', () => {
   it('renders the outer wrapper element', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    const { container } = render(EditorPane, {
-      props: { fileTypes: ['md'], activeType: 'md' },
-    });
+    const { container } = render(EditorPane, { props: {} });
     expect(container.querySelector('.editor-wrapper')).not.toBeNull();
   });
 
   it('renders the editor box element', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    const { container } = render(EditorPane, {
-      props: { fileTypes: ['md'], activeType: 'md' },
-    });
+    const { container } = render(EditorPane, { props: {} });
     expect(container.querySelector('.editor-box')).not.toBeNull();
   });
 
   it('renders the editor pane container element', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    const { container } = render(EditorPane, {
-      props: { fileTypes: ['md'], activeType: 'md' },
-    });
+    const { container } = render(EditorPane, { props: {} });
     expect(container.querySelector('.editor-pane')).not.toBeNull();
   });
 
