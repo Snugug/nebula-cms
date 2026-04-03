@@ -193,9 +193,11 @@ export async function publishFile(
       });
     }
 
-    // Update originalFilename so subsequent publishes know the current on-disk name.
-    // Without this, a second format change would not detect the rename because
-    // originalFilename would still point to the pre-first-publish name.
+    /*
+     * Update originalFilename so subsequent publishes know the current on-disk name.
+     * Without this, a second format change would not detect the rename because
+     * originalFilename would still point to the pre-first-publish name.
+     */
     _setDraftState({
       lastSavedBody: s.body,
       lastSavedFormData: JSON.stringify(s.formData),

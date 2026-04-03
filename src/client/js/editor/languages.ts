@@ -64,8 +64,10 @@ const editorHighlight = HighlightStyle.define([
   { tag: t.meta, color: 'var(--cms-muted)' },
 ]);
 
-// Cached extensions per file type — avoids re-creating parser instances and
-// lets CodeMirror short-circuit its extension diff via reference equality.
+/*
+ * Cached extensions per file type — avoids re-creating parser instances and
+ * lets CodeMirror short-circuit its extension diff via reference equality.
+ */
 const cache = new Map<string, Extension>();
 
 /**
