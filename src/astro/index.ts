@@ -216,7 +216,7 @@ export function nebulaVitePlugin(
      */
     load(id: string) {
       if (id === CONFIG_RESOLVED_ID) {
-        return [`export default ${JSON.stringify(config)};`].join('\n');
+        return `export default ${JSON.stringify(config)};`;
       }
 
       if (id !== COLLECTIONS_RESOLVED_ID) return;

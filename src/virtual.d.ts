@@ -1,11 +1,13 @@
-/**
+/*
  * Ambient type declarations for virtual modules injected by the nebula-cms
  * Vite plugin. Consumers reference these via `/// <reference types="nebula-cms/virtual" />`
  * in their env.d.ts.
  */
 declare module 'virtual:nebula/config' {
-  // CMS configuration: basePath is the URL prefix for the admin SPA,
-  // collectionsPath is the URL prefix for schema files
+  /*
+   * CMS configuration: basePath is the URL prefix for the admin SPA,
+   * collectionsPath is the URL prefix for schema files.
+   */
   const config: {
     basePath: string;
     collectionsPath: string;

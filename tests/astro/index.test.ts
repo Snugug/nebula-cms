@@ -13,9 +13,11 @@ import { pathToFileURL } from 'node:url';
 import NebulaCMS, { nebulaVitePlugin } from '../../src/astro/index.js';
 import type { AstroIntegrationLogger } from 'astro';
 
+/*
 //////////////////////////////
 // Test Helpers
 //////////////////////////////
+*/
 
 /**
  * Creates a minimal mock satisfying the AstroIntegrationLogger interface
@@ -25,9 +27,11 @@ function createMockLogger() {
   return { warn: vi.fn() } as unknown as AstroIntegrationLogger;
 }
 
+/*
 //////////////////////////////
 // NebulaCMS integration object
 //////////////////////////////
+*/
 
 describe('NebulaCMS integration object', () => {
   it('returns an integration with name "nebula-cms"', () => {
@@ -103,9 +107,11 @@ describe('NebulaCMS integration object', () => {
   });
 });
 
+/*
 //////////////////////////////
 // resolveId hook
 //////////////////////////////
+*/
 
 describe('nebulaVitePlugin resolveId', () => {
   it('resolves virtual:nebula/collections to the internal ID', () => {
@@ -145,9 +151,11 @@ describe('nebulaVitePlugin resolveId', () => {
   });
 });
 
+/*
 //////////////////////////////
 // configureServer middleware
 //////////////////////////////
+*/
 
 describe('nebulaVitePlugin configureServer', () => {
   let tmpDir: string;
@@ -384,9 +392,11 @@ describe('nebulaVitePlugin configureServer', () => {
   });
 });
 
+/*
 //////////////////////////////
 // astro:build:done hook
 //////////////////////////////
+*/
 
 describe('NebulaCMS astro:build:done', () => {
   let tmpDir: string;
@@ -454,9 +464,11 @@ describe('NebulaCMS astro:build:done', () => {
   });
 });
 
+/*
 //////////////////////////////
 // load hook
 //////////////////////////////
+*/
 
 describe('nebulaVitePlugin load', () => {
   let tmpDir: string;
