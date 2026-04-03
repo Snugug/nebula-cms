@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+/*
 //////////////////////////////
 // SharedWorker / Worker stubs — must be established BEFORE any module import
 //
@@ -9,6 +10,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // vi.stubGlobal() would run after the module's top-level code and the
 // constructor call would throw ReferenceError.
 //////////////////////////////
+*/
 
 const { FakeSharedWorker, FakeWorker } = vi.hoisted(() => {
   /** Minimal MessagePort stub that satisfies the StorageClient constructor. */
@@ -36,6 +38,7 @@ const { FakeSharedWorker, FakeWorker } = vi.hoisted(() => {
   return { FakeSharedWorker, FakeWorker };
 });
 
+/*
 //////////////////////////////
 // Module-level mocks
 //
@@ -44,6 +47,7 @@ const { FakeSharedWorker, FakeWorker } = vi.hoisted(() => {
 // side-effects must be mocked via vi.mock() BEFORE any import of the module
 // under test. vi.mock() calls are hoisted by Vitest automatically.
 //////////////////////////////
+*/
 
 vi.mock('virtual:nebula/collections', () => ({
   default: {
@@ -129,9 +133,11 @@ vi.mock('../../../../src/client/js/state/schema.svelte', () => ({
   getSchemaExtensions: vi.fn(() => ['.md', '.mdx']),
 }));
 
+/*
 //////////////////////////////
 // Dynamic imports after stubs are in place
 //////////////////////////////
+*/
 
 import {
   collections,
@@ -147,12 +153,14 @@ import { navigate } from '../../../../src/client/js/state/router.svelte';
 import { resetDraftMerge } from '../../../../src/client/js/drafts/merge.svelte';
 import { getSchemaExtensions } from '../../../../src/client/js/state/schema.svelte';
 
+/*
 //////////////////////////////
 // collections
 //////////////////////////////
+*/
 
 describe('collections', () => {
-  it('returns a sorted list of collection names from virtual:collections', () => {
+  it('returns a sorted list of collection names from virtual:nebula/collections', () => {
     expect(collections).toEqual(['articles', 'posts', 'products']);
   });
 
@@ -162,9 +170,11 @@ describe('collections', () => {
   });
 });
 
+/*
 //////////////////////////////
 // Initial reactive state
 //////////////////////////////
+*/
 
 describe('initial state', () => {
   it('ready is false before any backend is connected', () => {
@@ -192,9 +202,11 @@ describe('initial state', () => {
   });
 });
 
+/*
 //////////////////////////////
 // disconnect
 //////////////////////////////
+*/
 
 describe('disconnect', () => {
   beforeEach(() => {
@@ -251,9 +263,11 @@ describe('disconnect', () => {
   });
 });
 
+/*
 //////////////////////////////
 // updateContentItem
 //////////////////////////////
+*/
 
 describe('updateContentItem', () => {
   it('is a callable function (smoke test — content list is empty by default)', () => {
@@ -270,9 +284,11 @@ describe('updateContentItem', () => {
   });
 });
 
+/*
 //////////////////////////////
 // loadCollection / dispatchWorker — extensions wiring
 //////////////////////////////
+*/
 
 describe('loadCollection extensions wiring', () => {
   beforeEach(() => {

@@ -120,7 +120,7 @@ describe('fetchSchema', () => {
     expect(schema.active).toEqual(PRODUCTS_SCHEMA);
   });
 
-  it('does nothing when the collection is not in virtual:collections', async () => {
+  it('does nothing when the collection is not in virtual:nebula/collections', async () => {
     clearSchema();
     await fetchSchema('nonexistent');
     expect(schema.active).toBeNull();
