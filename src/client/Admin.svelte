@@ -14,9 +14,9 @@
     clearEditor,
     editor,
     getEditorFile,
-    loadDraftById,
     setDefaultFormat,
   } from './js/editor/editor.svelte';
+  import { loadDraftById } from './js/drafts/ops.svelte';
   import {
     fetchSchema,
     schema,

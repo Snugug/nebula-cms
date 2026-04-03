@@ -341,15 +341,3 @@ export function clearEditor(): void {
     false,
   );
 }
-
-/*
- * Re-export draft operations so existing import paths keep working.
- * The canonical source is editor-draft-ops.svelte.ts.
- */
-export {
-  saveDraftToIDB,
-  saveFile,
-  publishFile,
-  loadDraftById,
-  deleteCurrentDraft,
-} from '../drafts/ops.svelte';
