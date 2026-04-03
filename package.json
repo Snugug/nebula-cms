@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "A native CMS for Astro",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Snugug/nebula-cms"
+  },
   "exports": {
     ".": {
       "types": "./dist/astro/index.d.ts",
