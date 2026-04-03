@@ -6,9 +6,11 @@ import {
   configureDraftOpen,
 } from './helpers/test-app';
 
+/*
 //////////////////////////////
 // Hoisted mocks
 //////////////////////////////
+*/
 
 const mocks = vi.hoisted(() => ({
   mockBackendReady: vi.fn(() => false),
@@ -38,9 +40,11 @@ const dialogState = vi.hoisted(() => ({
   active: null as string | null,
 }));
 
+/*
 //////////////////////////////
 // Module mocks
 //////////////////////////////
+*/
 
 vi.mock('virtual:nebula/collections', () => ({
   default: {

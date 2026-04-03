@@ -7,9 +7,11 @@ import {
   configureDraftOpen,
 } from './helpers/test-app';
 
+/*
 //////////////////////////////
 // Hoisted mocks
 //////////////////////////////
+*/
 
 const mocks = vi.hoisted(() => ({
   mockBackendReady: vi.fn(() => false),
@@ -35,9 +37,11 @@ const handlers = vi.hoisted(() => ({
   mockHandleDeleteDraft: vi.fn(async () => {}),
 }));
 
+/*
 //////////////////////////////
 // Module mocks
 //////////////////////////////
+*/
 
 vi.mock('virtual:nebula/collections', () => ({
   default: {

@@ -92,11 +92,13 @@ export default defineConfig({
         plugins: [
           svelte(),
           stubIconsCSS(),
-          // Stub plugin that resolves virtual:nebula/* for the browser test
-          // environment. The real virtual:nebula/* plugins are injected by the
-          // Astro integration, which is not running during Vitest browser tests.
-          // They are mocked in tests, but Vite's dependency scanner runs before
-          // mocks are applied and would fail without a resolver.
+          /*
+           * Stub plugin that resolves virtual:nebula/* for the browser test
+           * environment. The real virtual:nebula/* plugins are injected by the
+           * Astro integration, which is not running during Vitest browser tests.
+           * They are mocked in tests, but Vite's dependency scanner runs before
+           * mocks are applied and would fail without a resolver.
+           */
           {
             name: 'stub-virtual-modules',
             /**

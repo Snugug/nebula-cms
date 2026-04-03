@@ -6,9 +6,11 @@ import {
   configureCollection,
 } from './helpers/test-app';
 
+/*
 //////////////////////////////
 // Hoisted mocks
 //////////////////////////////
+*/
 
 const mocks = vi.hoisted(() => ({
   mockBackendReady: vi.fn(() => false),
@@ -34,9 +36,11 @@ const stateMocks = vi.hoisted(() => ({
   mockBackendType: vi.fn(() => null as string | null),
 }));
 
+/*
 //////////////////////////////
 // Module mocks
 //////////////////////////////
+*/
 
 vi.mock('virtual:nebula/collections', () => ({
   default: {
