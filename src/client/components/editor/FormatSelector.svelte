@@ -1,16 +1,27 @@
 <script lang="ts">
-  import { getDefaultExtension } from '../../js/utils/file-types';
-  import { changeFileFormat } from '../../js/editor/editor.svelte';
+  import {
+    getDefaultExtension,
+    getTypeForFilename,
+  } from '../../js/utils/file-types';
+  import {
+    changeFileFormat,
+    getEditorFile,
+  } from '../../js/editor/editor.svelte';
+  import { schema } from '../../js/state/schema.svelte';
 
-  // Props for the FormatSelector component, which renders a format switcher when a collection supports multiple file types.
-  interface Props {
-    // Type identifiers from the schema's files array (e.g. ['md', 'mdx'])
-    fileTypes: string[];
-    // Currently selected type identifier
-    activeType: string;
-  }
+  // Type identifiers from the schema's files array (e.g. ['md', 'mdx'])
+  const fileTypes = $derived(
+    Array.isArray(schema.active?.['files'])
+      ? (schema.active['files'] as string[])
+      : [],
+  );
 
-  let { fileTypes, activeType }: Props = $props();
+  // The type identifier of the currently open file (e.g. 'md', 'mdx')
+  const activeType = $derived.by(() => {
+    const file = getEditorFile();
+    if (!file?.filename) return fileTypes[0] ?? '';
+    return getTypeForFilename(file.filename) ?? fileTypes[0] ?? '';
+  });
 </script>
 
 {#if fileTypes.length > 1}
@@ -29,14 +40,11 @@
 {/if}
 
 <style>
-  /* Container uses grid to align label and select on one row */
+  /* Inline layout for label + select inside the editor body toolbar */
   .format-selector {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.5rem;
+    display: flex;
     align-items: center;
-    padding: 0.25rem 1rem;
-    border-bottom: 1px solid var(--cms-border);
+    gap: 0.5rem;
   }
 
   .format-selector__label {

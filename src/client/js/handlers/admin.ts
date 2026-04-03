@@ -2,14 +2,16 @@
  * Admin action handlers for save, publish, delete, and sidebar data construction.
  */
 import {
-  saveDraftToIDB,
-  publishFile,
-  deleteCurrentDraft,
   clearEditor,
   getEditorFile,
   setFilename,
   editor,
 } from '../editor/editor.svelte';
+import {
+  saveDraftToIDB,
+  publishFile,
+  deleteCurrentDraft,
+} from '../drafts/ops.svelte';
 import {
   collections,
   reloadCollection,

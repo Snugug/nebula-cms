@@ -156,9 +156,16 @@ vi.mock('../../../src/client/js/editor/editor.svelte', () => ({
     },
   },
   getEditorFile: mockEditorFile,
-  loadDraftById: vi.fn(() => Promise.resolve()),
   setFilename: vi.fn(),
   updateBody: vi.fn(),
+}));
+
+vi.mock('../../../src/client/js/drafts/ops.svelte', () => ({
+  loadDraftById: vi.fn(() => Promise.resolve()),
+  saveDraftToIDB: vi.fn(() => Promise.resolve()),
+  saveFile: vi.fn(() => Promise.resolve()),
+  publishFile: vi.fn(() => Promise.resolve()),
+  deleteCurrentDraft: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('../../../src/client/js/handlers/admin', async (importOriginal) => {

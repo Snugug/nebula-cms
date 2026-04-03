@@ -49,9 +49,6 @@ const {
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
 vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
-  saveDraftToIDB: mockSaveDraftToIDB,
-  publishFile: mockPublishFile,
-  deleteCurrentDraft: mockDeleteCurrentDraft,
   clearEditor: mockClearEditor,
   getEditorFile: mockGetEditorFile,
   setFilename: mockSetFilename,
@@ -60,6 +57,12 @@ vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
       return mockOriginalFilename();
     },
   },
+}));
+
+vi.mock('../../../../src/client/js/drafts/ops.svelte', () => ({
+  saveDraftToIDB: mockSaveDraftToIDB,
+  publishFile: mockPublishFile,
+  deleteCurrentDraft: mockDeleteCurrentDraft,
 }));
 
 vi.mock('../../../../src/client/js/state/state.svelte', () => ({

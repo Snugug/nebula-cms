@@ -24,6 +24,12 @@ const { mockGetEditorFile } = vi.hoisted(() => ({
 vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
   getEditorFile: mockGetEditorFile,
   updateBody: vi.fn(),
+  changeFileFormat: vi.fn(),
+}));
+
+// FormatSelector imports schema.svelte which depends on virtual:collections
+vi.mock('../../../../src/client/js/state/schema.svelte', () => ({
+  schema: { active: null },
 }));
 
 // Prevent accumulated renders from bleeding between tests

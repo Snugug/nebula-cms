@@ -57,6 +57,30 @@ export const EditorState = {
   create: () => ({}),
 };
 
+/**
+ * Noop class standing in for CodeMirror's Compartment.
+ * Used by EditorPane to isolate the language extension for runtime reconfiguration.
+ */
+export class Compartment {
+  /**
+   * Wraps an extension value for initial configuration.
+   * @param {unknown} _ext - Ignored
+   * @return {Record<string, never>} Empty object
+   */
+  of(_ext?: unknown) {
+    return {};
+  }
+
+  /**
+   * Returns a StateEffect for reconfiguring this compartment.
+   * @param {unknown} _ext - Ignored
+   * @return {Record<string, never>} Empty object standing in for a StateEffect
+   */
+  reconfigure(_ext?: unknown) {
+    return {};
+  }
+}
+
 // Minimal keymap stub
 export const keymap = { of: () => ({}) };
 

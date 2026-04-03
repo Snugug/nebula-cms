@@ -152,6 +152,8 @@ export function _setDraftState(
     lastSavedFormData = updates.lastSavedFormData!;
   if ('lastSavedBody' in updates) lastSavedBody = updates.lastSavedBody!;
   if ('dirty' in updates) dirty = updates.dirty!;
+  if ('originalFilename' in updates)
+    originalFilename = updates.originalFilename!;
 }
 /**
  * Returns the current editor file state, or null if no file is open.
@@ -202,7 +204,9 @@ export async function preloadFile(
   itemFilename: string,
   data: Record<string, unknown>,
 ): Promise<void> {
-  if (filename === itemFilename && fileOpen) return;
+  // Compare slugs so a format change (e.g. .md → .mdx) doesn't trigger a full reload
+  if (stripExtension(filename) === stripExtension(itemFilename) && fileOpen)
+    return;
 
   // Check IndexedDB for an existing draft of this live file
   const d = await getDraftByFile(collection, itemFilename);
@@ -337,15 +341,3 @@ export function clearEditor(): void {
     false,
   );
 }
-
-/*
- * Re-export draft operations so existing import paths keep working.
- * The canonical source is editor-draft-ops.svelte.ts.
- */
-export {
-  saveDraftToIDB,
-  saveFile,
-  publishFile,
-  loadDraftById,
-  deleteCurrentDraft,
-} from '../drafts/ops.svelte';

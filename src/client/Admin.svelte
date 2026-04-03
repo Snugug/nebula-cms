@@ -14,9 +14,9 @@
     clearEditor,
     editor,
     getEditorFile,
-    loadDraftById,
     setDefaultFormat,
   } from './js/editor/editor.svelte';
+  import { loadDraftById } from './js/drafts/ops.svelte';
   import {
     fetchSchema,
     schema,
@@ -33,7 +33,7 @@
     buildActiveFileHref,
   } from './js/handlers/admin';
   import { dialog } from './js/state/dialogs.svelte';
-  import { stripExtension, getTypeForFilename } from './js/utils/file-types';
+  import { stripExtension } from './js/utils/file-types';
   import { initTheme, theme } from './js/state/theme.svelte';
   import './css/reset.css';
   import './css/icons.css';
@@ -47,7 +47,6 @@
   import EditorToolbar from './components/editor/EditorToolbar.svelte';
   import EditorPane from './components/editor/EditorPane.svelte';
   import EditorTabs from './components/editor/EditorTabs.svelte';
-  import FormatSelector from './components/editor/FormatSelector.svelte';
   import MetadataForm from './components/MetadataForm.svelte';
   import FilenameDialog from './components/dialogs/FilenameDialog.svelte';
   import DeleteDraftDialog from './components/dialogs/DeleteDraftDialog.svelte';
@@ -105,15 +104,6 @@
     Array.isArray(schema.active?.['files'])
       ? (schema.active['files'] as string[])
       : [],
-  );
-
-  // The type identifier of the currently open file (e.g. 'md', 'mdx')
-  const activeFileType = $derived(
-    getEditorFile()?.filename
-      ? (getTypeForFilename(getEditorFile()!.filename) ??
-          schemaFileTypes[0] ??
-          '')
-      : (schemaFileTypes[0] ?? ''),
   );
 
   // Sync the resolved theme to :root so top-layer elements (dialogs) inherit the tokens
@@ -236,10 +226,6 @@
       <div class="editor-area">
         <EditorToolbar />
         <EditorTabs schema={schema.active} />
-        <FormatSelector
-          fileTypes={schemaFileTypes}
-          activeType={activeFileType}
-        />
         <div class="editor-content">
           {#if editor.tab === 'body'}
             <EditorPane />
@@ -290,8 +276,8 @@
 
   .editor-area {
     display: grid;
-    /* FormatSelector is conditionally rendered between tabs and content; grid-template-rows uses auto for all header rows and 1fr for the scrollable content area */
-    grid-template-rows: auto auto auto 1fr;
+    /* Toolbar + tabs above, scrollable content below */
+    grid-template-rows: auto auto 1fr;
     overflow: hidden;
     border-left: 1px solid var(--cms-border);
   }

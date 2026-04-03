@@ -58,9 +58,13 @@ vi.mock('../../../../src/client/js/state/state.svelte', () => ({
   },
 }));
 
-vi.mock('../../../../src/client/js/utils/file-types', () => ({
-  getFileCategory: vi.fn(() => null),
-}));
+vi.mock(
+  import('../../../../src/client/js/utils/file-types'),
+  async (importOriginal) => ({
+    ...(await importOriginal()),
+    getFileCategory: vi.fn(() => null),
+  }),
+);
 
 // ops.svelte re-exports — editor.svelte.ts re-exports these; mock them so
 // importing the editor does not pull in the real ops module's dependencies.
