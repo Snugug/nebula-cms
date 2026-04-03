@@ -23,30 +23,24 @@ const CONFIG_RESOLVED_ID = '\0' + CONFIG_VIRTUAL_ID;
 const COLLECTIONS_VIRTUAL_ID = 'virtual:nebula/collections';
 const COLLECTIONS_RESOLVED_ID = '\0' + COLLECTIONS_VIRTUAL_ID;
 
-/*
- * Validation regex for normalized absolute paths. Still needed after URL
- * normalization because the URL API percent-encodes special characters rather
- * than rejecting them (e.g. '/admin/<script>' → '/admin/%3Cscript%3E').
- * The regex rejects percent-encoded sequences, dots, spaces, and any other
- * character that would cause routing issues.
- * Allows bare '/' (root mount) as a special case.
- */
-const VALID_ABSOLUTE_PATH = /^(\/|\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*)$/;
-
 /**
  * Normalizes a path config value to an absolute path using the URL API.
- * Handles leading-slash prepending, consecutive-slash collapsing, and
- * trailing-slash stripping.
+ * Handles leading-slash prepending, consecutive-slash collapsing,
+ * trailing-slash stripping, and rejects paths with characters that
+ * require percent-encoding (e.g. spaces, angle brackets).
+ * @param {string} label - Config field name for error messages (e.g. 'basePath')
  * @param {string} value - The raw config value
  * @return {string} The normalized absolute path
  */
-function normalizePath(value: string): string {
+function normalizePath(label: string, value: string): string {
   /*
    * Reject protocol-relative inputs ('//admin') — the URL API interprets
    * these as hostnames, silently producing pathname '/' instead of '/admin'.
    */
   if (value.startsWith('//')) {
-    throw new Error(`Invalid path "${value}". Path must not start with "//".`);
+    throw new Error(
+      `Invalid ${label} "${value}". Path must not start with "//".`,
+    );
   }
   /*
    * URL constructor with a dummy base handles both relative ('admin') and
@@ -55,10 +49,21 @@ function normalizePath(value: string): string {
    */
   const collapsed = new URL(value, 'http://x').pathname.replace(/\/\/+/g, '/');
   // Strip trailing slash unless root
-  if (collapsed.length > 1 && collapsed.endsWith('/')) {
-    return collapsed.slice(0, -1);
+  const normalized =
+    collapsed.length > 1 && collapsed.endsWith('/')
+      ? collapsed.slice(0, -1)
+      : collapsed;
+  /*
+   * The URL API percent-encodes special characters rather than rejecting them
+   * (e.g. '/admin/<script>' → '/admin/%3Cscript%3E'). Comparing the decoded
+   * form to the normalized result catches any input that required encoding.
+   */
+  if (decodeURIComponent(normalized) !== normalized) {
+    throw new Error(
+      `Invalid ${label} "${value}". Path contains characters that require URL encoding.`,
+    );
   }
-  return collapsed;
+  return normalized;
 }
 
 /**
@@ -81,26 +86,15 @@ export default function NebulaCMS(
     );
   }
 
-  const basePath = normalizePath(config.basePath ?? '/admin');
+  const basePath = normalizePath('basePath', config.basePath ?? '/admin');
   const collectionsPath = normalizePath(
+    'collectionsPath',
     config.collectionsPath ?? '/collections',
   );
-
-  if (!VALID_ABSOLUTE_PATH.test(basePath)) {
-    throw new Error(
-      `Invalid basePath "${config.basePath}". Must contain only letters, digits, hyphens, and underscores.`,
-    );
-  }
 
   if (collectionsPath === '/') {
     throw new Error(
       'Invalid collectionsPath "/". Collections require a path prefix.',
-    );
-  }
-
-  if (!VALID_ABSOLUTE_PATH.test(collectionsPath)) {
-    throw new Error(
-      `Invalid collectionsPath "${config.collectionsPath}". Must contain only letters, digits, hyphens, and underscores.`,
     );
   }
 
@@ -191,8 +185,8 @@ export function nebulaVitePlugin(
           res: { setHeader: Function; end: Function },
           next: Function,
         ) => {
-          // Strip query string for path matching (e.g. cache-busting ?v=123)
-          const url = (req.url ?? '').split('?')[0];
+          // Extract pathname, stripping query strings and fragments
+          const url = new URL(req.url ?? '', 'http://x').pathname;
           if (!url.startsWith(prefix) || !url.endsWith('.schema.json')) {
             return next();
           }
@@ -231,8 +225,7 @@ export function nebulaVitePlugin(
           // Only rewrite document requests
           if (!accept.includes('text/html')) return next();
 
-          // Strip query string and fragment for path comparison
-          const pathname = rawURL.split('?')[0].split('#')[0];
+          const parsed = new URL(rawURL, 'http://x');
 
           /*
            * Check segment boundary: /admin/foo rewrites, /administrator does not.
@@ -241,15 +234,13 @@ export function nebulaVitePlugin(
            */
           const isSubPath =
             config.basePath === '/'
-              ? pathname !== '/' && pathname.startsWith('/')
-              : pathname !== config.basePath &&
-                pathname.startsWith(config.basePath + '/');
+              ? parsed.pathname !== '/' && parsed.pathname.startsWith('/')
+              : parsed.pathname !== config.basePath &&
+                parsed.pathname.startsWith(config.basePath + '/');
 
           if (isSubPath) {
-            // Preserve query string for deep-linking and OAuth callbacks
-            const qsIndex = rawURL.indexOf('?');
-            req.url =
-              config.basePath + (qsIndex >= 0 ? rawURL.slice(qsIndex) : '');
+            // Preserve query string and hash for deep-linking and OAuth callbacks
+            req.url = config.basePath + parsed.search + parsed.hash;
           }
 
           return next();
