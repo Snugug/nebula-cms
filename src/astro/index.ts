@@ -24,7 +24,11 @@ const COLLECTIONS_VIRTUAL_ID = 'virtual:nebula/collections';
 const COLLECTIONS_RESOLVED_ID = '\0' + COLLECTIONS_VIRTUAL_ID;
 
 /*
- * Absolute path with segments of letters, digits, hyphens, and underscores.
+ * Whitelist for valid path segments after URL normalization.
+ * Still needed because the URL API percent-encodes special characters rather
+ * than rejecting them (e.g. '/admin/<script>' → '/admin/%3Cscript%3E').
+ * The regex catches percent-encoded sequences, dots, spaces, and any other
+ * character that would cause routing issues.
  * Allows bare '/' (root mount) as a special case.
  */
 const VALID_ABSOLUTE_PATH = /^(\/|\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*)$/;
@@ -37,9 +41,12 @@ const VALID_ABSOLUTE_PATH = /^(\/|\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*)$/;
  * @return {string} The normalized absolute path
  */
 function normalizePath(value: string): string {
-  const input = value.startsWith('/') ? value : '/' + value;
-  // URL API handles encoding; collapse consecutive slashes manually
-  const collapsed = new URL(input, 'http://x').pathname.replace(/\/\/+/g, '/');
+  /*
+   * URL constructor with a dummy base handles both relative ('admin') and
+   * absolute ('/admin') inputs identically. Collapse consecutive slashes
+   * manually since the URL API preserves them in pathnames.
+   */
+  const collapsed = new URL(value, 'http://x').pathname.replace(/\/\/+/g, '/');
   // Strip trailing slash unless root
   if (collapsed.length > 1 && collapsed.endsWith('/')) {
     return collapsed.slice(0, -1);
