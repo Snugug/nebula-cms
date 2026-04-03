@@ -28,11 +28,14 @@ const mocks = vi.hoisted(() => ({
 // Module mocks — each vi.mock() is hoisted to run before imports
 //////////////////////////////
 
-vi.mock('virtual:collections', () => ({
+vi.mock('virtual:nebula/collections', () => ({
   default: {
     pages: '/collections/pages.schema.json',
     posts: '/collections/posts.schema.json',
   },
+}));
+vi.mock('virtual:nebula/config', () => ({
+  default: { basePath: '/admin', collectionsPath: '/collections' },
 }));
 vi.mock('../../src/client/js/state/state.svelte', () => ({
   backend: {

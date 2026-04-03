@@ -39,11 +39,14 @@ const handlers = vi.hoisted(() => ({
 // Module mocks
 //////////////////////////////
 
-vi.mock('virtual:collections', () => ({
+vi.mock('virtual:nebula/collections', () => ({
   default: {
     pages: '/collections/pages.schema.json',
     posts: '/collections/posts.schema.json',
   },
+}));
+vi.mock('virtual:nebula/config', () => ({
+  default: { basePath: '/admin', collectionsPath: '/collections' },
 }));
 vi.mock('../../src/client/js/state/state.svelte', () => ({
   backend: {
