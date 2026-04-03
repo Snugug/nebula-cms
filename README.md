@@ -1,5 +1,7 @@
 # Nebula CMS
 
+![NPM Version](https://img.shields.io/npm/v/nebula-cms) [![CI](https://github.com/Snugug/nebula-cms/actions/workflows/ci.yml/badge.svg)](https://github.com/Snugug/nebula-cms/actions/workflows/ci.yml)
+
 A streamlined, Git-based Content Management System built specifically for [Astro](https://astro.build/). Nebula CMS provides a beautiful, unified editing interface for your Markdown, MDX, JSON, YAML, TOML, and Markdoc files, driven directly by your existing Astro [Content Collections](https://docs.astro.build/en/guides/content-collections/).
 
 ## Features
