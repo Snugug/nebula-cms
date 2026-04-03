@@ -51,14 +51,6 @@
   import FilenameDialog from './components/dialogs/FilenameDialog.svelte';
   import DeleteDraftDialog from './components/dialogs/DeleteDraftDialog.svelte';
 
-  // Host application config — basePath controls the URL prefix for all admin routes
-  interface Props {
-    config?: {
-      basePath?: string;
-    };
-  }
-  let { config }: Props = $props();
-
   // Whether a collection is currently selected (including draft view)
   const hasCollection = $derived(nav.route.view !== 'home');
 
@@ -186,7 +178,7 @@
 
   onMount(() => {
     const cleanupTheme = initTheme();
-    initRouter(config?.basePath);
+    initRouter();
     restoreBackend();
     prefetchAllSchemas();
     return cleanupTheme;

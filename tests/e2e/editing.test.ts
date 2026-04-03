@@ -2,9 +2,11 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import { resetMocks, configureFileOpen } from './helpers/test-app';
 
+/*
 //////////////////////////////
 // Hoisted mocks
 //////////////////////////////
+*/
 
 const mocks = vi.hoisted(() => ({
   mockBackendReady: vi.fn(() => false),
@@ -24,15 +26,20 @@ const mocks = vi.hoisted(() => ({
   mockComputePublishDisabled: vi.fn(() => false),
 }));
 
+/*
 //////////////////////////////
 // Module mocks
 //////////////////////////////
+*/
 
-vi.mock('virtual:collections', () => ({
+vi.mock('virtual:nebula/collections', () => ({
   default: {
     pages: '/collections/pages.schema.json',
     posts: '/collections/posts.schema.json',
   },
+}));
+vi.mock('virtual:nebula/config', () => ({
+  default: { basePath: '/admin', collectionsPath: '/collections' },
 }));
 vi.mock('../../src/client/js/state/state.svelte', () => ({
   backend: {

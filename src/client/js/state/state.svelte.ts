@@ -3,7 +3,7 @@
  * Manages backend connection, schema loading, collections, and navigation state.
  */
 
-import schemas from 'virtual:collections';
+import schemas from 'virtual:nebula/collections';
 import {
   loadBackend,
   saveBackend,
@@ -32,7 +32,7 @@ export type ContentItem = {
 type PermissionState = 'granted' | 'prompt' | 'denied';
 // Backend type discriminator.
 type BackendType = 'fsa' | 'github' | null;
-// Sorted collection names derived from virtual:collections.
+// Sorted collection names derived from virtual:nebula/collections.
 export const collections = Object.keys(schemas).sort();
 /*
  * Uses .js extension because svelte-package does not rewrite URL string literals;

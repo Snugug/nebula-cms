@@ -1,18 +1,19 @@
 /*
  * Parsed route state for the admin SPA.
- * Host applications configure the base path via initRouter() so the CMS
- * can live under any URL prefix, not just /admin.
+ * The base path is set at build time via virtual:nebula/config so both
+ * client-side code and the Vite dev server share the same value.
  */
+
+import config from 'virtual:nebula/config';
+
 export type AdminRoute =
   | { view: 'home' }
   | { view: 'collection'; collection: string }
   | { view: 'file'; collection: string; slug: string }
   | { view: 'draft'; collection: string; draftId: string };
 
-// Configurable base path for the admin SPA (e.g. '/admin', '/cms', '/dashboard').
-// Set via initRouter() before the Navigation API listener is registered.
-// Defaults to '/admin' for backwards compatibility.
-let basePath = $state('/admin');
+// Build-time constant — configured via the Astro integration
+const basePath = config.basePath;
 
 // Current route, reactive via Svelte 5 runes
 let route = $state<AdminRoute>(parsePathname(location.pathname));
@@ -110,20 +111,9 @@ let initialized = false;
  * Initializes the Navigation API listener, intercepting navigations under the
  * configured basePath and updating reactive route state.
  * Safe to call multiple times — registers the listener only once.
- * @param {string} [configuredBasePath] - The URL prefix for the admin SPA (e.g. '/admin', '/cms')
  * @return {void}
  */
-export function initRouter(configuredBasePath?: string): void {
-  if (configuredBasePath !== undefined) {
-    // Normalize: strip trailing slashes but keep leading slash
-    const trimmed = configuredBasePath.endsWith('/')
-      ? configuredBasePath.slice(0, -1)
-      : configuredBasePath;
-    basePath = trimmed || '/';
-    // Re-parse current pathname with the correct basePath
-    route = parsePathname(location.pathname);
-  }
-
+export function initRouter(): void {
   if (initialized) return;
   initialized = true;
 

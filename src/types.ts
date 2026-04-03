@@ -3,10 +3,23 @@
  */
 export interface NebulaCMSConfig {
   /**
-   * Folder name inside `public/` where the collections symlink is placed.
-   * Also determines the URL prefix for schema files in the virtual module.
-   * Must be a bare path segment (no leading `/`, no `..`, no absolute paths).
-   * @default 'collections'
+   * URL prefix for the admin SPA.
+   * Accepts a relative or absolute path. Normalized automatically: leading `/`
+   * prepended if missing, consecutive slashes collapsed, trailing `/` stripped.
+   * After normalization, must contain only segments of letters, digits, hyphens,
+   * and underscores — or be `/` for root mount.
+   * @default '/admin'
+   */
+  basePath?: string;
+
+  /**
+   * URL prefix under which collection schema files are served.
+   * Accepts a relative or absolute path. Normalized automatically: leading `/`
+   * prepended if missing, consecutive slashes collapsed, trailing `/` stripped.
+   * After normalization, must contain only segments of letters, digits, hyphens,
+   * and underscores. Cannot be `/` (root) — collections require at least one
+   * path segment.
+   * @default '/collections'
    */
   collectionsPath?: string;
 }

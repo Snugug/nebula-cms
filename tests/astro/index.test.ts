@@ -10,12 +10,14 @@ import {
 import { resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
-import NebulaCMS, { collectionsVitePlugin } from '../../src/astro/index.js';
+import NebulaCMS, { nebulaVitePlugin } from '../../src/astro/index.js';
 import type { AstroIntegrationLogger } from 'astro';
 
+/*
 //////////////////////////////
 // Test Helpers
 //////////////////////////////
+*/
 
 /**
  * Creates a minimal mock satisfying the AstroIntegrationLogger interface
@@ -25,9 +27,11 @@ function createMockLogger() {
   return { warn: vi.fn() } as unknown as AstroIntegrationLogger;
 }
 
+/*
 //////////////////////////////
 // NebulaCMS integration object
 //////////////////////////////
+*/
 
 describe('NebulaCMS integration object', () => {
   it('returns an integration with name "nebula-cms"', () => {
@@ -40,7 +44,6 @@ describe('NebulaCMS integration object', () => {
     const updateConfig = vi.fn();
     const logger = createMockLogger();
 
-    // Invoke the hook with the minimal shape it expects
     const hook = integration.hooks['astro:config:setup'] as Function;
     hook({ updateConfig, logger });
 
@@ -48,26 +51,51 @@ describe('NebulaCMS integration object', () => {
       vite: {
         plugins: [expect.objectContaining({ name: 'vite-plugin-nebula-cms' })],
         worker: { format: 'es' },
-        // smol-toml must be pre-bundled so the TOML parser sub-worker
-        // doesn't trigger a late re-optimization (504 Outdated Optimize Dep)
         optimizeDeps: { include: ['smol-toml'] },
       },
     });
   });
 
-  it('accepts a valid collectionsPath', () => {
+  it('accepts a valid absolute basePath', () => {
+    const integration = NebulaCMS({ basePath: '/dashboard' });
+    expect(integration.name).toBe('nebula-cms');
+  });
+
+  it('normalizes basePath without leading slash', () => {
+    // Should not throw — 'admin' is normalized to '/admin'
+    const integration = NebulaCMS({ basePath: 'admin' });
+    expect(integration.name).toBe('nebula-cms');
+  });
+
+  it('normalizes basePath with trailing slash', () => {
+    // Should not throw — '/admin/' is normalized to '/admin'
+    const integration = NebulaCMS({ basePath: '/admin/' });
+    expect(integration.name).toBe('nebula-cms');
+  });
+
+  it('throws on basePath with invalid characters', () => {
+    expect(() => NebulaCMS({ basePath: '/admin/<script>' })).toThrow(
+      'Invalid basePath',
+    );
+  });
+
+  it('accepts a valid absolute collectionsPath', () => {
+    const integration = NebulaCMS({ collectionsPath: '/schemas' });
+    expect(integration.name).toBe('nebula-cms');
+  });
+
+  it('normalizes collectionsPath without leading slash', () => {
     const integration = NebulaCMS({ collectionsPath: 'schemas' });
     expect(integration.name).toBe('nebula-cms');
   });
 
-  it('throws on collectionsPath with leading slash', () => {
-    expect(() => NebulaCMS({ collectionsPath: '/schemas' })).toThrow(
-      'Invalid collectionsPath',
-    );
+  it('normalizes collectionsPath with trailing slash', () => {
+    const integration = NebulaCMS({ collectionsPath: '/schemas/' });
+    expect(integration.name).toBe('nebula-cms');
   });
 
-  it('throws on collectionsPath with path traversal', () => {
-    expect(() => NebulaCMS({ collectionsPath: '..' })).toThrow(
+  it('throws on collectionsPath with invalid characters', () => {
+    expect(() => NebulaCMS({ collectionsPath: '/my schemas' })).toThrow(
       'Invalid collectionsPath',
     );
   });
@@ -78,36 +106,85 @@ describe('NebulaCMS integration object', () => {
     );
   });
 
-  it('throws on collectionsPath containing a slash', () => {
-    expect(() => NebulaCMS({ collectionsPath: 'a/b' })).toThrow(
-      'Invalid collectionsPath',
+  it('accepts root basePath /', () => {
+    const integration = NebulaCMS({ basePath: '/' });
+    expect(integration.name).toBe('nebula-cms');
+  });
+
+  it('collapses consecutive slashes in basePath', () => {
+    // '/admin//' is normalized to '/admin' via URL API
+    const integration = NebulaCMS({ basePath: '/admin//' });
+    expect(integration.name).toBe('nebula-cms');
+  });
+
+  it('throws on empty basePath', () => {
+    expect(() => NebulaCMS({ basePath: '' })).toThrow('Invalid basePath ""');
+  });
+
+  it('throws on collectionsPath set to /', () => {
+    expect(() => NebulaCMS({ collectionsPath: '/' })).toThrow(
+      'Collections require a path prefix',
+    );
+  });
+
+  it('throws on protocol-relative basePath', () => {
+    expect(() => NebulaCMS({ basePath: '//admin' })).toThrow(
+      'must not start with "//"',
     );
   });
 });
 
+/*
 //////////////////////////////
 // resolveId hook
 //////////////////////////////
+*/
 
-describe('collectionsVitePlugin resolveId', () => {
-  it('resolves virtual:collections to the internal ID', () => {
-    const plugin = collectionsVitePlugin(createMockLogger(), '/fake');
-    expect(plugin.resolveId('virtual:collections')).toBe(
-      '\0virtual:collections',
+describe('nebulaVitePlugin resolveId', () => {
+  it('resolves virtual:nebula/collections to the internal ID', () => {
+    const plugin = nebulaVitePlugin(createMockLogger(), '/fake', {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    expect(plugin.resolveId('virtual:nebula/collections')).toBe(
+      '\0virtual:nebula/collections',
+    );
+  });
+
+  it('resolves virtual:nebula/config to the internal ID', () => {
+    const plugin = nebulaVitePlugin(createMockLogger(), '/fake', {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    expect(plugin.resolveId('virtual:nebula/config')).toBe(
+      '\0virtual:nebula/config',
     );
   });
 
   it('returns undefined for unrelated module IDs', () => {
-    const plugin = collectionsVitePlugin(createMockLogger(), '/fake');
+    const plugin = nebulaVitePlugin(createMockLogger(), '/fake', {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
     expect(plugin.resolveId('some-other-module')).toBeUndefined();
+  });
+
+  it('does not resolve old virtual:collections ID', () => {
+    const plugin = nebulaVitePlugin(createMockLogger(), '/fake', {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    expect(plugin.resolveId('virtual:collections')).toBeUndefined();
   });
 });
 
+/*
 //////////////////////////////
 // configureServer middleware
 //////////////////////////////
+*/
 
-describe('collectionsVitePlugin configureServer', () => {
+describe('nebulaVitePlugin configureServer', () => {
   let tmpDir: string;
   let logger: AstroIntegrationLogger;
 
@@ -121,28 +198,28 @@ describe('collectionsVitePlugin configureServer', () => {
   });
 
   /**
-   * Creates a fake Connect-style middleware stack to capture the registered handler.
-   * @return {{ use: ReturnType<typeof vi.fn>, handler: Function | null }}
+   * Creates a fake Connect-style middleware stack to capture registered handlers.
+   * @return {{ use: ReturnType<typeof vi.fn>, handlers: Function[] }}
    */
   function createMiddlewareStub() {
-    let handler: Function | null = null;
+    const handlers: Function[] = [];
     return {
       use: vi.fn((fn: Function) => {
-        handler = fn;
+        handlers.push(fn);
       }),
-      get handler() {
-        return handler;
+      get handlers() {
+        return handlers;
       },
     };
   }
 
   /**
-   * Simulates a middleware request/response cycle.
+   * Simulates a middleware request/response cycle for the schema middleware.
    * @param {Function} handler - The middleware handler
    * @param {string} url - The request URL
    * @return {{ status: 'served' | 'skipped', body?: string, contentType?: string }}
    */
-  function callMiddleware(handler: Function, url: string) {
+  function callSchemaMiddleware(handler: Function, url: string) {
     let result: { status: string; body?: string; contentType?: string } = {
       status: 'skipped',
     };
@@ -167,17 +244,42 @@ describe('collectionsVitePlugin configureServer', () => {
     return result;
   }
 
+  /**
+   * Simulates a middleware request/response cycle for the SPA rewrite middleware.
+   * @param {Function} handler - The middleware handler
+   * @param {string} url - The request URL
+   * @param {string} accept - The Accept header value
+   * @return {{ rewritten: boolean, url: string, nextCalled: boolean }}
+   */
+  function callRewriteMiddleware(
+    handler: Function,
+    url: string,
+    accept: string,
+  ) {
+    const req = { url, headers: { accept } };
+    let nextCalled = false;
+    const next = () => {
+      nextCalled = true;
+    };
+    handler(req, {}, next);
+    return { rewritten: req.url !== url, url: req.url, nextCalled };
+  }
+
   it('serves schema files from .astro/collections', () => {
     const dir = resolve(tmpDir, '.astro/collections');
     mkdirSync(dir, { recursive: true });
     writeFileSync(resolve(dir, 'posts.schema.json'), '{"type":"object"}');
 
-    const plugin = collectionsVitePlugin(logger, tmpDir);
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
     const mw = createMiddlewareStub();
     plugin.configureServer({ middlewares: mw });
 
-    const result = callMiddleware(
-      mw.handler!,
+    // First handler is the schema middleware
+    const result = callSchemaMiddleware(
+      mw.handlers[0],
       '/collections/posts.schema.json',
     );
     expect(result.status).toBe('served');
@@ -186,21 +288,27 @@ describe('collectionsVitePlugin configureServer', () => {
   });
 
   it('calls next() for non-schema requests', () => {
-    const plugin = collectionsVitePlugin(logger, tmpDir);
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
     const mw = createMiddlewareStub();
     plugin.configureServer({ middlewares: mw });
 
-    const result = callMiddleware(mw.handler!, '/some/other/path');
+    const result = callSchemaMiddleware(mw.handlers[0], '/some/other/path');
     expect(result.status).toBe('skipped');
   });
 
   it('calls next() when schema file does not exist', () => {
-    const plugin = collectionsVitePlugin(logger, tmpDir);
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
     const mw = createMiddlewareStub();
     plugin.configureServer({ middlewares: mw });
 
-    const result = callMiddleware(
-      mw.handler!,
+    const result = callSchemaMiddleware(
+      mw.handlers[0],
       '/collections/missing.schema.json',
     );
     expect(result.status).toBe('skipped');
@@ -211,23 +319,177 @@ describe('collectionsVitePlugin configureServer', () => {
     mkdirSync(dir, { recursive: true });
     writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
 
-    const plugin = collectionsVitePlugin(logger, tmpDir, 'schemas');
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/schemas',
+    });
     const mw = createMiddlewareStub();
     plugin.configureServer({ middlewares: mw });
 
-    // Default path should not match
-    const miss = callMiddleware(mw.handler!, '/collections/posts.schema.json');
+    const miss = callSchemaMiddleware(
+      mw.handlers[0],
+      '/collections/posts.schema.json',
+    );
     expect(miss.status).toBe('skipped');
 
-    // Custom path should match
-    const hit = callMiddleware(mw.handler!, '/schemas/posts.schema.json');
+    const hit = callSchemaMiddleware(
+      mw.handlers[0],
+      '/schemas/posts.schema.json',
+    );
     expect(hit.status).toBe('served');
+  });
+
+  it('rewrites HTML requests under basePath to basePath', () => {
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
+
+    // Second handler is the SPA rewrite middleware
+    const result = callRewriteMiddleware(
+      mw.handlers[1],
+      '/admin/posts/my-article',
+      'text/html',
+    );
+    expect(result.rewritten).toBe(true);
+    expect(result.url).toBe('/admin');
+  });
+
+  it('does not rewrite exact basePath requests', () => {
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
+
+    const result = callRewriteMiddleware(mw.handlers[1], '/admin', 'text/html');
+    expect(result.rewritten).toBe(false);
+  });
+
+  it('does not rewrite non-HTML requests under basePath', () => {
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
+
+    const result = callRewriteMiddleware(
+      mw.handlers[1],
+      '/admin/posts/my-article',
+      'application/json',
+    );
+    expect(result.rewritten).toBe(false);
+  });
+
+  it('respects segment boundary — /administrator does not rewrite', () => {
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
+
+    const result = callRewriteMiddleware(
+      mw.handlers[1],
+      '/administrator',
+      'text/html',
+    );
+    expect(result.rewritten).toBe(false);
+  });
+
+  it('rewrites with custom basePath', () => {
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/nebula',
+      collectionsPath: '/collections',
+    });
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
+
+    const result = callRewriteMiddleware(
+      mw.handlers[1],
+      '/nebula/posts/draft-12345678',
+      'text/html',
+    );
+    expect(result.rewritten).toBe(true);
+    expect(result.url).toBe('/nebula');
+  });
+
+  it('rewrites sub-routes when basePath is /', () => {
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/',
+      collectionsPath: '/collections',
+    });
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
+
+    const result = callRewriteMiddleware(
+      mw.handlers[1],
+      '/posts/my-article',
+      'text/html',
+    );
+    expect(result.rewritten).toBe(true);
+    expect(result.url).toBe('/');
+  });
+
+  it('does not rewrite root path when basePath is /', () => {
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/',
+      collectionsPath: '/collections',
+    });
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
+
+    const result = callRewriteMiddleware(mw.handlers[1], '/', 'text/html');
+    expect(result.rewritten).toBe(false);
+  });
+
+  it('rewrites HTML requests with query strings', () => {
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
+
+    const result = callRewriteMiddleware(
+      mw.handlers[1],
+      '/admin/posts?draft=true',
+      'text/html',
+    );
+    expect(result.rewritten).toBe(true);
+    // Query string preserved during rewrite
+    expect(result.url).toBe('/admin?draft=true');
+  });
+
+  it('rejects path traversal in schema requests', () => {
+    const dir = resolve(tmpDir, '.astro/collections');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
+
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const mw = createMiddlewareStub();
+    plugin.configureServer({ middlewares: mw });
+
+    const result = callSchemaMiddleware(
+      mw.handlers[0],
+      '/collections/../../../etc/passwd.schema.json',
+    );
+    expect(result.status).toBe('skipped');
   });
 });
 
+/*
 //////////////////////////////
 // astro:build:done hook
 //////////////////////////////
+*/
 
 describe('NebulaCMS astro:build:done', () => {
   let tmpDir: string;
@@ -236,7 +498,6 @@ describe('NebulaCMS astro:build:done', () => {
   beforeEach(() => {
     tmpDir = mkdtempSync(join(tmpdir(), 'nebula-test-'));
     logger = createMockLogger();
-    // Override process.cwd for the integration
     vi.spyOn(process, 'cwd').mockReturnValue(tmpDir);
   });
 
@@ -287,7 +548,7 @@ describe('NebulaCMS astro:build:done', () => {
     const outDir = resolve(tmpDir, 'dist');
     mkdirSync(outDir, { recursive: true });
 
-    const integration = NebulaCMS({ collectionsPath: 'schemas' });
+    const integration = NebulaCMS({ collectionsPath: '/schemas' });
     const hook = integration.hooks['astro:build:done'] as Function;
     hook({ dir: pathToFileURL(outDir + '/'), logger });
 
@@ -296,11 +557,13 @@ describe('NebulaCMS astro:build:done', () => {
   });
 });
 
+/*
 //////////////////////////////
 // load hook
 //////////////////////////////
+*/
 
-describe('collectionsVitePlugin load', () => {
+describe('nebulaVitePlugin load', () => {
   let tmpDir: string;
   let logger: AstroIntegrationLogger;
 
@@ -314,17 +577,35 @@ describe('collectionsVitePlugin load', () => {
   });
 
   it('returns undefined for unrelated module IDs', () => {
-    const plugin = collectionsVitePlugin(logger, tmpDir);
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
     expect(plugin.load('some-other-id')).toBeUndefined();
   });
 
-  it('generates module source mapping collection name to schema URL', () => {
+  it('generates config module with basePath and collectionsPath', () => {
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/dashboard',
+      collectionsPath: '/schemas',
+    });
+    const result = plugin.load('\0virtual:nebula/config');
+
+    expect(result).toContain('"/dashboard"');
+    expect(result).toContain('"/schemas"');
+    expect(result).toContain('export default');
+  });
+
+  it('generates collections module mapping names to schema URLs', () => {
     const dir = resolve(tmpDir, '.astro/collections');
     mkdirSync(dir, { recursive: true });
     writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
 
-    const plugin = collectionsVitePlugin(logger, tmpDir);
-    const result = plugin.load('\0virtual:collections');
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const result = plugin.load('\0virtual:nebula/collections');
 
     expect(result).toContain('"posts"');
     expect(result).toContain('"/collections/posts.schema.json"');
@@ -336,13 +617,14 @@ describe('collectionsVitePlugin load', () => {
     writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
     writeFileSync(resolve(dir, 'authors.schema.json'), '{}');
 
-    const plugin = collectionsVitePlugin(logger, tmpDir);
-    const result = plugin.load('\0virtual:collections');
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const result = plugin.load('\0virtual:nebula/collections');
 
     expect(result).toContain('"posts"');
-    expect(result).toContain('"/collections/posts.schema.json"');
     expect(result).toContain('"authors"');
-    expect(result).toContain('"/collections/authors.schema.json"');
   });
 
   it('ignores non-.schema.json files in the directory', () => {
@@ -351,8 +633,11 @@ describe('collectionsVitePlugin load', () => {
     writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
     writeFileSync(resolve(dir, 'README.md'), '');
 
-    const plugin = collectionsVitePlugin(logger, tmpDir);
-    const result = plugin.load('\0virtual:collections');
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const result = plugin.load('\0virtual:nebula/collections');
 
     expect(result).toContain('"posts"');
     expect(result).not.toContain('README');
@@ -363,16 +648,22 @@ describe('collectionsVitePlugin load', () => {
     mkdirSync(dir, { recursive: true });
     writeFileSync(resolve(dir, 'my-collection.schema.json'), '{}');
 
-    const plugin = collectionsVitePlugin(logger, tmpDir);
-    const result = plugin.load('\0virtual:collections');
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const result = plugin.load('\0virtual:nebula/collections');
 
     expect(result).toContain('"my-collection"');
     expect(result).not.toContain('.schema.json":');
   });
 
   it('returns empty default export and warns when directory is missing', () => {
-    const plugin = collectionsVitePlugin(logger, tmpDir);
-    const result = plugin.load('\0virtual:collections');
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/collections',
+    });
+    const result = plugin.load('\0virtual:nebula/collections');
 
     expect(result).toBe('export default {};');
     expect(logger.warn).toHaveBeenCalledWith(
@@ -385,8 +676,11 @@ describe('collectionsVitePlugin load', () => {
     mkdirSync(dir, { recursive: true });
     writeFileSync(resolve(dir, 'posts.schema.json'), '{}');
 
-    const plugin = collectionsVitePlugin(logger, tmpDir, 'schemas');
-    const result = plugin.load('\0virtual:collections');
+    const plugin = nebulaVitePlugin(logger, tmpDir, {
+      basePath: '/admin',
+      collectionsPath: '/schemas',
+    });
+    const result = plugin.load('\0virtual:nebula/collections');
 
     expect(result).toContain('"posts"');
     expect(result).toContain('"/schemas/posts.schema.json"');

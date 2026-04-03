@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+/*
 //////////////////////////////
 // Router module test strategy
 //
@@ -10,8 +11,27 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // fresh module instance. Globals (location, navigation, window) are stubbed
 // before each dynamic import so the module picks them up on load.
 //////////////////////////////
+*/
 
-/** Minimal NavigateEvent shape used by the navigate listener. */
+// Hoisted mock for the virtual config module — lets tests override basePath
+const { mockBasePath } = vi.hoisted(() => ({
+  mockBasePath: vi.fn(() => '/admin'),
+}));
+
+vi.mock('virtual:nebula/config', () => ({
+  default: {
+    get basePath() {
+      return mockBasePath();
+    },
+    collectionsPath: '/collections',
+  },
+}));
+
+afterEach(() => {
+  mockBasePath.mockReturnValue('/admin');
+});
+
+// Minimal NavigateEvent shape used by the navigate listener.
 interface FakeNavigateEvent {
   destination: { url: string };
   hashChange: boolean;
@@ -64,7 +84,7 @@ function makeNavigationStub() {
       },
     ),
     navigate: vi.fn(),
-    /** Fires the navigate event on all registered listeners. */
+    // Fires the navigate event on all registered listeners.
     fire(event: FakeNavigateEvent) {
       for (const l of listeners) l(event);
     },
@@ -72,9 +92,11 @@ function makeNavigationStub() {
   return stub;
 }
 
+/*
 //////////////////////////////
 // Route parsing via route export
 //////////////////////////////
+*/
 
 describe('route — initial route parsing', () => {
   afterEach(() => {
@@ -131,9 +153,11 @@ describe('route — initial route parsing', () => {
   });
 });
 
+/*
 //////////////////////////////
 // adminPath()
 //////////////////////////////
+*/
 
 describe('adminPath', () => {
   afterEach(() => {
@@ -159,42 +183,47 @@ describe('adminPath', () => {
   });
 
   it('produces single-slash paths when basePath is /', async () => {
+    mockBasePath.mockReturnValue('/');
     vi.stubGlobal('location', { pathname: '/' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
-    const { adminPath, initRouter } =
+    vi.resetModules();
+    const { adminPath } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/');
     expect(adminPath('authors')).toBe('/authors');
     expect(adminPath('posts', 'my-post')).toBe('/posts/my-post');
     expect(adminPath('posts', 'draft-abc')).toBe('/posts/draft-abc');
   });
 
   it('joins segments under custom basePath', async () => {
+    mockBasePath.mockReturnValue('/cms');
     vi.stubGlobal('location', { pathname: '/cms' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
-    const { adminPath, initRouter } =
+    vi.resetModules();
+    const { adminPath } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/cms');
     expect(adminPath('posts')).toBe('/cms/posts');
     expect(adminPath('posts', 'hello')).toBe('/cms/posts/hello');
   });
 
   it('joins segments under nested basePath', async () => {
+    mockBasePath.mockReturnValue('/app/dashboard');
     vi.stubGlobal('location', { pathname: '/app/dashboard' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
-    const { adminPath, initRouter } =
+    vi.resetModules();
+    const { adminPath } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/app/dashboard');
     expect(adminPath('posts')).toBe('/app/dashboard/posts');
   });
 });
 
+/*
 //////////////////////////////
 // Root basePath (/) — interception and parsing
 //////////////////////////////
+*/
 
 describe('initRouter with root basePath (/)', () => {
   afterEach(() => {
@@ -203,26 +232,31 @@ describe('initRouter with root basePath (/)', () => {
   });
 
   it('parses home route for /', async () => {
+    mockBasePath.mockReturnValue('/');
     vi.stubGlobal('location', { pathname: '/' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/');
+    initRouter();
     expect(nav.route).toEqual({ view: 'home' });
   });
 
   it('parses collection route for /authors', async () => {
+    mockBasePath.mockReturnValue('/');
     vi.stubGlobal('location', { pathname: '/authors' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/');
+    initRouter();
     expect(nav.route).toEqual({ view: 'collection', collection: 'authors' });
   });
 
   it('intercepts navigations under root basePath', async () => {
+    mockBasePath.mockReturnValue('/');
     const navStub = makeNavigationStub();
     vi.stubGlobal('location', { pathname: '/' });
     vi.stubGlobal('navigation', navStub);
@@ -230,9 +264,10 @@ describe('initRouter with root basePath (/)', () => {
       addEventListener: vi.fn(),
       confirm: vi.fn(() => true),
     });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/');
+    initRouter();
 
     const event = makeFakeNavigateEvent('http://localhost/authors');
     navStub.fire(event);
@@ -242,19 +277,22 @@ describe('initRouter with root basePath (/)', () => {
   });
 
   it('adminPath returns / when basePath is root and no segments given', async () => {
+    mockBasePath.mockReturnValue('/');
     vi.stubGlobal('location', { pathname: '/' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
-    const { initRouter, adminPath } =
+    vi.resetModules();
+    const { adminPath } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/');
     expect(adminPath()).toBe('/');
   });
 });
 
+/*
 //////////////////////////////
 // Custom basePath route parsing
 //////////////////////////////
+*/
 
 describe('initRouter with custom basePath', () => {
   afterEach(() => {
@@ -263,32 +301,38 @@ describe('initRouter with custom basePath', () => {
   });
 
   it('parses home route with custom basePath', async () => {
+    mockBasePath.mockReturnValue('/cms');
     vi.stubGlobal('location', { pathname: '/cms' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/cms');
+    initRouter();
     expect(nav.route).toEqual({ view: 'home' });
   });
 
   it('parses collection route with custom basePath', async () => {
+    mockBasePath.mockReturnValue('/cms');
     vi.stubGlobal('location', { pathname: '/cms/posts' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/cms');
+    initRouter();
     expect(nav.route).toEqual({ view: 'collection', collection: 'posts' });
   });
 
   it('parses file route with custom basePath', async () => {
+    mockBasePath.mockReturnValue('/cms');
     vi.stubGlobal('location', { pathname: '/cms/posts/hello-world' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/cms');
+    initRouter();
     expect(nav.route).toEqual({
       view: 'file',
       collection: 'posts',
@@ -297,12 +341,14 @@ describe('initRouter with custom basePath', () => {
   });
 
   it('parses draft route with custom basePath', async () => {
+    mockBasePath.mockReturnValue('/cms');
     vi.stubGlobal('location', { pathname: '/cms/posts/draft-abc123' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/cms');
+    initRouter();
     expect(nav.route).toEqual({
       view: 'draft',
       collection: 'posts',
@@ -311,6 +357,7 @@ describe('initRouter with custom basePath', () => {
   });
 
   it('intercepts navigations under custom basePath', async () => {
+    mockBasePath.mockReturnValue('/cms');
     const navStub = makeNavigationStub();
     vi.stubGlobal('location', { pathname: '/cms' });
     vi.stubGlobal('navigation', navStub);
@@ -318,9 +365,10 @@ describe('initRouter with custom basePath', () => {
       addEventListener: vi.fn(),
       confirm: vi.fn(() => true),
     });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/cms');
+    initRouter();
 
     const event = makeFakeNavigateEvent('http://localhost/cms/posts');
     navStub.fire(event);
@@ -330,13 +378,15 @@ describe('initRouter with custom basePath', () => {
   });
 
   it('does not intercept navigations outside custom basePath', async () => {
+    mockBasePath.mockReturnValue('/cms');
     const navStub = makeNavigationStub();
     vi.stubGlobal('location', { pathname: '/cms' });
     vi.stubGlobal('navigation', navStub);
     vi.stubGlobal('window', { addEventListener: vi.fn() });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/cms');
+    initRouter();
 
     const event = makeFakeNavigateEvent('http://localhost/admin/posts');
     navStub.fire(event);
@@ -345,19 +395,23 @@ describe('initRouter with custom basePath', () => {
   });
 
   it('handles nested basePath like /app/dashboard', async () => {
+    mockBasePath.mockReturnValue('/app/dashboard');
     vi.stubGlobal('location', { pathname: '/app/dashboard/posts' });
     vi.stubGlobal('navigation', makeNavigationStub());
     vi.stubGlobal('window', { addEventListener: vi.fn() });
+    vi.resetModules();
     const { initRouter, nav } =
       await import('../../../../src/client/js/state/router.svelte');
-    initRouter('/app/dashboard');
+    initRouter();
     expect(nav.route).toEqual({ view: 'collection', collection: 'posts' });
   });
 });
 
+/*
 //////////////////////////////
 // navigate()
 //////////////////////////////
+*/
 
 describe('navigate()', () => {
   afterEach(() => {
@@ -376,9 +430,11 @@ describe('navigate()', () => {
   });
 });
 
+/*
 //////////////////////////////
 // initRouter — Navigation API listener registration
 //////////////////////////////
+*/
 
 describe('initRouter — navigate listener', () => {
   afterEach(() => {
@@ -455,9 +511,11 @@ describe('initRouter — navigate listener', () => {
   });
 });
 
+/*
 //////////////////////////////
 // initRouter — idempotence
 //////////////////////////////
+*/
 
 describe('initRouter — idempotent registration', () => {
   afterEach(() => {
@@ -485,9 +543,11 @@ describe('initRouter — idempotent registration', () => {
   });
 });
 
+/*
 //////////////////////////////
 // registerDirtyChecker — navigation interception
 //////////////////////////////
+*/
 
 describe('registerDirtyChecker', () => {
   afterEach(() => {

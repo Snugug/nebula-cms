@@ -6,9 +6,11 @@ import {
   configureDraftOpen,
 } from './helpers/test-app';
 
+/*
 //////////////////////////////
 // Hoisted mocks
 //////////////////////////////
+*/
 
 const mocks = vi.hoisted(() => ({
   mockBackendReady: vi.fn(() => false),
@@ -38,15 +40,20 @@ const dialogState = vi.hoisted(() => ({
   active: null as string | null,
 }));
 
+/*
 //////////////////////////////
 // Module mocks
 //////////////////////////////
+*/
 
-vi.mock('virtual:collections', () => ({
+vi.mock('virtual:nebula/collections', () => ({
   default: {
     pages: '/collections/pages.schema.json',
     posts: '/collections/posts.schema.json',
   },
+}));
+vi.mock('virtual:nebula/config', () => ({
+  default: { basePath: '/admin', collectionsPath: '/collections' },
 }));
 vi.mock('../../src/client/js/state/state.svelte', () => ({
   backend: {

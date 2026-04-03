@@ -3,5 +3,5 @@ import svelte from '@astrojs/svelte';
 import nebulaCMS from 'nebula-cms';
 
 export default defineConfig({
-  integrations: [svelte(), nebulaCMS()],
+  integrations: [svelte(), nebulaCMS({ basePath: '/nebula' })],
 });

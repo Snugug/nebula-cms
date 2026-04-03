@@ -92,28 +92,37 @@ export default defineConfig({
         plugins: [
           svelte(),
           stubIconsCSS(),
-          // Stub plugin that resolves virtual:collections for the browser test
-          // environment. The real virtual:collections plugin is injected by the
-          // Astro integration, which is not running during Vitest browser tests.
-          // It is mocked in tests, but Vite's dependency scanner runs before
-          // mocks are applied and would fail without a resolver.
+          /*
+           * Stub plugin that resolves virtual:nebula/* for the browser test
+           * environment. The real virtual:nebula/* plugins are injected by the
+           * Astro integration, which is not running during Vitest browser tests.
+           * They are mocked in tests, but Vite's dependency scanner runs before
+           * mocks are applied and would fail without a resolver.
+           */
           {
             name: 'stub-virtual-modules',
             /**
-             * Resolves virtual:collections to an internal stub so Vite's dependency scanner doesn't fail before mocks apply.
+             * Resolves virtual:nebula/* to internal stubs so Vite's dependency scanner doesn't fail before mocks apply.
              * @param {string} id - The module specifier to resolve
              * @return {string | undefined} The resolved internal ID, or undefined to skip
              */
             resolveId(id: string) {
-              if (id === 'virtual:collections') return '\0virtual:collections';
+              if (id === 'virtual:nebula/collections')
+                return '\0virtual:nebula/collections';
+              if (id === 'virtual:nebula/config')
+                return '\0virtual:nebula/config';
             },
             /**
-             * Provides stub module source for virtual:collections.
+             * Provides stub module source for virtual:nebula/* modules.
              * @param {string} id - The internal module ID to load
              * @return {string | undefined} The module source code, or undefined to skip
              */
             load(id: string) {
-              if (id === '\0virtual:collections') return 'export default {};';
+              if (id === '\0virtual:nebula/collections')
+                return 'export default {};';
+              if (id === '\0virtual:nebula/config') {
+                return 'export default { basePath: "/admin", collectionsPath: "/collections" };';
+              }
             },
           },
         ],

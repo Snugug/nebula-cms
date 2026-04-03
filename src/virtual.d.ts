@@ -1,8 +1,22 @@
-/**
- * Ambient type declaration for the `virtual:collections` virtual module injected by the nebula-cms Vite plugin at build time. Consumers reference this via `/// <reference types="nebula-cms/virtual" />` in their env.d.ts.
+/*
+ * Ambient type declarations for virtual modules injected by the nebula-cms
+ * Vite plugin. Consumers reference these via `/// <reference types="nebula-cms/virtual" />`
+ * in their env.d.ts.
  */
-declare module 'virtual:collections' {
-  // Map of collection names to their `/<collectionsPath>/<name>.schema.json` public URLs (collectionsPath defaults to "collections")
+declare module 'virtual:nebula/config' {
+  /*
+   * CMS configuration: basePath is the URL prefix for the admin SPA,
+   * collectionsPath is the URL prefix for schema files.
+   */
+  const config: {
+    basePath: string;
+    collectionsPath: string;
+  };
+  export default config;
+}
+
+declare module 'virtual:nebula/collections' {
+  // Map of collection names to their schema.json public URLs
   const collections: Record<string, string>;
   export default collections;
 }

@@ -1,4 +1,9 @@
-import schemas from 'virtual:collections';
+/*
+ * Reactive schema state for the admin SPA.
+ * Fetches, caches, and exposes JSON Schemas for content collections.
+ */
+
+import schemas from 'virtual:nebula/collections';
 import { getExtensionsForSchema } from '../utils/file-types';
 
 // JSON Schema object type.
