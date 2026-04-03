@@ -105,6 +105,21 @@ describe('NebulaCMS integration object', () => {
       'Invalid collectionsPath',
     );
   });
+
+  it('accepts root basePath /', () => {
+    const integration = NebulaCMS({ basePath: '/' });
+    expect(integration.name).toBe('nebula-cms');
+  });
+
+  it('collapses consecutive slashes in basePath', () => {
+    // '/admin//' is normalized to '/admin' via URL API
+    const integration = NebulaCMS({ basePath: '/admin//' });
+    expect(integration.name).toBe('nebula-cms');
+  });
+
+  it('throws on empty basePath', () => {
+    expect(() => NebulaCMS({ basePath: '' })).toThrow('Invalid basePath ""');
+  });
 });
 
 /*
@@ -222,7 +237,7 @@ describe('nebulaVitePlugin configureServer', () => {
    * @param {Function} handler - The middleware handler
    * @param {string} url - The request URL
    * @param {string} accept - The Accept header value
-   * @return {{ rewritten: boolean, url: string }}
+   * @return {{ rewritten: boolean, url: string, nextCalled: boolean }}
    */
   function callRewriteMiddleware(
     handler: Function,

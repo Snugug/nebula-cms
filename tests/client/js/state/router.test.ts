@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+/*
 //////////////////////////////
 // Router module test strategy
 //
@@ -10,6 +11,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // fresh module instance. Globals (location, navigation, window) are stubbed
 // before each dynamic import so the module picks them up on load.
 //////////////////////////////
+*/
 
 // Hoisted mock for the virtual config module — lets tests override basePath
 const { mockBasePath } = vi.hoisted(() => ({
@@ -29,7 +31,7 @@ afterEach(() => {
   mockBasePath.mockReturnValue('/admin');
 });
 
-/** Minimal NavigateEvent shape used by the navigate listener. */
+// Minimal NavigateEvent shape used by the navigate listener.
 interface FakeNavigateEvent {
   destination: { url: string };
   hashChange: boolean;
@@ -82,7 +84,7 @@ function makeNavigationStub() {
       },
     ),
     navigate: vi.fn(),
-    /** Fires the navigate event on all registered listeners. */
+    // Fires the navigate event on all registered listeners.
     fire(event: FakeNavigateEvent) {
       for (const l of listeners) l(event);
     },
@@ -90,9 +92,11 @@ function makeNavigationStub() {
   return stub;
 }
 
+/*
 //////////////////////////////
 // Route parsing via route export
 //////////////////////////////
+*/
 
 describe('route — initial route parsing', () => {
   afterEach(() => {
@@ -149,9 +153,11 @@ describe('route — initial route parsing', () => {
   });
 });
 
+/*
 //////////////////////////////
 // adminPath()
 //////////////////////////////
+*/
 
 describe('adminPath', () => {
   afterEach(() => {
@@ -213,9 +219,11 @@ describe('adminPath', () => {
   });
 });
 
+/*
 //////////////////////////////
 // Root basePath (/) — interception and parsing
 //////////////////////////////
+*/
 
 describe('initRouter with root basePath (/)', () => {
   afterEach(() => {
@@ -280,9 +288,11 @@ describe('initRouter with root basePath (/)', () => {
   });
 });
 
+/*
 //////////////////////////////
 // Custom basePath route parsing
 //////////////////////////////
+*/
 
 describe('initRouter with custom basePath', () => {
   afterEach(() => {
@@ -397,9 +407,11 @@ describe('initRouter with custom basePath', () => {
   });
 });
 
+/*
 //////////////////////////////
 // navigate()
 //////////////////////////////
+*/
 
 describe('navigate()', () => {
   afterEach(() => {
@@ -418,9 +430,11 @@ describe('navigate()', () => {
   });
 });
 
+/*
 //////////////////////////////
 // initRouter — Navigation API listener registration
 //////////////////////////////
+*/
 
 describe('initRouter — navigate listener', () => {
   afterEach(() => {
@@ -497,9 +511,11 @@ describe('initRouter — navigate listener', () => {
   });
 });
 
+/*
 //////////////////////////////
 // initRouter — idempotence
 //////////////////////////////
+*/
 
 describe('initRouter — idempotent registration', () => {
   afterEach(() => {
@@ -527,9 +543,11 @@ describe('initRouter — idempotent registration', () => {
   });
 });
 
+/*
 //////////////////////////////
 // registerDirtyChecker — navigation interception
 //////////////////////////////
+*/
 
 describe('registerDirtyChecker', () => {
   afterEach(() => {

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+/*
 //////////////////////////////
 // virtual:nebula/collections mock
 // The schema module fetches URLs stored in this map. We stub both the
 // import and the global fetch so no real network requests are made.
 //////////////////////////////
+*/
 
 vi.mock('virtual:nebula/collections', () => ({
   default: {
@@ -23,9 +25,11 @@ import {
   getCollectionDescription,
 } from '../../../../src/client/js/state/schema.svelte';
 
+/*
 //////////////////////////////
 // Mock schema fixtures
 //////////////////////////////
+*/
 
 /** Posts schema — includes a date-time field for date-sort testing and root-level title/description. */
 const POSTS_SCHEMA = {
@@ -65,9 +69,11 @@ function makeFetchMock() {
   });
 }
 
+/*
 //////////////////////////////
 // schema / clearSchema
 //////////////////////////////
+*/
 
 describe('schema', () => {
   beforeEach(() => {
@@ -92,9 +98,11 @@ describe('clearSchema', () => {
   });
 });
 
+/*
 //////////////////////////////
 // fetchSchema
 //////////////////////////////
+*/
 
 describe('fetchSchema', () => {
   beforeEach(() => {
@@ -133,9 +141,11 @@ describe('fetchSchema', () => {
   });
 });
 
+/*
 //////////////////////////////
 // prefetchAllSchemas
 //////////////////////////////
+*/
 
 describe('prefetchAllSchemas', () => {
   beforeEach(() => {
@@ -168,9 +178,11 @@ describe('prefetchAllSchemas', () => {
   });
 });
 
+/*
 //////////////////////////////
 // collectionHasDates
 //////////////////////////////
+*/
 
 describe('collectionHasDates', () => {
   beforeEach(() => {
@@ -199,9 +211,11 @@ describe('collectionHasDates', () => {
   });
 });
 
+/*
 //////////////////////////////
 // getCollectionTitle
 //////////////////////////////
+*/
 
 describe('getCollectionTitle', () => {
   beforeEach(() => {
@@ -223,9 +237,11 @@ describe('getCollectionTitle', () => {
   });
 });
 
+/*
 //////////////////////////////
 // getCollectionDescription
 //////////////////////////////
+*/
 
 describe('getCollectionDescription', () => {
   beforeEach(() => {
