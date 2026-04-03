@@ -1,7 +1,8 @@
 /*
  * Astro integration entry point for Nebula CMS.
- * Exposes content collection JSON schemas to client-side JavaScript via a
- * virtual module, dev middleware, and build-time file copy.
+ * Exposes content collection JSON schemas and CMS configuration to
+ * client-side JavaScript via virtual modules, dev middleware, and
+ * build-time file copy.
  */
 
 import {
@@ -16,13 +17,29 @@ import { fileURLToPath } from 'node:url';
 import type { AstroIntegration, AstroIntegrationLogger } from 'astro';
 import type { NebulaCMSConfig } from '../types.js';
 
-// Vite virtual module ID for collection schema paths
-const VIRTUAL_ID = 'virtual:collections';
-// Vite convention: resolved virtual IDs are prefixed with \0
-const RESOLVED_ID = '\0' + VIRTUAL_ID;
+// Vite virtual module IDs
+const CONFIG_VIRTUAL_ID = 'virtual:nebula/config';
+const CONFIG_RESOLVED_ID = '\0' + CONFIG_VIRTUAL_ID;
+const COLLECTIONS_VIRTUAL_ID = 'virtual:nebula/collections';
+const COLLECTIONS_RESOLVED_ID = '\0' + COLLECTIONS_VIRTUAL_ID;
 
-// Bare path segment: no slashes, no .., no absolute paths, no empty string
-const VALID_PATH_SEGMENT = /^[a-zA-Z0-9_-]+$/;
+// Absolute path: leading slash, alphanumeric segments separated by slashes
+const VALID_ABSOLUTE_PATH = /^\/[a-zA-Z0-9_\-/]+$/;
+
+/**
+ * Normalizes a path config value to an absolute path.
+ * Prepends `/` if missing, strips trailing `/`.
+ * @param {string} value - The raw config value
+ * @return {string} The normalized absolute path
+ */
+function normalizePath(value: string): string {
+  let normalized = value;
+  if (!normalized.startsWith('/')) normalized = '/' + normalized;
+  if (normalized.endsWith('/') && normalized.length > 1) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
+}
 
 /**
  * Astro integration that exposes content collection JSON schemas to client-side JavaScript via a virtual module, dev middleware, and build-time file copy.
@@ -32,13 +49,25 @@ const VALID_PATH_SEGMENT = /^[a-zA-Z0-9_-]+$/;
 export default function NebulaCMS(
   config: NebulaCMSConfig = {},
 ): AstroIntegration {
-  const collectionsPath = config.collectionsPath ?? 'collections';
+  const basePath = normalizePath(config.basePath ?? '/admin');
+  const collectionsPath = normalizePath(
+    config.collectionsPath ?? '/collections',
+  );
 
-  if (!VALID_PATH_SEGMENT.test(collectionsPath)) {
+  if (!VALID_ABSOLUTE_PATH.test(basePath)) {
     throw new Error(
-      `Invalid collectionsPath "${collectionsPath}". Must be a bare path segment (letters, numbers, hyphens, underscores).`,
+      `Invalid basePath "${config.basePath}". Must be an absolute path with alphanumeric segments.`,
     );
   }
+
+  if (!VALID_ABSOLUTE_PATH.test(collectionsPath)) {
+    throw new Error(
+      `Invalid collectionsPath "${config.collectionsPath}". Must be an absolute path with alphanumeric segments.`,
+    );
+  }
+
+  // Normalized config passed to the Vite plugin
+  const normalizedConfig = { basePath, collectionsPath };
 
   return {
     name: 'nebula-cms',
@@ -47,7 +76,7 @@ export default function NebulaCMS(
         updateConfig({
           vite: {
             plugins: [
-              collectionsVitePlugin(logger, process.cwd(), collectionsPath),
+              nebulaVitePlugin(logger, process.cwd(), normalizedConfig),
             ],
             /*
              * Workers use dynamic imports (e.g. storage worker lazy-loads
@@ -77,7 +106,8 @@ export default function NebulaCMS(
           return;
         }
         const outDir = fileURLToPath(dir);
-        const target = resolve(outDir, collectionsPath);
+        // Strip leading slash for filesystem path resolution
+        const target = resolve(outDir, collectionsPath.slice(1));
         mkdirSync(target, { recursive: true });
         const files = readdirSync(source).filter((f) =>
           f.endsWith('.schema.json'),
@@ -90,18 +120,24 @@ export default function NebulaCMS(
   };
 }
 
+// Normalized config shape used internally by the Vite plugin
+interface NormalizedConfig {
+  basePath: string;
+  collectionsPath: string;
+}
+
 /**
- * Vite plugin that serves collection schemas in dev and resolves the virtual module.
+ * Vite plugin that serves collection schemas and CMS config via virtual modules.
  * @internal Not part of the public API — exported for testing only
  * @param {AstroIntegrationLogger} logger - Astro integration logger for warnings
- * @param {string} root - Project root directory, defaults to process.cwd()
- * @param {string} collectionsPath - URL path segment for schema files, defaults to 'collections'
+ * @param {string} root - Project root directory
+ * @param {NormalizedConfig} config - Normalized CMS configuration
  * @return {object} A Vite plugin object with configureServer, resolveId, and load hooks
  */
-export function collectionsVitePlugin(
+export function nebulaVitePlugin(
   logger: AstroIntegrationLogger,
-  root: string = process.cwd(),
-  collectionsPath: string = 'collections',
+  root: string,
+  config: NormalizedConfig,
 ) {
   return {
     name: 'vite-plugin-nebula-cms',
@@ -112,8 +148,10 @@ export function collectionsVitePlugin(
      * @return {void}
      */
     configureServer(server: { middlewares: { use: Function } }) {
-      const prefix = '/' + collectionsPath + '/';
+      const prefix = config.collectionsPath + '/';
       const collectionsDir = resolve(root, '.astro/collections');
+
+      // Serve collection schema JSON files
       server.middlewares.use(
         (
           req: { url?: string },
@@ -134,31 +172,61 @@ export function collectionsVitePlugin(
           res.end(readFileSync(filePath, 'utf-8'));
         },
       );
+
+      // SPA fallback: rewrite HTML requests under basePath to basePath
+      server.middlewares.use(
+        (
+          req: { url?: string; headers?: Record<string, string | undefined> },
+          _res: unknown,
+          next: Function,
+        ) => {
+          const url = req.url ?? '';
+          const accept = req.headers?.accept ?? '';
+
+          // Only rewrite document requests
+          if (!accept.includes('text/html')) return next();
+
+          // Check segment boundary: /admin/foo rewrites, /administrator does not
+          const isSubPath =
+            url !== config.basePath && url.startsWith(config.basePath + '/');
+
+          if (isSubPath) {
+            req.url = config.basePath;
+          }
+
+          return next();
+        },
+      );
     },
 
     /**
-     * Resolves the virtual:collections import to a Vite-internal ID.
+     * Resolves virtual:nebula/* imports to Vite-internal IDs.
      * @param {string} id - The module ID being resolved
      * @return {string | undefined} The resolved internal ID, or undefined if not handled
      */
     resolveId(id: string) {
-      if (id === VIRTUAL_ID) return RESOLVED_ID;
+      if (id === CONFIG_VIRTUAL_ID) return CONFIG_RESOLVED_ID;
+      if (id === COLLECTIONS_VIRTUAL_ID) return COLLECTIONS_RESOLVED_ID;
     },
 
     /**
-     * Generates the virtual module by reading .astro/collections/ and mapping collection names to schema fetch URLs.
+     * Generates virtual module source code for config and collections.
      * @param {string} id - The resolved module ID to load
      * @return {string | undefined} Generated module source code, or undefined if not handled
      */
     load(id: string) {
-      if (id !== RESOLVED_ID) return;
+      if (id === CONFIG_RESOLVED_ID) {
+        return [`export default ${JSON.stringify(config)};`].join('\n');
+      }
+
+      if (id !== COLLECTIONS_RESOLVED_ID) return;
 
       const collectionsDir = resolve(root, '.astro/collections');
 
       // Guard: return empty object if directory doesn't exist
       if (!existsSync(collectionsDir)) {
         logger.warn(
-          '`.astro/collections` not found — virtual:collections will be empty.',
+          '`.astro/collections` not found — virtual:nebula/collections will be empty.',
         );
         return 'export default {};';
       }
@@ -169,7 +237,7 @@ export function collectionsVitePlugin(
 
       const entries = files.map((f) => {
         const name = f.replace('.schema.json', '');
-        return `  ${JSON.stringify(name)}: ${JSON.stringify('/' + collectionsPath + '/' + f)}`;
+        return `  ${JSON.stringify(name)}: ${JSON.stringify(config.collectionsPath + '/' + f)}`;
       });
 
       return `export default {\n${entries.join(',\n')}\n};`;
