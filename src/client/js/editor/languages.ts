@@ -82,8 +82,10 @@ export function getLanguageExtension(fileType: string): Extension {
   let ext = cache.get(fileType);
   if (ext) return ext;
 
-  // All body formats currently use the same markdown parser.
-  // When MDX/Markdoc-specific parsers are built, add branches here.
+  /*
+   * All body formats currently use the same markdown parser.
+   * When MDX/Markdoc-specific parsers are built, add branches here.
+   */
   ext = [
     markdown({
       base: markdownLanguage,
