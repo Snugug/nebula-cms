@@ -33,7 +33,7 @@
     buildActiveFileHref,
   } from './js/handlers/admin';
   import { dialog } from './js/state/dialogs.svelte';
-  import { stripExtension, getTypeForFilename } from './js/utils/file-types';
+  import { stripExtension } from './js/utils/file-types';
   import { initTheme, theme } from './js/state/theme.svelte';
   import './css/reset.css';
   import './css/icons.css';
@@ -104,15 +104,6 @@
     Array.isArray(schema.active?.['files'])
       ? (schema.active['files'] as string[])
       : [],
-  );
-
-  // The type identifier of the currently open file (e.g. 'md', 'mdx')
-  const activeFileType = $derived(
-    getEditorFile()?.filename
-      ? (getTypeForFilename(getEditorFile()!.filename) ??
-          schemaFileTypes[0] ??
-          '')
-      : (schemaFileTypes[0] ?? ''),
   );
 
   // Sync the resolved theme to :root so top-layer elements (dialogs) inherit the tokens
@@ -237,10 +228,7 @@
         <EditorTabs schema={schema.active} />
         <div class="editor-content">
           {#if editor.tab === 'body'}
-            <EditorPane
-              fileTypes={schemaFileTypes}
-              activeType={activeFileType}
-            />
+            <EditorPane />
           {:else if schema.active}
             <MetadataForm
               schema={schema.active}

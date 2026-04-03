@@ -64,21 +64,31 @@ const editorHighlight = HighlightStyle.define([
   { tag: t.meta, color: 'var(--cms-muted)' },
 ]);
 
+// Cached extensions per file type — avoids re-creating parser instances and
+// lets CodeMirror short-circuit its extension diff via reference equality.
+const cache = new Map<string, Extension>();
+
 /**
  * Returns the composed language extension (parser + syntax highlighting)
- * for a given file type. Today all body formats return the same markdown
+ * for a given file type. Results are cached per type so repeated calls
+ * return the same reference. Today all body formats use the same markdown
  * extension — individual entries can diverge when custom parsers are added.
  * @param {string} fileType - Type identifier from the file type registry (e.g. 'md', 'mdx', 'markdoc')
  * @return {Extension} The composed CodeMirror language extension
  */
 export function getLanguageExtension(fileType: string): Extension {
+  let ext = cache.get(fileType);
+  if (ext) return ext;
+
   // All body formats currently use the same markdown parser.
   // When MDX/Markdoc-specific parsers are built, add branches here.
-  return [
+  ext = [
     markdown({
       base: markdownLanguage,
       codeLanguages: languages,
     }),
     syntaxHighlighting(editorHighlight),
   ];
+  cache.set(fileType, ext);
+  return ext;
 }

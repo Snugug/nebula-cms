@@ -21,16 +21,6 @@
   } from '../../js/editor/markdown-shortcuts';
   import EditorBodyToolbar from './EditorBodyToolbar.svelte';
 
-  // Props passed from Admin.svelte for the format selector toolbar
-  interface Props {
-    // Type identifiers from the schema's files array (e.g. ['md', 'mdx'])
-    fileTypes: string[];
-    // Currently selected type identifier
-    activeType: string;
-  }
-
-  let { fileTypes, activeType }: Props = $props();
-
   // Container element for CodeMirror
   let container: HTMLDivElement;
   // The CodeMirror EditorView instance
@@ -126,23 +116,28 @@
 
     // Use slug (without extension) so format changes don't trigger a rebuild
     const fileKey = file.draftId ?? stripExtension(file.filename);
-    const fileType = getTypeForFilename(file.filename) ?? 'md';
-
-    const newState = EditorState.create({
-      doc: file.body,
-      extensions: createExtensions(fileType),
-    });
 
     if (!view && container) {
       // First mount — create the editor
+      const fileType = getTypeForFilename(file.filename) ?? 'md';
       lastFileKey = fileKey;
       lastLangType = fileType;
-      view = new EditorView({ state: newState, parent: container });
+      const state = EditorState.create({
+        doc: file.body,
+        extensions: createExtensions(fileType),
+      });
+      view = new EditorView({ state, parent: container });
     } else if (view && fileKey !== lastFileKey) {
       // Different file selected — replace document
+      const fileType = getTypeForFilename(file.filename) ?? 'md';
       lastFileKey = fileKey;
       lastLangType = fileType;
-      view.setState(newState);
+      view.setState(
+        EditorState.create({
+          doc: file.body,
+          extensions: createExtensions(fileType),
+        }),
+      );
     }
   });
 
@@ -171,7 +166,7 @@
 
 <div class="editor-wrapper">
   <div class="editor-box">
-    <EditorBodyToolbar {fileTypes} {activeType} />
+    <EditorBodyToolbar />
     <div class="editor-pane" bind:this={container}></div>
   </div>
 </div>

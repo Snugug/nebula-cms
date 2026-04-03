@@ -24,6 +24,12 @@ const { mockGetEditorFile } = vi.hoisted(() => ({
 vi.mock('../../../../src/client/js/editor/editor.svelte', () => ({
   getEditorFile: mockGetEditorFile,
   updateBody: vi.fn(),
+  changeFileFormat: vi.fn(),
+}));
+
+// FormatSelector imports schema.svelte which depends on virtual:collections
+vi.mock('../../../../src/client/js/state/schema.svelte', () => ({
+  schema: { active: null },
 }));
 
 // Prevent accumulated renders from bleeding between tests
@@ -72,9 +78,7 @@ describe('EditorPane', () => {
   it('mounts without error when no file is open', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    expect(() =>
-      render(EditorPane, { props: { fileTypes: ['md'], activeType: 'md' } }),
-    ).not.toThrow();
+    expect(() => render(EditorPane, { props: {} })).not.toThrow();
   });
 
   it('mounts without error when a file with body is open', () => {
@@ -82,9 +86,7 @@ describe('EditorPane', () => {
       makeEditorFile({ body: '# Hello', filename: 'post.md' }),
     );
 
-    expect(() =>
-      render(EditorPane, { props: { fileTypes: ['md'], activeType: 'md' } }),
-    ).not.toThrow();
+    expect(() => render(EditorPane, { props: {} })).not.toThrow();
   });
 
   it('mounts without error when body is not yet loaded', () => {
@@ -92,17 +94,13 @@ describe('EditorPane', () => {
       makeEditorFile({ bodyLoaded: false, filename: 'post.md' }),
     );
 
-    expect(() =>
-      render(EditorPane, { props: { fileTypes: ['md'], activeType: 'md' } }),
-    ).not.toThrow();
+    expect(() => render(EditorPane, { props: {} })).not.toThrow();
   });
 
   it('unmounts without error', () => {
     mockGetEditorFile.mockReturnValue(null);
 
-    const { unmount } = render(EditorPane, {
-      props: { fileTypes: ['md'], activeType: 'md' },
-    });
+    const { unmount } = render(EditorPane, { props: {} });
     expect(() => unmount()).not.toThrow();
   });
 });

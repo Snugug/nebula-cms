@@ -4,20 +4,10 @@
    * Hosts the FormatSelector and will hold future editor controls (bold, italic, link, etc.).
    */
   import FormatSelector from './FormatSelector.svelte';
-
-  // Props for the toolbar above the CodeMirror editor
-  interface Props {
-    // Type identifiers from the schema's files array (e.g. ['md', 'mdx'])
-    fileTypes: string[];
-    // Currently selected type identifier
-    activeType: string;
-  }
-
-  let { fileTypes, activeType }: Props = $props();
 </script>
 
 <div class="editor-body-toolbar">
-  <FormatSelector {fileTypes} {activeType} />
+  <FormatSelector />
 </div>
 
 <style>

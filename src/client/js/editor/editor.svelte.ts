@@ -100,10 +100,7 @@ export function applyEditorState(c: EditorStateConfig, open: boolean): void {
   draftCreatedAt = c.draftCreatedAt;
 }
 
-/*
- * Tracks whether formData has diverged from its saved snapshot.
- * Updated only by updateFormField to avoid re-serializing on every body keystroke.
- */
+// Whether formData has diverged — avoids re-serializing on every body keystroke
 let formDataDirty = false;
 /**
  * Recomputes dirty state from body comparison and the cached formData flag.
@@ -204,9 +201,7 @@ export async function preloadFile(
   itemFilename: string,
   data: Record<string, unknown>,
 ): Promise<void> {
-  // Compare slugs (without extension) so a format change doesn't trigger a full reload.
-  // changeFileFormat swaps the extension, which changes `filename` from e.g. 'intro.md'
-  // to 'intro.mdx' — but the underlying file is the same and shouldn't be re-preloaded.
+  // Compare slugs so a format change (e.g. .md → .mdx) doesn't trigger a full reload
   if (stripExtension(filename) === stripExtension(itemFilename) && fileOpen)
     return;
 
@@ -344,10 +339,7 @@ export function clearEditor(): void {
   );
 }
 
-/*
- * Re-export draft operations so existing import paths keep working.
- * The canonical source is editor-draft-ops.svelte.ts.
- */
+// Re-export draft operations so existing import paths keep working
 export {
   saveDraftToIDB,
   saveFile,
