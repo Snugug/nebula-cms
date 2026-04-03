@@ -204,9 +204,16 @@ export function nebulaVitePlugin(
           try {
             res.setHeader('Content-Type', 'application/json');
             res.end(readFileSync(filePath, 'utf-8'));
-          } catch {
-            // File may have been deleted between check and read (TOCTOU)
-            return next();
+          } catch (err: unknown) {
+            // File not found — fall through to Vite's default handler
+            if (
+              err instanceof Error &&
+              (err as NodeJS.ErrnoException).code === 'ENOENT'
+            ) {
+              return next();
+            }
+            // Re-throw permission errors, I/O errors, etc. so they surface
+            throw err;
           }
         },
       );
@@ -239,7 +246,10 @@ export function nebulaVitePlugin(
                 pathname.startsWith(config.basePath + '/');
 
           if (isSubPath) {
-            req.url = config.basePath;
+            // Preserve query string for deep-linking and OAuth callbacks
+            const qsIndex = rawURL.indexOf('?');
+            req.url =
+              config.basePath + (qsIndex >= 0 ? rawURL.slice(qsIndex) : '');
           }
 
           return next();

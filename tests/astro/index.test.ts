@@ -461,7 +461,8 @@ describe('nebulaVitePlugin configureServer', () => {
       'text/html',
     );
     expect(result.rewritten).toBe(true);
-    expect(result.url).toBe('/admin');
+    // Query string preserved during rewrite
+    expect(result.url).toBe('/admin?draft=true');
   });
 
   it('rejects path traversal in schema requests', () => {
