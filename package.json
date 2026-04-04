@@ -55,6 +55,9 @@
     "svelte": "^5.0.0"
   },
   "author": "Sam Richard<sam@snug.ug>",
+  "files": [
+    "dist"
+  ],
   "license": "Apache-2.0",
   "packageManager": "pnpm@10.26.0",
   "devDependencies": {
