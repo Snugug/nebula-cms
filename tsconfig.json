@@ -13,7 +13,13 @@
     "sourceMap": true,
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["svelte", "vitest/globals"]
+    "types": [
+      "svelte",
+      "vitest/globals",
+      "dom-navigation",
+      "wicg-file-system-access",
+      "sharedworker"
+    ]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "playground", "tests"]

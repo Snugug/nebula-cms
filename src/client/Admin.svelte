@@ -113,25 +113,34 @@
   /*
    * Loads content for the file or draft view. Both branches gate on `backend.ready`
    * so they re-run when the directory handle is restored on page load.
+   * Route is captured as a const so TS can narrow the discriminated union
+   * through `view` checks — the getter re-access pattern defeats narrowing.
    */
   $effect(() => {
-    if (backend.ready && nav.route.view === 'file' && content.list.length > 0) {
+    const currentRoute = nav.route;
+    if (
+      backend.ready &&
+      currentRoute.view === 'file' &&
+      content.list.length > 0
+    ) {
       const item = content.list.find(
-        (i) => stripExtension(i.filename) === nav.route.slug,
+        (i) => stripExtension(i.filename) === currentRoute.slug,
       );
       if (!item) return;
 
       // preloadFile is async — it checks IDB for a draft first
-      preloadFile(nav.route.collection, item.filename, item.data).then(() => {
-        // If preloadFile loaded a draft (body already present), skip disk read
-        const editorFile = getEditorFile();
-        if (editorFile?.draftId) return;
+      preloadFile(currentRoute.collection, item.filename, item.data).then(
+        () => {
+          // If preloadFile loaded a draft (body already present), skip disk read
+          const editorFile = getEditorFile();
+          if (editorFile?.draftId) return;
 
-        loadFileBody(nav.route.collection, item.filename);
-      });
-    } else if (backend.ready && nav.route.view === 'draft') {
-      loadDraftById(nav.route.draftId, nav.route.collection);
-    } else if (nav.route.view !== 'file' && nav.route.view !== 'draft') {
+          loadFileBody(currentRoute.collection, item.filename);
+        },
+      );
+    } else if (backend.ready && currentRoute.view === 'draft') {
+      loadDraftById(currentRoute.draftId, currentRoute.collection);
+    } else if (currentRoute.view !== 'file' && currentRoute.view !== 'draft') {
       clearEditor();
     }
   });

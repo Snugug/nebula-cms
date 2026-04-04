@@ -150,7 +150,7 @@ export function initRouter(): void {
     }
 
     event.intercept({
-      handler() {
+      async handler() {
         route = parsePathname(url.pathname);
       },
     });

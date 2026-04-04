@@ -20,8 +20,7 @@
   // The dialog element ref for imperative showModal/close
   let dialogEl = $state<HTMLDialogElement | null>(null);
 
-  // The slug input value, initialized from slugified title
-  let slug = $state(slugify(title));
+  let slug = $derived(slugify(title));
 
   // Validation error message
   const error = $derived.by(() => {
