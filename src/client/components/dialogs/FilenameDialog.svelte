@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { slugify } from '../../js/utils/slug';
 
   /**
@@ -20,8 +21,12 @@
   // The dialog element ref for imperative showModal/close
   let dialogEl = $state<HTMLDialogElement | null>(null);
 
-  // The slug input value, initialized from slugified title
-  let slug = $state(slugify(title));
+  /*
+   * The slug input value, initialized from the title prop at mount time.
+   * untrack() reads the prop without establishing a reactive dependency,
+   * preventing the state_referenced_locally compiler warning.
+   */
+  let slug = $state(untrack(() => slugify(title)));
 
   // Validation error message
   const error = $derived.by(() => {

@@ -54,10 +54,8 @@
   // Search query for filtering items by label
   let searchQuery = $state('');
 
-  // Current sort mode, initialized from localStorage if storageKey is provided
-  let sortMode = $state<SortMode>(
-    storageKey ? readSortMode(storageKey) : 'alpha',
-  );
+  // Current sort mode — the $effect below sets the correct value reactively
+  let sortMode = $state<SortMode>('alpha');
 
   // Re-read sort mode when storageKey changes (switching collections)
   $effect(() => {
