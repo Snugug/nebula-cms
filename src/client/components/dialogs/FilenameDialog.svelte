@@ -21,11 +21,7 @@
   // The dialog element ref for imperative showModal/close
   let dialogEl = $state<HTMLDialogElement | null>(null);
 
-  /*
-   * The slug input value, initialized from the title prop at mount time.
-   * untrack() reads the prop without establishing a reactive dependency,
-   * preventing the state_referenced_locally compiler warning.
-   */
+  // The slug input value, seeded from the title prop once at mount time
   let slug = $state(untrack(() => slugify(title)));
 
   // Validation error message
