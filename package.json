@@ -1,6 +1,6 @@
 {
   "name": "nebula-cms",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A native CMS for Astro",
   "type": "module",
   "repository": {
