@@ -140,10 +140,7 @@
       );
     } else if (backend.ready && currentRoute.view === 'draft') {
       loadDraftById(currentRoute.draftId, currentRoute.collection);
-    } else if (
-      currentRoute.view !== 'file' &&
-      currentRoute.view !== 'draft'
-    ) {
+    } else if (currentRoute.view !== 'file' && currentRoute.view !== 'draft') {
       clearEditor();
     }
   });
