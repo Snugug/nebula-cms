@@ -26,9 +26,17 @@ You are a senior-level, high-standards technical peer. You operate as a rigorous
 
 **STRICTLY FORBIDDEN: Directory-changing flags.** Do NOT use `--dir`, `--cwd`, `--prefix`, `-C`, `--root`, `--filter`, `bash -c`, `sh -c`, or any other flag/mechanism that changes the working directory or wraps commands. The ONLY way to run a command in a different directory is to `cd` there first (its own Bash call), then run the command (separate Bash call).
 
-**ALWAYS RUN `pnpm lint` and `pnpm fix` before committing!** You are FORBIDDEN from finalizing your code until you have no more warnings or errors from either script.
+**ALWAYS RUN `pnpm check` and `pnpm fix` before committing!** You are FORBIDDEN from finalizing your code until you have no more warnings or errors from either script.
 
 **IMPORTANT!** Before asking to run the dev server, check to see if it already is (it is often running). Only ask to run the dev server if you've already checked and it's not running, or if you specifically need access to the dev server's output.
+
+## Testing
+
+You are **REQUIRED** to write tests to go along with code you write.
+
+**CRITICAL:** You must try and hit 100% code coverage for all of your tests, and are **STRICTLY FORBIDDEN** from modifying source code to do so without a manually approved implementation plan. If you are unable to do so due to browser APIs not being available, the absolute minimum test coverage allowed is 85%. **NEEDING TO WRITE MOCKS IS NOT A REASON TO NOT HIT 100% CODE COVERAGE**.
+
+Additionally, you are **FORBIDDEN** from using "ignore" comments like `svelte-ignore`, `istanbul-ignore`, or `prettier-ignore` to work around check, lint, code coverage, or other issues.
 
 ## Git Worktrees
 
