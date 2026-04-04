@@ -81,6 +81,9 @@ importers:
       svelte:
         specifier: ^5.54.1
         version: 5.54.1
+      svelte-check:
+        specifier: ^4.4.6
+        version: 4.4.6(picomatch@4.0.3)(svelte@5.54.1)(typescript@5.9.3)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1091,6 +1094,10 @@ packages:
   character-entities@2.0.2:
     resolution: {integrity: sha512-shx7oQ0Awen/BRIdkjkvz54PnEEI/EjwXDSIZp86/KKdbafHh1Df/RYGBhn4hbe2+uKC9FnT5UCEdyPz3ai9hQ==}
 
+  chokidar@4.0.3:
+    resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
+    engines: {node: '>= 14.16.0'}
+
   chokidar@5.0.0:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
     engines: {node: '>= 20.19.0'}
@@ -1718,6 +1725,10 @@ packages:
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
+  readdirp@4.1.2:
+    resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
+    engines: {node: '>= 14.18.0'}
+
   readdirp@5.0.0:
     resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
     engines: {node: '>= 20.19.0'}
@@ -1857,6 +1868,14 @@ packages:
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
+
+  svelte-check@4.4.6:
+    resolution: {integrity: sha512-kP1zG81EWaFe9ZyTv4ZXv44Csi6Pkdpb7S3oj6m+K2ec/IcDg/a8LsFsnVLqm2nxtkSwsd5xPj/qFkTBgXHXjg==}
+    engines: {node: '>= 18.0.0'}
+    hasBin: true
+    peerDependencies:
+      svelte: ^4.0.0 || ^5.0.0-next.0
+      typescript: '>=5.0.0'
 
   svelte2tsx@0.7.52:
     resolution: {integrity: sha512-svdT1FTrCLpvlU62evO5YdJt/kQ7nxgQxII/9BpQUvKr+GJRVdAXNVw8UWOt0fhoe5uWKyU0WsUTMRVAtRbMQg==}
@@ -3509,6 +3528,10 @@ snapshots:
 
   character-entities@2.0.2: {}
 
+  chokidar@4.0.3:
+    dependencies:
+      readdirp: 4.1.2
+
   chokidar@5.0.0:
     dependencies:
       readdirp: 5.0.0
@@ -4351,6 +4374,8 @@ snapshots:
 
   react-is@17.0.2: {}
 
+  readdirp@4.1.2: {}
+
   readdirp@5.0.0: {}
 
   regex-recursion@6.0.2:
@@ -4586,6 +4611,18 @@ snapshots:
   supports-color@7.2.0:
     dependencies:
       has-flag: 4.0.0
+
+  svelte-check@4.4.6(picomatch@4.0.3)(svelte@5.54.1)(typescript@5.9.3):
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      chokidar: 4.0.3
+      fdir: 6.5.0(picomatch@4.0.3)
+      picocolors: 1.1.1
+      sade: 1.8.1
+      svelte: 5.54.1
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - picomatch
 
   svelte2tsx@0.7.52(svelte@5.54.1)(typescript@5.9.3):
     dependencies:

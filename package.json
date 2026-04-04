@@ -29,6 +29,7 @@
     "prebuild": "node scripts/subset-icons.mjs",
     "build": "svelte-package --input src --output dist",
     "lint": "prettier -c .",
+    "check": "svelte-check",
     "fix": "prettier --write .",
     "test": "vitest run",
     "test:continuous": "vitest"
@@ -65,7 +66,6 @@
     "@sveltejs/package": "^2.5.7",
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@testing-library/svelte": "^5.3.1",
-    "vitest": "^4.1.2",
     "@vitest/browser": "^4.1.2",
     "@vitest/browser-playwright": "^4.1.2",
     "@vitest/coverage-v8": "^4.1.2",
@@ -77,6 +77,8 @@
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-svelte": "^3.5.1",
     "svelte": "^5.54.1",
-    "typescript": "^5.9.3"
+    "svelte-check": "^4.4.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
   }
 }
