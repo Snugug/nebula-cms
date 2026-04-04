@@ -37,13 +37,25 @@ export const collections = Object.keys(schemas).sort();
 /*
  * Uses .js extension because svelte-package does not rewrite URL string literals;
  * the dist output must reference the compiled .js file, not the source .ts file.
+ *
+ * Guarded for SSR: SharedWorker only exists in browsers. All code paths
+ * that use sharedWorker/storageClient run exclusively on the client
+ * (inside onMount, event handlers, or user-initiated actions).
  */
-const sharedWorker = new SharedWorker(
-  new URL('../storage/workers/storage.js', import.meta.url),
-  { type: 'module', name: 'cms-storage' },
-);
-// Main-thread StorageClient for editor and draft-merge I/O.
-export const storageClient = new StorageClient(sharedWorker.port);
+const sharedWorker =
+  typeof SharedWorker !== 'undefined'
+    ? new SharedWorker(
+        new URL('../storage/workers/storage.js', import.meta.url),
+        { type: 'module', name: 'cms-storage' },
+      )
+    : null;
+/*
+ * Main-thread StorageClient for editor and draft-merge I/O.
+ * Null during SSR but typed as non-null because every caller is client-only.
+ */
+export const storageClient = (
+  sharedWorker ? new StorageClient(sharedWorker.port) : null
+) as StorageClient;
 let backendType = $state<BackendType>(null);
 let backendReady = $state(false);
 let permissionState = $state<PermissionState>('denied');
@@ -119,7 +131,7 @@ function ensureWorker(): Worker {
   // Bridge a port so the frontmatter worker can talk to the storage SharedWorker
   const channel = new MessageChannel();
   worker.postMessage({ type: 'port' }, [channel.port1]);
-  sharedWorker.port.postMessage({ type: 'connect-port' }, [channel.port2]);
+  sharedWorker!.port.postMessage({ type: 'connect-port' }, [channel.port2]);
 
   return worker;
 }

@@ -56,7 +56,7 @@ import NebulaCMS from 'nebula-cms/client';
     <title>Nebula CMS</title>
   </head>
   <body>
-    <NebulaCMS client:only="svelte" />
+    <NebulaCMS client:load />
   </body>
 </html>
 ```

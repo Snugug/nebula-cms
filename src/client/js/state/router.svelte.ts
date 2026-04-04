@@ -15,8 +15,16 @@ export type AdminRoute =
 // Build-time constant — configured via the Astro integration
 const basePath = config.basePath;
 
-// Current route, reactive via Svelte 5 runes
-let route = $state<AdminRoute>(parsePathname(location.pathname));
+/*
+ * Current route, reactive via Svelte 5 runes.
+ * Defaults to 'home' during SSR where location is unavailable;
+ * the client re-initializes from the real pathname on hydration.
+ */
+let route = $state<AdminRoute>(
+  typeof location !== 'undefined'
+    ? parsePathname(location.pathname)
+    : { view: 'home' },
+);
 
 export const nav = {
   // Current parsed admin route.
