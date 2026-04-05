@@ -4,6 +4,8 @@
 
 A streamlined, Git-based Content Management System built specifically for [Astro](https://astro.build/). Nebula CMS provides a beautiful, unified editing interface for your Markdown, MDX, JSON, YAML, TOML, and Markdoc files, driven directly by your existing Astro [Content Collections](https://docs.astro.build/en/guides/content-collections/).
 
+![Screnshot of NebulaCMS using the author's blog as an example](https://github.com/user-attachments/assets/8ca305e9-4f26-4719-aae5-b70a5f1958e1)
+
 ## Features
 
 - **Painless Integration**: Plugs perfectly into Astro as a standard integration.
