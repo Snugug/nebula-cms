@@ -49,7 +49,10 @@ describe('NebulaCMS integration object', () => {
 
     expect(updateConfig).toHaveBeenCalledWith({
       vite: {
-        plugins: [expect.objectContaining({ name: 'vite-plugin-nebula-cms' })],
+        plugins: [
+          expect.objectContaining({ name: 'vite-plugin-nebula-cms' }),
+          expect.objectContaining({ name: 'vite-plugin-nebula-css-fix' }),
+        ],
         worker: { format: 'es' },
         optimizeDeps: { include: ['smol-toml'] },
       },
@@ -131,6 +134,74 @@ describe('NebulaCMS integration object', () => {
     expect(() => NebulaCMS({ basePath: '//admin' })).toThrow(
       'must not start with "//"',
     );
+  });
+});
+
+/*
+//////////////////////////////
+// nebulaCSSFixPlugin
+//////////////////////////////
+*/
+
+describe('nebulaCSSFixPlugin (via integration)', () => {
+  /**
+   * Extracts the CSS fix plugin from the integration's updateConfig call
+   * @return {{ transform: Function }} The CSS fix Vite plugin
+   */
+  function getCSSFixPlugin() {
+    const integration = NebulaCMS();
+    const updateConfig = vi.fn();
+    const logger = createMockLogger();
+    const hook = integration.hooks['astro:config:setup'] as Function;
+    hook({ updateConfig, logger });
+    const plugins = updateConfig.mock.calls[0][0].vite.plugins;
+    return plugins.find(
+      (p: { name: string }) => p.name === 'vite-plugin-nebula-css-fix',
+    );
+  }
+
+  it('ignores non-nebula CSS modules', () => {
+    const plugin = getCSSFixPlugin();
+    const result = plugin.transform(
+      '.foo { color: red; }',
+      '/some/other/package/Foo.svelte?svelte&type=style&lang.css',
+    );
+    expect(result).toBeNull();
+  });
+
+  it('strips cssScopeTo from nebula-cms CSS virtual modules', () => {
+    const plugin = getCSSFixPlugin();
+    const css = '.metadata-form { padding: 1rem; }';
+    const id =
+      '/node_modules/nebula-cms/dist/client/components/MetadataForm.svelte?svelte&type=style&lang.css';
+    const result = plugin.transform(css, id);
+    expect(result).toEqual({ code: css, meta: { vite: {} } });
+  });
+
+  it('preserves the original CSS code unchanged', () => {
+    const plugin = getCSSFixPlugin();
+    const css = '.editor-wrapper { display: grid; }';
+    const id =
+      '/node_modules/nebula-cms/dist/client/components/editor/EditorPane.svelte?svelte&type=style&lang.css';
+    const result = plugin.transform(css, id);
+    expect(result.code).toBe(css);
+  });
+
+  it('matches deeply nested component paths', () => {
+    const plugin = getCSSFixPlugin();
+    const id =
+      '/node_modules/nebula-cms/dist/client/components/fields/StringField.svelte?svelte&type=style&lang.css';
+    const result = plugin.transform('', id);
+    expect(result).not.toBeNull();
+  });
+
+  it('ignores non-style Svelte module requests', () => {
+    const plugin = getCSSFixPlugin();
+    const result = plugin.transform(
+      'export default {}',
+      '/node_modules/nebula-cms/dist/client/Admin.svelte',
+    );
+    expect(result).toBeNull();
   });
 });
 
