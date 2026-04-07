@@ -109,6 +109,7 @@ export default function NebulaCMS(
           vite: {
             plugins: [
               nebulaVitePlugin(logger, process.cwd(), normalizedConfig),
+              nebulaCSSFixPlugin(),
             ],
             /*
              * Workers use dynamic imports (e.g. storage worker lazy-loads
@@ -148,6 +149,33 @@ export default function NebulaCMS(
           copyFileSync(resolve(source, f), resolve(target, f));
         }
       },
+    },
+  };
+}
+
+/*
+ * Regex matching Svelte CSS virtual module IDs from nebula-cms.
+ * These IDs look like: .../nebula-cms/dist/client/Foo.svelte?svelte&type=style&lang.css
+ */
+const NEBULA_CSS_RE = /nebula-cms\/dist\/client\/.*\.svelte\?svelte&type=style/;
+
+/**
+ * Vite plugin that strips cssScopeTo metadata from nebula-cms CSS
+ * virtual modules. Without this, Astro's production build pipeline
+ * tree-shakes CSS for conditionally-rendered Svelte components
+ * (those behind {#if} blocks that don't execute during SSR),
+ * resulting in missing scoped styles in the production output.
+ * Removing cssScopeTo ensures the SSR build retains all component
+ * CSS regardless of which branches execute during prerendering.
+ * @return {object} Vite plugin
+ */
+function nebulaCSSFixPlugin() {
+  return {
+    name: 'vite-plugin-nebula-css-fix',
+    transform(code: string, id: string) {
+      if (!NEBULA_CSS_RE.test(id)) return null;
+      // Return the CSS unchanged but replace vite meta to strip cssScopeTo
+      return { code, meta: { vite: {} } };
     },
   };
 }
